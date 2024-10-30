@@ -1,0 +1,1 @@
+extends: ["spectral:oas", "spectral:asyncapi", "https://unpkg.com/@stoplight/spectral-owasp-ruleset/dist/ruleset.mjs"]
