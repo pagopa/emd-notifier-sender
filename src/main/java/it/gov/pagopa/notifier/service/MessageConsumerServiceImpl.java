@@ -81,7 +81,8 @@ public class MessageConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,Str
         MessageHeaders headers = message.getHeaders();
         long retry = getNextRetry(headers);
         if(retry == -1)
-            messageCoreService.sendMessage(messageDTO);
+            messageCoreService.sendMessage(messageDTO)
+                .subscribe();
         else if(retry!=0) {
             String messageUrl = (String) headers.get(ERROR_MSG_MESSAGE_URL);
             String authenticationUrl = (String) headers.get(ERROR_MSG_AUTH_URL);
@@ -89,6 +90,7 @@ public class MessageConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,Str
             log.info("[EMD-PROCESS-COMMAND] Try {} for message {}",retry,messageDTO.getMessageId());
             sendMessageService.sendMessage(messageDTO, messageUrl, authenticationUrl, entidyId,retry)
                     .subscribe();
+
         }
         else
             log.info("[EMD-PROCESS-COMMAND] Message {} not retryable", messageDTO.getMessageId());
