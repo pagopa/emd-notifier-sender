@@ -1,0 +1,23 @@
+name: Snapshot docker build and push
+
+on:
+  push:
+    # Sequence of patterns matched against refs/heads
+    branches-ignore:
+      - 'main'
+    paths-ignore:
+      - 'CODEOWNERS'
+      - '**.md'
+      - '.**'
+
+jobs:
+  release:
+    name: Snapshot Docker
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: 📦 Docker build and push
+        id: release
+        uses: pagopa/eng-github-actions-iac-template/global/docker-build-push@main #
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
