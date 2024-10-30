@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: cef0300fd0fc4d2a87a85fa2093c6b283ea36f4b # v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: check-added-large-files
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: 89f45610a846f56273a6c4290b3c42534175949e # v1.96.1
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_docs
+        args:
+          - markdown --sort-by required
+      - id: terraform_validate
+        args:
+          - --init-args=-lockfile=readonly
+          - --args=-json
+          - --args=-no-color
+#      - id: terraform_providers_lock
+#        args:
+#          - --args=-platform=windows_amd64
+#          - --args=-platform=darwin_amd64
+#          - --args=-platform=darwin_arm64
+#          - --args=-platform=linux_amd64
+#          - --args=-platform=linux_arm64
