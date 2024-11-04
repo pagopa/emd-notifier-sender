@@ -1,7 +1,7 @@
 package it.gov.pagopa.notifier.event.consumer;
 
 
-import it.gov.pagopa.notifier.service.MessageConsumerService;
+import it.gov.pagopa.notifier.service.MessageCoreConsumerService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -11,11 +11,11 @@ import java.util.function.Consumer;
 
 
 @Configuration
-public class MessageConsumer {
+public class MessageCoreConsumer {
 
 
     @Bean
-    public Consumer<Flux<Message<String>>> consumerCommands(MessageConsumerService consumerService) {
+    public Consumer<Flux<Message<String>>> consumerMessage(MessageCoreConsumerService consumerService) {
         return consumerService::execute;
     }
 

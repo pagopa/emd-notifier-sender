@@ -2,38 +2,30 @@ package it.gov.pagopa.notifier.service;
 
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.event.producer.MessageProducer;
+import it.gov.pagopa.notifier.event.producer.NotifyErrorProducer;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
 
 @Slf4j
 @Service
-public class QueueMessageProducerServiceImpl implements QueueMessageProducerService {
+public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerService {
 
-    private final MessageProducer messageErrorProducer;
+    private final NotifyErrorProducer notifyErrorProducer;
 
-    public QueueMessageProducerServiceImpl(MessageProducer messageErrorProducer){
-        this.messageErrorProducer = messageErrorProducer;
-    }
-
-     @Override
-    public Mono<Void> enqueueMessage(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId) {
-        Message<MessageDTO> message = createMessage(messageDTO, messageUrl, authenticationUrl, entityId,0);
-        messageErrorProducer.sendToMessageErrorQueue(message);
-        return Mono.empty();
+    public NotifyErrorProducerServiceImpl(NotifyErrorProducer notifyErrorProducer){
+        this.notifyErrorProducer = notifyErrorProducer;
     }
 
 
     @Override
-    public void enqueueMessage(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
+    public void enqueueNotify(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
         Message<MessageDTO> message = createMessage(messageDTO, messageUrl, authenticationUrl, entityId, retry);
-        messageErrorProducer.sendToMessageErrorQueue(message);
+        notifyErrorProducer.sendToNotifyErrorQueue(message);
     }
 
     @NotNull

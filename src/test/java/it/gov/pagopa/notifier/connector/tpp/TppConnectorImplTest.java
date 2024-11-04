@@ -1,11 +1,11 @@
-package it.gov.pagopa.notifier.connector;
+package it.gov.pagopa.notifier.connector.tpp;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.gov.pagopa.notifier.connector.citizen.CitizenConnectorImpl;
-import it.gov.pagopa.notifier.dto.CitizenConsentDTO;
-import it.gov.pagopa.notifier.faker.CitizenConsentDTOFaker;
+import it.gov.pagopa.notifier.dto.TppDTO;
+import it.gov.pagopa.notifier.dto.TppIdList;
+import it.gov.pagopa.notifier.faker.TppDTOFaker;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
@@ -20,20 +20,19 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 @ExtendWith(MockitoExtension.class)
-class CitizenConnectorImplTest {
+class TppConnectorImplTest {
 
  private MockWebServer mockWebServer;
 
- private CitizenConnectorImpl citizenConnector;
+ private TppConnectorImpl tppConnector;
 
  @BeforeEach
  void setUp() throws IOException {
   mockWebServer = new MockWebServer();
   mockWebServer.start();
 
-  citizenConnector = new CitizenConnectorImpl(mockWebServer.url("/").toString());
+  tppConnector = new TppConnectorImpl(mockWebServer.url("/").toString());
  }
 
  @AfterEach
@@ -43,23 +42,21 @@ class CitizenConnectorImplTest {
 
 
  @Test
- void testGetCitizenConsentsEnabled() throws JsonProcessingException, InterruptedException {
-   String fiscalCode = "12345678901";
-   CitizenConsentDTO citizenConsentDTO = CitizenConsentDTOFaker.mockInstance(true);
+ void testGetTppsEnabled() throws JsonProcessingException {
+   String tppId = "12345678901";
+   TppIdList tppIdList = new TppIdList(List.of(tppId));
+   TppDTO tppDTO = TppDTOFaker.mockInstance();
    ObjectMapper objectMapper = new ObjectMapper();
-   String mockResponseBody = objectMapper.writeValueAsString(List.of(citizenConsentDTO));
+   String mockResponseBody = objectMapper.writeValueAsString(List.of(tppDTO));
 
    mockWebServer.enqueue(new MockResponse()
            .setResponseCode(200)
            .setBody(mockResponseBody)
            .addHeader("Content-Type", "application/json"));
 
-   citizenConnector.getCitizenConsentsEnabled(fiscalCode);
-   Mono<List<CitizenConsentDTO>> resultMono = citizenConnector.getCitizenConsentsEnabled(fiscalCode);
-
-   List<CitizenConsentDTO> consentList = resultMono.block();
-   assertThat(consentList).hasSize(1);
-   assertThat(consentList.get(0)).isEqualTo(citizenConsentDTO);
- }
-
+     Mono<List<TppDTO>> resultMono = tppConnector.getTppsEnabled(tppIdList);
+     List<TppDTO> consentList = resultMono.block();
+     assertThat(consentList).hasSize(1);
+     assertThat(consentList.get(0)).isEqualTo(tppDTO);
+  }
 }

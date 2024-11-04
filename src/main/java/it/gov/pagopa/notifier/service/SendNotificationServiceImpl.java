@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 public class SendNotificationServiceImpl implements SendNotificationService {
 
     private final WebClient webClient;
-    private final QueueMessageProducerService queueMessageProducerService;
+    private final NotifyErrorProducerService notifyErrorProducerService;
 
     private final MessageRepository messageRepository;
 
@@ -30,13 +30,13 @@ public class SendNotificationServiceImpl implements SendNotificationService {
     private final String grantType;
     private final String tenantId;
 
-    public SendNotificationServiceImpl(QueueMessageProducerService queueMessageProducerService,
+    public SendNotificationServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
                                        MessageRepository messageRepository, MessageMapperDTOToObject mapperDTOToObject, @Value("${app.token.client}") String client,
                                        @Value("${app.token.clientId}") String clientId,
                                        @Value("${app.token.grantType}") String grantType,
                                        @Value("${app.token.tenantId}") String tenantId) {
         this.webClient = WebClient.builder().build();
-        this.queueMessageProducerService = queueMessageProducerService;
+        this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
         this.mapperDTOToObject = mapperDTOToObject;
         this.client = client;
@@ -45,25 +45,15 @@ public class SendNotificationServiceImpl implements SendNotificationService {
         this.tenantId = tenantId;
     }
 
-    @Override
-    public Mono<Void> sendMessage(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId) {
-        return getToken(authenticationUrl)
-                .flatMap(token -> toUrl(messageDTO, messageUrl, token, entityId))
-                .onErrorResume(e -> {
-                    log.error("[EMD-NOTIFIER-SENDER][SEND]Error while sending message");
-                    queueMessageProducerService.enqueueMessage(messageDTO, messageUrl, authenticationUrl,entityId);
-                    return Mono.empty();
-                })
-                .then();
-    }
+
 
     @Override
-    public Mono<Void> sendMessage(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
+    public Mono<Void> sendNotification(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
         return getToken(authenticationUrl)
                 .flatMap(token -> toUrl(messageDTO, messageUrl, token, entityId))
                 .onErrorResume(e -> {
                     log.error("[EMD-NOTIFIER-SENDER][SEND]Error while sending message");
-                    queueMessageProducerService.enqueueMessage(messageDTO, messageUrl, authenticationUrl,entityId,retry);
+                    notifyErrorProducerService.enqueueNotify(messageDTO, messageUrl, authenticationUrl,entityId,retry);
                     return Mono.empty();
                 })
                 .then();

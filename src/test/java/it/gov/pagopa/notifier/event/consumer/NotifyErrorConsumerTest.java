@@ -2,7 +2,7 @@ package it.gov.pagopa.notifier.event.consumer;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.faker.MessageDTOFaker;
-import it.gov.pagopa.notifier.service.MessageConsumerService;
+import it.gov.pagopa.notifier.service.NotifyErrorConsumerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,16 +19,16 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class MessageConsumerTest {
+class NotifyErrorConsumerTest {
 
     @Mock
-    MessageConsumerService messageConsumerService;
+    NotifyErrorConsumerService notifyErrorConsumerService;
     @InjectMocks
-    MessageConsumer messageConsumer;
+    NotifyErrorConsumer notifyErrorConsumer;
     private Consumer<Flux<Message<String>>> consumerCommands;
     @BeforeEach
     public void setUp(){
-        consumerCommands = messageConsumer.consumerCommands(messageConsumerService);
+        consumerCommands = notifyErrorConsumer.consumerNotify(notifyErrorConsumerService);
     }
 
 
@@ -46,7 +46,7 @@ class MessageConsumerTest {
                 .build();
         Flux<Message<String>> flux = Flux.just(message);
         consumerCommands.accept(flux);
-        verify(messageConsumerService).execute(flux);
+        verify(notifyErrorConsumerService).execute(flux);
     }
 
 

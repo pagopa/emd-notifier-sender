@@ -6,7 +6,6 @@ import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
@@ -22,24 +21,21 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 
 @Service
 @Slf4j
-public class MessageConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,String> implements MessageConsumerService {
+public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,String> implements NotifyErrorConsumerService {
 
     private final Duration commitDelay;
     private final Duration delayMinusCommit;
     private final ObjectReader objectReader;
     private final SendNotificationServiceImpl sendMessageService;
-    private final MessageServiceImpl messageCoreService;
     private final long maxRetry;
-    public MessageConsumerServiceImpl(ObjectMapper objectMapper,
-                                      SendNotificationServiceImpl sendMessageService,
-                                      @Value("${app.retry.max-retry}") long maxRetry,
-                                      @Value("${spring.application.name}") String applicationName,
-                                      @Value("${spring.cloud.stream.kafka.bindings.consumerCommands-in-0.consumer.ackTime}") long commitMillis,
-                                      @Value("${app.message-core.build-delay-duration}") String delayMinusCommit,
-                                      MessageServiceImpl messageCoreService) {
+    public NotifyErrorConsumerServiceImpl(ObjectMapper objectMapper,
+                                              SendNotificationServiceImpl sendMessageService,
+                                              @Value("${app.retry.max-retry}") long maxRetry,
+                                              @Value("${spring.application.name}") String applicationName,
+                                              @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitMillis,
+                                              @Value("${app.message-core.build-delay-duration}") String delayMinusCommit) {
         super(applicationName);
         this.commitDelay = Duration.ofMillis(commitMillis);
-        this.messageCoreService = messageCoreService;
         Duration buildDelayDuration = Duration.parse(delayMinusCommit).minusMillis(commitMillis);
         Duration defaultDurationDelay = Duration.ofMillis(2L);
         this.delayMinusCommit = defaultDurationDelay.compareTo(buildDelayDuration) >= 0 ? defaultDurationDelay : buildDelayDuration;
@@ -47,6 +43,7 @@ public class MessageConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,Str
         this.maxRetry = maxRetry;
         this.sendMessageService = sendMessageService;
     }
+
 
     @Override
     protected Duration getCommitDelay() {
@@ -57,7 +54,7 @@ public class MessageConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,Str
     protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
         afterCommits2subscribe
                 .buffer(delayMinusCommit)
-                .subscribe(r -> log.info("[NOTIFIER-SENDER-COMMANDS] Processed offsets committed successfully"));
+                .subscribe(r -> log.info("[NOTIFIER-ERROR-COMMANDS] Processed offsets committed successfully"));
     }
 
     @Override
@@ -77,34 +74,29 @@ public class MessageConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,Str
 
     @Override
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
-        log.info("[EMD-PROCESS-COMMAND] Queue message received: {}",message.getPayload());
+        log.info("[NOTIFIER-ERROR-COMMANDS] Queue message received: {}",message.getPayload());
         MessageHeaders headers = message.getHeaders();
         long retry = getNextRetry(headers);
-        if(retry == -1)
-            messageCoreService.sendMessage(messageDTO)
-                .subscribe();
-        else if(retry!=0) {
+        if(retry!=0) {
             String messageUrl = (String) headers.get(ERROR_MSG_MESSAGE_URL);
             String authenticationUrl = (String) headers.get(ERROR_MSG_AUTH_URL);
-            String entidyId = (String) headers.get(ERROR_MSG_ENTITY_ID);
-            log.info("[EMD-PROCESS-COMMAND] Try {} for message {}",retry,messageDTO.getMessageId());
-            sendMessageService.sendMessage(messageDTO, messageUrl, authenticationUrl, entidyId,retry)
+            String entityId = (String) headers.get(ERROR_MSG_ENTITY_ID);
+            log.info("[NOTIFIER-ERROR-COMMANDS] Try {} for message {}",retry,messageDTO.getMessageId());
+            sendMessageService.sendNotification(messageDTO, messageUrl, authenticationUrl, entityId,retry)
                     .subscribe();
-
         }
         else
-            log.info("[EMD-PROCESS-COMMAND] Message {} not retryable", messageDTO.getMessageId());
+            log.info("[NOTIFIER-ERROR-COMMANDS] Message {} not retryable", messageDTO.getMessageId());
         return Mono.empty();
     }
 
     private long getNextRetry(MessageHeaders headers) {
         Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
-        if(retry == null)
-            return -1;
-        else if (retry >=0 && retry<maxRetry)
+        if (retry != null && retry >= 0 && retry < maxRetry) {
             return 1 + retry;
-        else
+        } else {
             return 0;
+        }
     }
 
 }

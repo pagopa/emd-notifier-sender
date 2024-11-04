@@ -16,15 +16,15 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 import static org.mockito.Mockito.*;
 
 @ExtendWith({MockitoExtension.class})
-class MessageErrorProducerTest {
+class NotifyErrorProducerTest {
 
     @Mock
     private StreamBridge streamBridge;
     @InjectMocks
-    private MessageProducer messageErrorProducer;
+    private MessageCoreProducer messageErrorProducer;
 
     @Test
-     void testStreamBridgeSendCalled() throws Exception {
+     void testStreamBridgeSendCalled() {
 
         MessageDTO messageDTO = MessageDTOFaker.mockInstance();
         String messageUrl = "messegaUrl";
@@ -37,7 +37,7 @@ class MessageErrorProducerTest {
                 .setHeader(ERROR_MSG_MESSAGE_URL, messageUrl)
                 .build();
 
-        messageErrorProducer.sendToMessageErrorQueue(message);
+        messageErrorProducer.sendToMessageQueue(message);
         verify(streamBridge, times(1)).send(eq("messageSender-out-0"), any(), eq(message));
 
     }

@@ -24,26 +24,28 @@ public class MessageServiceImpl implements MessageService {
 
     private final CitizenConnectorImpl citizenConnector;
     private final TppConnectorImpl tppConnector;
-    private final QueueMessageProducerServiceImpl queueMessageProducerService;
+    private final MessageCoreProducerServiceImpl messageCoreProducerService;
+    private final SendNotificationServiceImpl sendNotificationService;
 
     public MessageServiceImpl(CitizenConnectorImpl citizenConnector,
-                                  TppConnectorImpl tppConnector,
-                                  QueueMessageProducerServiceImpl queueMessageProducerService) {
+                              TppConnectorImpl tppConnector,
+                              MessageCoreProducerServiceImpl messageCoreProducerService, SendNotificationServiceImpl sendNotificationService) {
         this.tppConnector = tppConnector;
         this.citizenConnector = citizenConnector;
-        this.queueMessageProducerService = queueMessageProducerService;
+        this.messageCoreProducerService = messageCoreProducerService;
+        this.sendNotificationService = sendNotificationService;
     }
 
 
     @Override
-    public Mono<Outcome> sendMessage(MessageDTO messageDTO) {
+    public Mono<Void> processMessage(MessageDTO messageDTO, long retry) {
         log.info("[EMD-NOTIFIER-SENDER][SEND]Received message: {}", messageDTO);
 
         return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
                 .flatMap(citizenConsentDTOSList -> {
                     if (citizenConsentDTOSList.isEmpty()) {
                         log.info("[EMD-NOTIFIER-SENDER][SEND]Citizen consent list is empty");
-                        return Mono.just(new Outcome(OutcomeStatus.NO_CHANNELS_ENABLED));
+                        return Mono.empty();
                     }
 
                     log.info("[EMD-NOTIFIER-SENDER][SEND]Citizen consent list: {}", citizenConsentDTOSList);
@@ -56,22 +58,32 @@ public class MessageServiceImpl implements MessageService {
                             .flatMap(tppList -> {
                                 if (tppList.isEmpty()) {
                                     log.info("[EMD-NOTIFIER-SENDER][SEND]Channel list is empty");
-                                    return Mono.just(new Outcome(OutcomeStatus.NO_CHANNELS_ENABLED));
+                                    return Mono.empty();
                                 }
                                 log.info("[EMD-NOTIFIER-SENDER][SEND]Channel list: {}", tppList);
-                                return processMessages(tppList, messageDTO);
+                                return sendNotifications(tppList, messageDTO);
+                            })
+                            .onErrorResume(e -> {
+                                log.error("[EMD-NOTIFIER-SENDER][SEND]Error while sending message");
+                                messageCoreProducerService.enqueueMessage(messageDTO,retry);
+                                return Mono.empty();
                             });
+                })
+                .onErrorResume(e -> {
+                    log.error("[EMD-NOTIFIER-SENDER][SEND]Error while sending message");
+                    messageCoreProducerService.enqueueMessage(messageDTO,retry);
+                    return Mono.empty();
                 });
     }
-    private Mono<Outcome> processMessages(List<TppDTO> tppDTOList,
-                                          MessageDTO messageDTO) {
+    private Mono<Void> sendNotifications(List<TppDTO> tppDTOList, MessageDTO messageDTO) {
        return Flux.fromIterable(tppDTOList)
                 .flatMap(tppDTO -> {
                     log.info("[EMD-NOTIFIER-SENDER][SEND]Prepare sending message to: {}", tppDTO.getTppId());
-                    return queueMessageProducerService.enqueueMessage(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId());
+                    sendNotificationService.sendNotification(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId(),0);
+                    return Mono.empty();
                 })
                 .then()
-                .thenReturn(new Outcome(OutcomeStatus.OK));
+                .thenReturn(new Outcome(OutcomeStatus.OK)).then();
     }
 
 }
