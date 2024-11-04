@@ -27,14 +27,10 @@ class MessageCoreProducerTest {
      void testStreamBridgeSendCalled() {
 
         MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        String messageUrl = "messegaUrl";
-        String authenticationUrl = "authenticationUrl";
         long retry = 1;
         Message<MessageDTO> message = MessageBuilder
                 .withPayload(messageDTO)
                 .setHeader(ERROR_MSG_HEADER_RETRY, retry)
-                .setHeader(ERROR_MSG_AUTH_URL, authenticationUrl)
-                .setHeader(ERROR_MSG_MESSAGE_URL, messageUrl)
                 .build();
 
         messageErrorProducer.sendToMessageQueue(message);

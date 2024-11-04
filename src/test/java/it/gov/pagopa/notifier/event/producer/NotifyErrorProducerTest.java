@@ -21,7 +21,7 @@ class NotifyErrorProducerTest {
     @Mock
     private StreamBridge streamBridge;
     @InjectMocks
-    private MessageCoreProducer messageErrorProducer;
+    private NotifyErrorProducer notifyErrorProducer;
 
     @Test
      void testStreamBridgeSendCalled() {
@@ -37,8 +37,8 @@ class NotifyErrorProducerTest {
                 .setHeader(ERROR_MSG_MESSAGE_URL, messageUrl)
                 .build();
 
-        messageErrorProducer.sendToMessageQueue(message);
-        verify(streamBridge, times(1)).send(eq("messageSender-out-0"), any(), eq(message));
+        notifyErrorProducer.sendToNotifyErrorQueue(message);
+        verify(streamBridge, times(1)).send(eq("notifySender-out-0"), any(), eq(message));
 
     }
 }
