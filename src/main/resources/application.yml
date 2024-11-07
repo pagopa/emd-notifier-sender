@@ -24,7 +24,7 @@ spring:
 
   cloud:
     function:
-      definition: consumerMessage, consumerNotify
+      definition: consumerMessage;consumerNotify
     stream:
       binders:
         kafka-message-core-in:
