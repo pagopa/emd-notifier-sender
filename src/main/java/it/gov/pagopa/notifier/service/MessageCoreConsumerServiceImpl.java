@@ -74,8 +74,10 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
         log.info("[MESSAGE-CORE-COMMANDS] Queue message received: {}",message.getPayload());
         MessageHeaders headers = message.getHeaders();
         Long retry =  (Long) headers.get(ERROR_MSG_HEADER_RETRY);
-        if (retry != null)
-            messageCoreService.processMessage(messageDTO,retry).subscribe();
+        if (retry != null) {
+            log.info("[MESSAGE-CORE-COMMANDS] Try {} for message {}",retry,messageDTO.getMessageId());
+            messageCoreService.processMessage(messageDTO, retry).subscribe();
+        }
         return Mono.empty();
     }
 

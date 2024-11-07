@@ -78,7 +78,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
             String messageUrl = (String) headers.get(ERROR_MSG_MESSAGE_URL);
             String authenticationUrl = (String) headers.get(ERROR_MSG_AUTH_URL);
             String entityId = (String) headers.get(ERROR_MSG_ENTITY_ID);
-            log.info("[NOTIFIER-ERROR-COMMANDS] Try {} for message {}",retry,messageDTO.getMessageId());
+            log.info("[NOTIFIER-ERROR-COMMANDS] Try {} for notification {} to {}",retry,messageDTO.getMessageId(),entityId);
             sendMessageService.sendNotification(messageDTO, messageUrl, authenticationUrl, entityId,retry)
                     .subscribe();
         }
