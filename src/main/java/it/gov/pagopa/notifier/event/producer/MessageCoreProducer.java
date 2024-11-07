@@ -8,6 +8,9 @@ import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 
 @Component
 @Slf4j
@@ -16,15 +19,21 @@ public class MessageCoreProducer {
   private final String binder;
   private final StreamBridge streamBridge;
 
+  private final ScheduledExecutorService scheduler;
+
   public MessageCoreProducer(StreamBridge streamBridge,
-                             @Value("${spring.cloud.stream.bindings.messageSender-out-0.binder}")String binder) {
+                             @Value("${spring.cloud.stream.bindings.messageSender-out-0.binder}")String binder, ScheduledExecutorService scheduler) {
     this.streamBridge = streamBridge;
     this.binder = binder;
+    this.scheduler = scheduler;
   }
 
   public void sendToMessageQueue(Message<MessageDTO> message) {
     log.info("[EMD-NOTIFIER-SENDER][SEND] Scheduling message {} to messageSenderQueue",message.getPayload().getMessageId());
-    streamBridge.send("messageSender-out-0", binder, message);
+    scheduler.schedule(
+            () -> streamBridge.send("messageSender-out-0", binder, message),
+            5,
+            TimeUnit.SECONDS);
   }
 }
 
