@@ -1,11 +1,13 @@
 package it.gov.pagopa.notifier.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import it.gov.pagopa.common.utils.CommonUtilities;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 @AllArgsConstructor
 @Data
@@ -18,6 +20,7 @@ public class MessageDTO {
     private String senderDescription;
     private String messageUrl;
     private String originId;
+    @JsonAlias("message")
     private String content;
     private String entityId;
 

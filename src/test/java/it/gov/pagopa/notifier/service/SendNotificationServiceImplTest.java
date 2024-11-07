@@ -2,7 +2,7 @@ package it.gov.pagopa.notifier.service;
 
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.dto.MessageMapperDTOToObject;
+import it.gov.pagopa.notifier.dto.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.dto.TokenDTO;
 import it.gov.pagopa.notifier.faker.MessageDTOFaker;
 import it.gov.pagopa.notifier.faker.MessageFaker;

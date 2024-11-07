@@ -4,10 +4,8 @@ import it.gov.pagopa.notifier.connector.citizen.CitizenConnectorImpl;
 import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.custom.CitizenInvocationException;
 import it.gov.pagopa.notifier.custom.TppInvocationException;
-import it.gov.pagopa.notifier.dto.CitizenConsentDTO;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.TppDTO;
-import it.gov.pagopa.notifier.faker.CitizenConsentDTOFaker;
 import it.gov.pagopa.notifier.faker.MessageDTOFaker;
 import it.gov.pagopa.notifier.faker.TppDTOFaker;
 import org.junit.jupiter.api.Test;
@@ -45,7 +43,7 @@ class MessageCoreServiceTest {
     @Test
     void sendMessage_Ok()  {
         MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        List<CitizenConsentDTO> citizenConsents = List.of(CitizenConsentDTOFaker.mockInstance(true));
+        List<String> citizenConsents = List.of("tppId");
         List<TppDTO> tppDTOS = List.of(TppDTOFaker.mockInstance());
 
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
@@ -63,7 +61,7 @@ class MessageCoreServiceTest {
     @Test
     void sendMessage_NoChannelEnabled_Case_NoConsents()  {
         MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        List<CitizenConsentDTO> citizenConsents = List.of();
+        List<String> citizenConsents = List.of();
 
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(citizenConsents));
@@ -76,7 +74,7 @@ class MessageCoreServiceTest {
     @Test
     void sendMessage_NoChannelEnabled_Case_NoChannels()  {
         MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        List<CitizenConsentDTO> citizenConsents = List.of(CitizenConsentDTOFaker.mockInstance(true));
+        List<String> citizenConsents = List.of("tppId");
         List<TppDTO> tppDTOS = List.of();
 
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
@@ -98,14 +96,14 @@ class MessageCoreServiceTest {
                 .thenReturn(Mono.error(new CitizenInvocationException()));
 
         messageCoreService.processMessage(messageDTO,0).block();
-        verify(messageCoreProducerService,times(1)).enqueueMessage(messageDTO,0);
+        verify(messageCoreProducerService,times(1)).enqueueMessage(messageDTO,1);
 
     }
 
     @Test
     void sendMessage_Ko_TppException()  {
         MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        List<CitizenConsentDTO> citizenConsents = List.of(CitizenConsentDTOFaker.mockInstance(true));
+        List<String> citizenConsents = List.of("tppId");
 
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(citizenConsents));
@@ -114,7 +112,7 @@ class MessageCoreServiceTest {
                 .thenReturn(Mono.error(new TppInvocationException()));
 
         messageCoreService.processMessage(messageDTO,0).block();
-        verify(messageCoreProducerService,times(1)).enqueueMessage(messageDTO,0);
+        verify(messageCoreProducerService,times(1)).enqueueMessage(messageDTO,1);
 
     }
 }

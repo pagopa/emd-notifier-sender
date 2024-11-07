@@ -1,5 +1,6 @@
-package it.gov.pagopa.notifier.dto;
+package it.gov.pagopa.notifier.dto.mapper;
 
+import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.model.Message;
 import org.springframework.stereotype.Service;
 

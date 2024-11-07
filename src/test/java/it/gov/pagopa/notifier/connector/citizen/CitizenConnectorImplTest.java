@@ -3,8 +3,6 @@ package it.gov.pagopa.notifier.connector.citizen;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.gov.pagopa.notifier.dto.CitizenConsentDTO;
-import it.gov.pagopa.notifier.faker.CitizenConsentDTOFaker;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
@@ -44,9 +42,8 @@ class CitizenConnectorImplTest {
  @Test
  void testGetCitizenConsentsEnabled() throws JsonProcessingException {
    String fiscalCode = "12345678901";
-   CitizenConsentDTO citizenConsentDTO = CitizenConsentDTOFaker.mockInstance(true);
    ObjectMapper objectMapper = new ObjectMapper();
-   String mockResponseBody = objectMapper.writeValueAsString(List.of(citizenConsentDTO));
+   String mockResponseBody = objectMapper.writeValueAsString(List.of("tppId"));
 
    mockWebServer.enqueue(new MockResponse()
            .setResponseCode(200)
@@ -54,11 +51,11 @@ class CitizenConnectorImplTest {
            .addHeader("Content-Type", "application/json"));
 
    citizenConnector.getCitizenConsentsEnabled(fiscalCode);
-   Mono<List<CitizenConsentDTO>> resultMono = citizenConnector.getCitizenConsentsEnabled(fiscalCode);
+   Mono<List<String>> resultMono = citizenConnector.getCitizenConsentsEnabled(fiscalCode);
 
-   List<CitizenConsentDTO> consentList = resultMono.block();
+   List<String> consentList = resultMono.block();
    assertThat(consentList).hasSize(1);
-   assertThat(consentList.get(0)).isEqualTo(citizenConsentDTO);
+   assertThat(consentList.get(0)).isEqualTo("tppId");
  }
 
 }

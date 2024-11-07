@@ -47,6 +47,7 @@ class TppConnectorImplTest {
    TppIdList tppIdList = new TppIdList(List.of(tppId));
    TppDTO tppDTO = TppDTOFaker.mockInstance();
    ObjectMapper objectMapper = new ObjectMapper();
+
    String mockResponseBody = objectMapper.writeValueAsString(List.of(tppDTO));
 
    mockWebServer.enqueue(new MockResponse()

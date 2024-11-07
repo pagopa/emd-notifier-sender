@@ -2,12 +2,10 @@ package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.connector.citizen.CitizenConnectorImpl;
 import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
-import it.gov.pagopa.notifier.dto.CitizenConsentDTO;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.dto.TppIdList;
-import it.gov.pagopa.notifier.enums.OutcomeStatus;
-import it.gov.pagopa.notifier.model.Outcome;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -42,19 +40,15 @@ public class MessageServiceImpl implements MessageService {
         log.info("[EMD-NOTIFIER-SENDER][SEND]Received message: {}", messageDTO);
 
         return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
-                .flatMap(citizenConsentDTOSList -> {
-                    if (citizenConsentDTOSList.isEmpty()) {
+                .flatMap(tppIdList -> {
+                    if (tppIdList.isEmpty()) {
                         log.info("[EMD-NOTIFIER-SENDER][SEND]Citizen consent list is empty");
                         return Mono.empty();
                     }
 
-                    log.info("[EMD-NOTIFIER-SENDER][SEND]Citizen consent list: {}", citizenConsentDTOSList);
+                    log.info("[EMD-NOTIFIER-SENDER][SEND]Citizen consent list: {}", tppIdList);
 
-                    List<String> tppIds = citizenConsentDTOSList.stream()
-                            .map(CitizenConsentDTO::getTppId)
-                            .toList();
-
-                    return tppConnector.getTppsEnabled(new TppIdList(tppIds))
+                    return tppConnector.getTppsEnabled(new TppIdList(tppIdList))
                             .flatMap(tppList -> {
                                 if (tppList.isEmpty()) {
                                     log.info("[EMD-NOTIFIER-SENDER][SEND]Channel list is empty");
@@ -64,14 +58,14 @@ public class MessageServiceImpl implements MessageService {
                                 return sendNotifications(tppList, messageDTO);
                             })
                             .onErrorResume(e -> {
-                                log.error("[EMD-NOTIFIER-SENDER][SEND]Error while sending message");
-                                messageCoreProducerService.enqueueMessage(messageDTO,retry);
+                                log.error("[EMD-NOTIFIER-SENDER][SEND]Error while getting Tpps info");
+                                enqueueWithRetry(messageDTO, retry);
                                 return Mono.empty();
                             });
                 })
                 .onErrorResume(e -> {
-                    log.error("[EMD-NOTIFIER-SENDER][SEND]Error while sending message");
-                    messageCoreProducerService.enqueueMessage(messageDTO,retry);
+                    log.error("[EMD-NOTIFIER-SENDER][SEND]Error while getting Tpps id");
+                    enqueueWithRetry(messageDTO, retry);
                     return Mono.empty();
                 });
     }
@@ -79,11 +73,14 @@ public class MessageServiceImpl implements MessageService {
        return Flux.fromIterable(tppDTOList)
                 .flatMap(tppDTO -> {
                     log.info("[EMD-NOTIFIER-SENDER][SEND]Prepare sending message to: {}", tppDTO.getTppId());
-                    sendNotificationService.sendNotification(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId(),0);
-                    return Mono.empty();
+                    return sendNotificationService.sendNotification(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId(),0);
                 })
-                .then()
-                .thenReturn(new Outcome(OutcomeStatus.OK)).then();
+                .then();
+    }
+
+    private void enqueueWithRetry(MessageDTO messageDTO, long retry) {
+        log.info("[EMD-NOTIFIER-SENDER][RETRY] Enqueueing message for retry: {}, attempt: {}", messageDTO, retry + 1);
+        messageCoreProducerService.enqueueMessage(messageDTO, retry + 1);
     }
 
 }

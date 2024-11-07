@@ -12,8 +12,6 @@ import java.util.function.Consumer;
 
 @Configuration
 public class MessageCoreConsumer {
-
-
     @Bean
     public Consumer<Flux<Message<String>>> consumerMessage(MessageCoreConsumerService consumerService) {
         return consumerService::execute;

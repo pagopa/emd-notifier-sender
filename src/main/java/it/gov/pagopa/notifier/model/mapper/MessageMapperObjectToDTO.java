@@ -1,12 +1,13 @@
-package it.gov.pagopa.notifier.model;
+package it.gov.pagopa.notifier.model.mapper;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
+import it.gov.pagopa.notifier.model.Message;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MessageMapperObjectToDTO {
 
-    public MessageDTO map(Message message,String fiscalCode){
+    public MessageDTO map(Message message, String fiscalCode){
         return MessageDTO.builder()
                 .recipientId(fiscalCode)
                 .messageId(message.getMessageId())

@@ -3,7 +3,7 @@ package it.gov.pagopa.notifier.service;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.TokenDTO;
 import it.gov.pagopa.notifier.model.Message;
-import it.gov.pagopa.notifier.dto.MessageMapperDTOToObject;
+import it.gov.pagopa.notifier.dto.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

@@ -2,7 +2,7 @@ package it.gov.pagopa.notifier.stub.service;
 
 import it.gov.pagopa.common.utils.CommonUtilities;
 import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.model.MessageMapperObjectToDTO;
+import it.gov.pagopa.notifier.model.mapper.MessageMapperObjectToDTO;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;

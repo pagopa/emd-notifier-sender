@@ -23,7 +23,7 @@ public class NotifyErrorProducer {
   }
 
   public void sendToNotifyErrorQueue(Message<MessageDTO> message) {
-    log.info("[EMD-NOTIFIER-SENDER][SEND] Scheduling message {} to queue",message.getPayload().getMessageId());
+    log.info("[EMD-NOTIFIER-SENDER][SEND] Scheduling message {} to notifyErrorQueue",message.getPayload().getMessageId());
     streamBridge.send("notifySender-out-0", binder, message);
   }
 }
