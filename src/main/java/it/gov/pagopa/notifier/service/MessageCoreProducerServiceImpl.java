@@ -5,6 +5,7 @@ import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.event.producer.MessageCoreProducer;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
@@ -16,15 +17,21 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 public class MessageCoreProducerServiceImpl implements MessageCoreProducerService {
 
     private final MessageCoreProducer messageCoreProducer;
+    private final Long maxTry;
 
-    public MessageCoreProducerServiceImpl(MessageCoreProducer messageCoreProducer){
+    public MessageCoreProducerServiceImpl(MessageCoreProducer messageCoreProducer,
+                                          @Value("${app.retry.max-retry}") long maxRetry){
         this.messageCoreProducer = messageCoreProducer;
+        this.maxTry = maxRetry;
     }
 
     @Override
     public void enqueueMessage(MessageDTO messageDTO, long retry) {
-        Message<MessageDTO> message = createMessage(messageDTO,retry);
-        messageCoreProducer.sendToMessageQueue(message);
+        if (retry <= maxTry) {
+            Message<MessageDTO> message = createMessage(messageDTO,retry);
+            messageCoreProducer.sendToMessageQueue(message);
+        } else
+            log.info("[NOTIFIER-ERROR-COMMANDS] Message {} not retryable", messageDTO.getMessageId());
     }
 
 

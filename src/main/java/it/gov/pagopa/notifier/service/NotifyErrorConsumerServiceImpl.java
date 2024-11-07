@@ -27,10 +27,8 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     private final Duration delayMinusCommit;
     private final ObjectReader objectReader;
     private final SendNotificationServiceImpl sendMessageService;
-    private final long maxRetry;
     public NotifyErrorConsumerServiceImpl(ObjectMapper objectMapper,
                                               SendNotificationServiceImpl sendMessageService,
-                                              @Value("${app.retry.max-retry}") long maxRetry,
                                               @Value("${spring.application.name}") String applicationName,
                                               @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitMillis,
                                               @Value("${app.message-core.build-delay-duration}") String delayMinusCommit) {
@@ -40,7 +38,6 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
         Duration defaultDurationDelay = Duration.ofMillis(2L);
         this.delayMinusCommit = defaultDurationDelay.compareTo(buildDelayDuration) >= 0 ? defaultDurationDelay : buildDelayDuration;
         this.objectReader = objectMapper.readerFor(MessageDTO.class);
-        this.maxRetry = maxRetry;
         this.sendMessageService = sendMessageService;
     }
 
@@ -76,8 +73,8 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
         log.info("[NOTIFIER-ERROR-COMMANDS] Queue message received: {}",message.getPayload());
         MessageHeaders headers = message.getHeaders();
-        long retry = getNextRetry(headers);
-        if(retry!=0) {
+        Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
+        if(retry!=null) {
             String messageUrl = (String) headers.get(ERROR_MSG_MESSAGE_URL);
             String authenticationUrl = (String) headers.get(ERROR_MSG_AUTH_URL);
             String entityId = (String) headers.get(ERROR_MSG_ENTITY_ID);
@@ -85,18 +82,6 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
             sendMessageService.sendNotification(messageDTO, messageUrl, authenticationUrl, entityId,retry)
                     .subscribe();
         }
-        else
-            log.info("[NOTIFIER-ERROR-COMMANDS] Message {} not retryable", messageDTO.getMessageId());
         return Mono.empty();
     }
-
-    private long getNextRetry(MessageHeaders headers) {
-        Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
-        if (retry != null && retry >= 0 && retry < maxRetry) {
-            return 1 + retry;
-        } else {
-            return 0;
-        }
-    }
-
 }

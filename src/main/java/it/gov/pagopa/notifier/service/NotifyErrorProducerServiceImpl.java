@@ -5,6 +5,7 @@ import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.event.producer.NotifyErrorProducer;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
@@ -17,15 +18,22 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
 
     private final NotifyErrorProducer notifyErrorProducer;
 
-    public NotifyErrorProducerServiceImpl(NotifyErrorProducer notifyErrorProducer){
+    private final Long maxTry;
+
+    public NotifyErrorProducerServiceImpl(NotifyErrorProducer notifyErrorProducer,
+                                          @Value("${app.retry.max-retry}") long maxRetry){
         this.notifyErrorProducer = notifyErrorProducer;
+        this.maxTry = maxRetry;
     }
 
 
     @Override
     public void enqueueNotify(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
-        Message<MessageDTO> message = createMessage(messageDTO, messageUrl, authenticationUrl, entityId, retry);
-        notifyErrorProducer.sendToNotifyErrorQueue(message);
+        if (retry <= maxTry) {
+            Message<MessageDTO> message = createMessage(messageDTO, messageUrl, authenticationUrl, entityId, retry);
+            notifyErrorProducer.sendToNotifyErrorQueue(message);
+        } else
+            log.info("[NOTIFIER-ERROR-COMMANDS] Notification {} not retryable", messageDTO.getMessageId());
     }
 
     @NotNull
