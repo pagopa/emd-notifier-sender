@@ -52,7 +52,6 @@ public class SendNotificationServiceImpl implements SendNotificationService {
         return getToken(authenticationUrl)
                 .flatMap(token -> toUrl(messageDTO, messageUrl, token, entityId))
                 .onErrorResume(e -> {
-                    log.error("[EMD-NOTIFIER-SENDER][SEND]Error while sending message");
                     notifyErrorProducerService.enqueueNotify(messageDTO, messageUrl, authenticationUrl,entityId,retry+1);
                     return Mono.empty();
                 })
@@ -95,6 +94,6 @@ public class SendNotificationServiceImpl implements SendNotificationService {
                                 return Mono.empty();
                             });
                 })
-                .doOnError(error -> log.error("[EMD-NOTIFIER-SENDER][SEND]Error sending message"));
+                .doOnError(error -> log.error("[EMD-NOTIFIER-SENDER][SEND]Error sending notification"));
     }
 }
