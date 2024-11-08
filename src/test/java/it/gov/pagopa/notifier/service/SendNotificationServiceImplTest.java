@@ -1,6 +1,5 @@
 package it.gov.pagopa.notifier.service;
 
-
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.dto.TokenDTO;
@@ -31,6 +30,20 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class SendNotificationServiceImplTest {
 
+    private static final String MESSAGE_URL = "/message";
+    private static final String AUTHENTICATION_URL = "/auth";
+    private static final String ENTITY_ID = "entity-id";
+    private static final long RETRY = 1L;
+    private static final String CLIENT_SECRET = "client_secret";
+    private static final String CLIENT_ID = "client_id";
+    private static final String GRANT_TYPE = "grant_type";
+    private static final String TENANT_ID = "tenant_id";
+    private static final String BEARER_TOKEN = "Bearer ";
+
+    private static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
+    private static final Message MESSAGE = MessageFaker.mockInstance();
+    private static final TokenDTO TOKEN_DTO = TokenDTOFaker.mockInstance();
+
     private SendNotificationServiceImpl sendNotificationService;
     private MockWebServer mockWebServer;
 
@@ -48,8 +61,14 @@ class SendNotificationServiceImplTest {
         mockWebServer = new MockWebServer();
         mockWebServer.start();
 
-         sendNotificationService = new SendNotificationServiceImpl
-                (errorProducerService, messageRepository, mapperDTOToObject, "client_secret", "client_id", "grant_type", "tenant_id");
+        sendNotificationService = new SendNotificationServiceImpl(
+                errorProducerService,
+                messageRepository,
+                mapperDTOToObject,
+                CLIENT_SECRET,
+                CLIENT_ID,
+                GRANT_TYPE,
+                TENANT_ID);
     }
 
     @AfterEach
@@ -59,65 +78,41 @@ class SendNotificationServiceImplTest {
 
     @Test
     void testSendMessage_Success() throws InterruptedException {
-
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        Message message = MessageFaker.mockInstance();
-        String messageUrl = "/message";
-        String authenticationUrl = "/auth";
-        String entityId = "entity-id";
-        long retry = 1;
-        TokenDTO tokenDTO = TokenDTOFaker.mockInstance();
-
-
         mockWebServer.enqueue(new MockResponse()
                 .setBody("{\"access_token\":\"accessToken\"}")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-
 
         mockWebServer.enqueue(new MockResponse()
                 .setBody("Message sent successfully")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE));
 
-        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(message);
-        when(messageRepository.save(any())).thenReturn(Mono.just(message));
+        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
+        when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
-        sendNotificationService.sendNotification(messageDTO, mockWebServer.url(messageUrl).toString(), mockWebServer.url(authenticationUrl).toString(), entityId,retry).block();
+        sendNotificationService.sendNotification(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
+                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
 
-        RecordedRequest authRequest = mockWebServer.takeRequest();
-        Assertions.assertEquals(authRequest.getPath(),authenticationUrl);
-        Assertions.assertEquals("POST", authRequest.getMethod());
-
-        RecordedRequest messageRequest = mockWebServer.takeRequest();
-        Assertions.assertEquals(messageRequest.getPath(),messageUrl);
-        Assertions.assertEquals("POST", messageRequest.getMethod());
-        Assertions.assertEquals(messageRequest.getHeader(HttpHeaders.AUTHORIZATION),"Bearer " + tokenDTO.getAccessToken());
-
+        verifyRequests();
         verify(messageRepository, times(1)).save(any());
     }
 
     @Test
     void testSendMessage_TokenFailure() {
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        String messageUrl = "/message";
-        String authenticationUrl = "/auth";
-        String entityId = "entity-id";
-        long retry = 1;
+        when(errorProducerService.enqueueNotify(any(),any(),any(),any(),anyLong())).thenReturn(Mono.just("Error"));
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(500)
                 .setBody("Internal Server Error"));
 
-        sendNotificationService.sendNotification(messageDTO, mockWebServer.url(messageUrl).toString(), mockWebServer.url(authenticationUrl).toString(), entityId,retry).block();
+        sendNotificationService.sendNotification(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
+                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
 
-        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(),anyLong());
+        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(), anyLong());
     }
 
     @Test
     void testSendMessage_ToUrlFailure() {
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        String messageUrl = "/message";
-        String authenticationUrl = "/auth";
-        String entityId = "entity-id";
-        long retry = 1;
+        when(errorProducerService.enqueueNotify(any(),any(),any(),any(),anyLong())).thenReturn(Mono.just("Error"));
+
         mockWebServer.enqueue(new MockResponse()
                 .setBody("{\"access_token\":\"accessToken\"}")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
@@ -126,85 +121,40 @@ class SendNotificationServiceImplTest {
                 .setResponseCode(500)
                 .setBody("Internal Server Error"));
 
-        sendNotificationService.sendNotification(messageDTO, mockWebServer.url(messageUrl).toString(), mockWebServer.url(authenticationUrl).toString(), entityId,retry).block();
+        sendNotificationService.sendNotification(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
+                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
 
-        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(),anyLong());
+        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(), anyLong());
     }
 
     @Test
     void testSendMessageWithRetry_Success() throws InterruptedException {
-
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        Message message = MessageFaker.mockInstance();
-        String messageUrl = "/message";
-        String authenticationUrl = "/auth";
-        String entityId = "entity-id";
-        long retry = 1L;
-
-        TokenDTO tokenDTO = TokenDTOFaker.mockInstance();
-
-
         mockWebServer.enqueue(new MockResponse()
                 .setBody("{\"access_token\":\"accessToken\"}")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-
 
         mockWebServer.enqueue(new MockResponse()
                 .setBody("Message sent successfully")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE));
 
-        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(message);
-        when(messageRepository.save(any())).thenReturn(Mono.just(message));
+        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
+        when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
-        sendNotificationService.sendNotification(messageDTO, mockWebServer.url(messageUrl).toString(), mockWebServer.url(authenticationUrl).toString(), entityId, retry).block();
+        sendNotificationService.sendNotification(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
+                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
 
-        RecordedRequest authRequest = mockWebServer.takeRequest();
-        Assertions.assertEquals(authRequest.getPath(),authenticationUrl);
-        Assertions.assertEquals("POST", authRequest.getMethod());
-
-        RecordedRequest messageRequest = mockWebServer.takeRequest();
-        Assertions.assertEquals(messageRequest.getPath(),messageUrl);
-        Assertions.assertEquals("POST", messageRequest.getMethod());
-        Assertions.assertEquals(messageRequest.getHeader(HttpHeaders.AUTHORIZATION),"Bearer " + tokenDTO.getAccessToken());
-
+        verifyRequests();
         verify(messageRepository, times(1)).save(any());
     }
 
-    @Test
-    void testSendMessageWithRetry_TokenFailure() {
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        String messageUrl = "/message";
-        String authenticationUrl = "/auth";
-        String entityId = "entity-id";
-        long retry = 1L;
+    private void verifyRequests() throws InterruptedException {
+        RecordedRequest authRequest = mockWebServer.takeRequest();
+        Assertions.assertEquals(AUTHENTICATION_URL, authRequest.getPath());
+        Assertions.assertEquals("POST", authRequest.getMethod());
 
-        mockWebServer.enqueue(new MockResponse()
-                .setResponseCode(500)
-                .setBody("Internal Server Error"));
-
-        sendNotificationService.sendNotification(messageDTO, mockWebServer.url(messageUrl).toString(), mockWebServer.url(authenticationUrl).toString(), entityId,retry).block();
-
-        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(),anyLong());
-    }
-
-    @Test
-    void testSendMessageWithRetry_ToUrlFailure() {
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        String messageUrl = "/message";
-        String authenticationUrl = "/auth";
-        String entityId = "entity-id";
-        long retry = 1L;
-
-        mockWebServer.enqueue(new MockResponse()
-                .setBody("{\"access_token\":\"accessToken\"}")
-                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-
-        mockWebServer.enqueue(new MockResponse()
-                .setResponseCode(500)
-                .setBody("Internal Server Error"));
-
-        sendNotificationService.sendNotification(messageDTO, mockWebServer.url(messageUrl).toString(), mockWebServer.url(authenticationUrl).toString(), entityId,retry).block();
-
-        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(),anyLong());
+        RecordedRequest messageRequest = mockWebServer.takeRequest();
+        Assertions.assertEquals(MESSAGE_URL,messageRequest.getPath());
+        Assertions.assertEquals("POST", messageRequest.getMethod());
+        Assertions.assertEquals(messageRequest.getHeader(HttpHeaders.AUTHORIZATION), BEARER_TOKEN + TOKEN_DTO.getAccessToken());
     }
 }

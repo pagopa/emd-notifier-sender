@@ -21,41 +21,45 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 class CitizenConnectorImplTest {
 
- private MockWebServer mockWebServer;
+    private MockWebServer mockWebServer;
 
- private CitizenConnectorImpl citizenConnector;
+    private CitizenConnectorImpl citizenConnector;
 
- @BeforeEach
- void setUp() throws IOException {
-  mockWebServer = new MockWebServer();
-  mockWebServer.start();
+    private ObjectMapper objectMapper;
 
-  citizenConnector = new CitizenConnectorImpl(mockWebServer.url("/").toString());
- }
-
- @AfterEach
- void tearDown() throws Exception {
-  mockWebServer.shutdown();
- }
+    private final static String FISCAL_CODE = "12345678901";
 
 
- @Test
- void testGetCitizenConsentsEnabled() throws JsonProcessingException {
-   String fiscalCode = "12345678901";
-   ObjectMapper objectMapper = new ObjectMapper();
-   String mockResponseBody = objectMapper.writeValueAsString(List.of("tppId"));
+    @BeforeEach
+    void setUp() throws IOException {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start();
 
-   mockWebServer.enqueue(new MockResponse()
-           .setResponseCode(200)
-           .setBody(mockResponseBody)
-           .addHeader("Content-Type", "application/json"));
+        citizenConnector = new CitizenConnectorImpl(mockWebServer.url("/").toString());
 
-   citizenConnector.getCitizenConsentsEnabled(fiscalCode);
-   Mono<List<String>> resultMono = citizenConnector.getCitizenConsentsEnabled(fiscalCode);
+        objectMapper = new ObjectMapper();
+    }
 
-   List<String> consentList = resultMono.block();
-   assertThat(consentList).hasSize(1);
-   assertThat(consentList.get(0)).isEqualTo("tppId");
- }
+    @AfterEach
+    void tearDown() throws Exception {
+        mockWebServer.shutdown();
+    }
+
+
+    @Test
+    void testGetCitizenConsentsEnabled() throws JsonProcessingException {
+
+        mockWebServer.enqueue(new MockResponse()
+               .setResponseCode(200)
+               .setBody(objectMapper.writeValueAsString(List.of("TPP_ID")))
+               .addHeader("Content-Type", "application/json"));
+
+        citizenConnector.getCitizenConsentsEnabled(FISCAL_CODE);
+        Mono<List<String>> resultMono = citizenConnector.getCitizenConsentsEnabled(FISCAL_CODE);
+
+        List<String> consentList = resultMono.block();
+        assertThat(consentList).hasSize(1);
+        assertThat(consentList.get(0)).isEqualTo("TPP_ID");
+    }
 
 }

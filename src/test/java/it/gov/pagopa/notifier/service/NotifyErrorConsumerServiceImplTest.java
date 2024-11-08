@@ -48,6 +48,12 @@ class NotifyErrorConsumerServiceImplTest {
     @Autowired
     NotifyErrorConsumerServiceImpl notifyErrorConsumerService;
     private MemoryAppender memoryAppender;
+
+    private static final String MESSAGE_URL = "messageUrl";
+    private static final String AUTHENTICATION_URL = "authenticationUrl";
+    private static final String ENTITY_ID = "entityId";
+    private static final long RETRY = 1L;
+    private static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
     @BeforeEach
     public void setup() {
         ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("it.gov.pagopa.notifier.service.NotifyErrorConsumerServiceImpl");
@@ -59,17 +65,12 @@ class NotifyErrorConsumerServiceImplTest {
     }
     @Test
     void processCommand_CallSendMessage(){
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        String messageUrl = "messegaUrl";
-        String authenticationUrl = "authenticationUrl";
-        String entityId = "entityId";
-        long retry = 1;
         Message<String> message = MessageBuilder
-                .withPayload(messageDTO.toString())
-                .setHeader(ERROR_MSG_HEADER_RETRY, retry)
-                .setHeader(ERROR_MSG_AUTH_URL, authenticationUrl)
-                .setHeader(ERROR_MSG_MESSAGE_URL, messageUrl)
-                .setHeader(ERROR_MSG_ENTITY_ID, entityId)
+                .withPayload(MESSAGE_DTO.toString())
+                .setHeader(ERROR_MSG_HEADER_RETRY, RETRY)
+                .setHeader(ERROR_MSG_AUTH_URL, AUTHENTICATION_URL)
+                .setHeader(ERROR_MSG_MESSAGE_URL, MESSAGE_URL)
+                .setHeader(ERROR_MSG_ENTITY_ID, ENTITY_ID)
                 .build();
         Mockito.when(notificationService.sendNotification(any(MessageDTO.class),
                         anyString(),
@@ -77,34 +78,20 @@ class NotifyErrorConsumerServiceImplTest {
                         anyString(),
                         anyLong()))
                 .thenReturn(Mono.empty());
-        retry += 1;
-        notifyErrorConsumerService.execute(messageDTO,message,null).block();
-        Mockito.verify(notificationService,times(1)).sendNotification(messageDTO, messageUrl, authenticationUrl, entityId, retry);
+        notifyErrorConsumerService.execute(MESSAGE_DTO,message,null).block();
+        Mockito.verify(notificationService,times(1)).sendNotification(MESSAGE_DTO, MESSAGE_URL, AUTHENTICATION_URL, ENTITY_ID, RETRY);
     }
 
     @Test
     void processCommand_NotRetryable(){
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        String messageUrl = "messegaUrl";
-        String authenticationUrl = "authenticationUrl";
-        String entityId = "entityId";
-        long retry = 10;
         Message<String> message = MessageBuilder
-                .withPayload(messageDTO.toString())
-                .setHeader(ERROR_MSG_HEADER_RETRY, retry)
-                .setHeader(ERROR_MSG_AUTH_URL, authenticationUrl)
-                .setHeader(ERROR_MSG_MESSAGE_URL, messageUrl)
-                .setHeader(ERROR_MSG_ENTITY_ID, entityId)
+                .withPayload(MESSAGE_DTO.toString())
+                .setHeader(ERROR_MSG_AUTH_URL, AUTHENTICATION_URL)
+                .setHeader(ERROR_MSG_MESSAGE_URL, MESSAGE_URL)
+                .setHeader(ERROR_MSG_ENTITY_ID, ENTITY_ID)
                 .build();
-        Mockito.when(notificationService.sendNotification(any(MessageDTO.class),
-                        anyString(),
-                        anyString(),
-                        anyString(),
-                        anyLong()))
-                .thenReturn(Mono.empty());
-        notifyErrorConsumerService.execute(messageDTO,message,null).block();
-        Mockito.verify(notificationService,times(0)).sendNotification(messageDTO, messageUrl, authenticationUrl, entityId, retry);
-
+        notifyErrorConsumerService.execute(MESSAGE_DTO,message,null).block();
+        Mockito.verify(notificationService,times(0)).sendNotification(MESSAGE_DTO, MESSAGE_URL, AUTHENTICATION_URL, ENTITY_ID, RETRY);
     }
 
     @Test

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
 
@@ -26,14 +27,14 @@ public class MessageCoreProducerServiceImpl implements MessageCoreProducerServic
     }
 
     @Override
-    public void enqueueMessage(MessageDTO messageDTO, long retry) {
-        if (retry <= maxTry) {
-            Message<MessageDTO> message = createMessage(messageDTO,retry);
-            messageCoreProducer.sendToMessageQueue(message);
-        } else
-            log.info("[NOTIFIER-ERROR-COMMANDS] Message {} not retryable", messageDTO.getMessageId());
+    public Mono<Void> enqueueMessage(MessageDTO messageDTO, long retry) {
+        if (retry > maxTry) {
+            log.info("[MESSAGE-CORE-PRODUCER] Message {} not retryable", messageDTO.getMessageId());
+            return Mono.empty();
+        }
+        log.info("[MESSAGE-CORE-PRODUCER] Enqueuing message {} for retry attempt {}", messageDTO.getMessageId(), retry);
+        return Mono.fromRunnable(() -> messageCoreProducer.sendToMessageQueue(createMessage(messageDTO, retry)));
     }
-
 
     @NotNull
     private static Message<MessageDTO> createMessage(MessageDTO messageDTO, long retry) {
@@ -43,6 +44,4 @@ public class MessageCoreProducerServiceImpl implements MessageCoreProducerServic
                 .build();
 
     }
-
-
 }

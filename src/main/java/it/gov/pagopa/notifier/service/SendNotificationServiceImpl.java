@@ -51,10 +51,7 @@ public class SendNotificationServiceImpl implements SendNotificationService {
     public Mono<Void> sendNotification(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
         return getToken(authenticationUrl)
                 .flatMap(token -> toUrl(messageDTO, messageUrl, token, entityId))
-                .onErrorResume(e -> {
-                    notifyErrorProducerService.enqueueNotify(messageDTO, messageUrl, authenticationUrl,entityId,retry+1);
-                    return Mono.empty();
-                })
+                .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(messageDTO, messageUrl, authenticationUrl, entityId, retry + 1))
                 .then();
     }
 
@@ -72,8 +69,8 @@ public class SendNotificationServiceImpl implements SendNotificationService {
                 .bodyValue(formData)
                 .retrieve()
                 .bodyToMono(TokenDTO.class)
-                .doOnSuccess(token -> log.info("[EMD-NOTIFIER-SENDER][SEND]Token obtained: {}", token))
-                .doOnError(error -> log.error("[EMD-NOTIFIER-SENDER][SEND]Error getting token"));
+                .doOnSuccess(token -> log.info("[EMD-NOTIFIER-SENDER][SEND] Token obtained: {}", token))
+                .doOnError(error -> log.error("[EMD-NOTIFIER-SENDER][SEND] Error getting token"));
     }
 
     private Mono<String> toUrl(MessageDTO messageDTO, String messageUrl, TokenDTO token, String entityId ) {
@@ -85,15 +82,15 @@ public class SendNotificationServiceImpl implements SendNotificationService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnSuccess(response -> {
-                    log.info("[EMD-NOTIFIER-SENDER][SEND]Message sent. Response: {}", response);
+                    log.info("[EMD-NOTIFIER-SENDER][SEND] Message sent. Response: {}", response);
                     Message message = mapperDTOToObject.map(messageDTO,entityId);
                     messageRepository.save(message)
-                            .doOnSuccess(messagePersisted -> log.info("[EMD-NOTIFIER-SENDER][SEND]Message {} save for entityId {}",messagePersisted.getMessageId(),messagePersisted.getEntityId()))
+                            .doOnSuccess(messagePersisted -> log.info("[EMD-NOTIFIER-SENDER][SEND] Message {} save for entityId {}",messagePersisted.getMessageId(),messagePersisted.getEntityId()))
                             .onErrorResume(error -> {
                                 log.error("[EMD-NOTIFIER-SENDER][SEND] Error save message");
                                 return Mono.empty();
                             });
                 })
-                .doOnError(error -> log.error("[EMD-NOTIFIER-SENDER][SEND]Error sending notification"));
+                .doOnError(error -> log.error("[EMD-NOTIFIER-SENDER][SEND] Error sending notification"));
     }
 }

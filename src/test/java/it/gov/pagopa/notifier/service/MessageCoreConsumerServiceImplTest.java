@@ -27,6 +27,8 @@ import java.time.Duration;
 import java.util.List;
 
 import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -36,7 +38,6 @@ import static org.mockito.Mockito.when;
         ObjectMapper.class
 })
 @TestPropertySource(properties = {
-        "app.retry.max-retry=5",
         "spring.application.name=test",
         "spring.cloud.stream.kafka.bindings.consumerMessage-in-0.consumer.ackTime=500",
         "app.message-core.build-delay-duration=PT1S"
@@ -48,6 +49,9 @@ class MessageCoreConsumerServiceImplTest {
     @Autowired
     MessageCoreConsumerServiceImpl messageConsumerServiceImpl;
     private MemoryAppender memoryAppender;
+
+    private static final long RETRY = 1L;
+    private static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
 
     @BeforeEach
     public void setup() {
@@ -62,31 +66,24 @@ class MessageCoreConsumerServiceImplTest {
 
     @Test
     void processCommand_Ok(){
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        long retry = 1;
         Message<String> message = MessageBuilder
-                .withPayload(messageDTO.toString())
-                .setHeader(ERROR_MSG_HEADER_RETRY, retry)
+                .withPayload(MESSAGE_DTO.toString())
+                .setHeader(ERROR_MSG_HEADER_RETRY, RETRY)
                 .build();
-        retry +=1;
-        when(messageService.processMessage(messageDTO,retry)).thenReturn(Mono.empty());
-        messageConsumerServiceImpl.execute(messageDTO,message,null);
-        Mockito.verify(messageService,times(1)).processMessage(messageDTO,retry);
+        when(messageService.processMessage(any(),anyLong())).thenReturn(Mono.empty());
+        messageConsumerServiceImpl.execute(MESSAGE_DTO,message,null).block();
+        Mockito.verify(messageService,times(1)).processMessage(MESSAGE_DTO,RETRY);
 
     }
 
     @Test
     void processCommand_Ko(){
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        long retry = 10;
         Message<String> message = MessageBuilder
-                .withPayload(messageDTO.toString())
-                .setHeader(ERROR_MSG_HEADER_RETRY, retry)
+                .withPayload(MESSAGE_DTO.toString())
                 .build();
-        retry +=1;
-        messageConsumerServiceImpl.execute(messageDTO,message,null);
-        Mockito.verify(messageService,times(0)).processMessage(messageDTO,retry);
-
+        when(messageService.processMessage(any(), anyLong())).thenReturn(Mono.empty());
+        messageConsumerServiceImpl.execute(MESSAGE_DTO, message, null).block();
+        Mockito.verify(messageService, times(0)).processMessage(MESSAGE_DTO, RETRY);
     }
     @Test
     void getObjectReader() {

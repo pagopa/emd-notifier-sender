@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -19,6 +20,9 @@ import static org.mockito.Mockito.times;
 @ContextConfiguration(classes = {
         NotifyErrorProducerServiceImpl.class
 })
+@TestPropertySource(properties = {
+        "app.retry.max-retry=5"
+})
  class NotifyErrorProducerServiceTest {
 
     @Autowired
@@ -26,15 +30,22 @@ import static org.mockito.Mockito.times;
     @MockBean
     NotifyErrorProducer notifyErrorProducer;
 
-    private final static MessageDTO messegeDTO = MessageDTOFaker.mockInstance();
-    private final static String messegaUrl = "messegaUrl";
-    private final static String authenticationUrl = "authenticationUrl";
-    private final static long retry = 1;
-    private final static String entityId = "entityId";
+    private final static MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
+    private final static String MESSAGE_URL = "messageUrl";
+    private final static String AUTHENTICATION_URL = "authenticationUrl";
+    private final static long RETRY = 1;
+    private final static long RETRY_KO = 10;
+    private final static String ENTITY_ID = "entityId";
 
     @Test
     void enqueueNotify_OK(){
-        notifyErrorProducerService.enqueueNotify(messegeDTO,messegaUrl,authenticationUrl,entityId, retry);
+        notifyErrorProducerService.enqueueNotify(MESSAGE_DTO,MESSAGE_URL,AUTHENTICATION_URL,ENTITY_ID, RETRY).block();
         Mockito.verify(notifyErrorProducer,times(1)).sendToNotifyErrorQueue(any());
+    }
+
+    @Test
+    void enqueueNotify_KO(){
+        notifyErrorProducerService.enqueueNotify(MESSAGE_DTO,MESSAGE_URL,AUTHENTICATION_URL,ENTITY_ID, RETRY_KO).block();
+        Mockito.verify(notifyErrorProducer,times(0)).sendToNotifyErrorQueue(any());
     }
 }

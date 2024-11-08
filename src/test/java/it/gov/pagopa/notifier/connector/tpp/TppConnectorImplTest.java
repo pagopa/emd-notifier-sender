@@ -23,41 +23,38 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 class TppConnectorImplTest {
 
- private MockWebServer mockWebServer;
+    private MockWebServer mockWebServer;
+    private TppConnectorImpl tppConnector;
+    private ObjectMapper objectMapper;
+    private final static String TPP_ID = "12345678901";
+    private final static TppIdList TPP_ID_LIST = new TppIdList(List.of(TPP_ID));
+    private final static TppDTO TPP_DTO = TppDTOFaker.mockInstance();
 
- private TppConnectorImpl tppConnector;
+    @BeforeEach
+    void setUp() throws IOException {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start();
 
- @BeforeEach
- void setUp() throws IOException {
-  mockWebServer = new MockWebServer();
-  mockWebServer.start();
+        tppConnector = new TppConnectorImpl(mockWebServer.url("/").toString());
 
-  tppConnector = new TppConnectorImpl(mockWebServer.url("/").toString());
- }
+        objectMapper = new ObjectMapper();
+    }
 
- @AfterEach
- void tearDown() throws Exception {
-  mockWebServer.shutdown();
- }
+    @AfterEach
+    void tearDown() throws Exception {
+        mockWebServer.shutdown();
+    }
 
+    @Test
+    void testGetTppSEnabled() throws JsonProcessingException {
+        mockWebServer.enqueue(new MockResponse()
+               .setResponseCode(200)
+               .setBody(objectMapper.writeValueAsString(List.of(TPP_DTO)))
+               .addHeader("Content-Type", "application/json"));
 
- @Test
- void testGetTppsEnabled() throws JsonProcessingException {
-   String tppId = "12345678901";
-   TppIdList tppIdList = new TppIdList(List.of(tppId));
-   TppDTO tppDTO = TppDTOFaker.mockInstance();
-   ObjectMapper objectMapper = new ObjectMapper();
-
-   String mockResponseBody = objectMapper.writeValueAsString(List.of(tppDTO));
-
-   mockWebServer.enqueue(new MockResponse()
-           .setResponseCode(200)
-           .setBody(mockResponseBody)
-           .addHeader("Content-Type", "application/json"));
-
-     Mono<List<TppDTO>> resultMono = tppConnector.getTppsEnabled(tppIdList);
-     List<TppDTO> consentList = resultMono.block();
-     assertThat(consentList).hasSize(1);
-     assertThat(consentList.get(0)).isEqualTo(tppDTO);
-  }
+         Mono<List<TppDTO>> resultMono = tppConnector.getTppsEnabled(TPP_ID_LIST);
+         List<TppDTO> consentList = resultMono.block();
+         assertThat(consentList).hasSize(1);
+         assertThat(consentList.get(0)).isEqualTo(TPP_DTO);
+    }
 }

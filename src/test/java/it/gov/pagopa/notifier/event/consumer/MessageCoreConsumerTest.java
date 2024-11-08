@@ -31,14 +31,14 @@ class MessageCoreConsumerTest {
         consumerCommands = messageCoreConsumer.consumerMessage(messageCoreConsumerService);
     }
 
+    private static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
+    private static final long RETRY = 1;
 
     @Test
     void consumerCommands(){
-        MessageDTO messageDTO = MessageDTOFaker.mockInstance();
-        long retry = 1;
         Message<String> message = MessageBuilder
-                .withPayload(messageDTO.toString())
-                .setHeader(ERROR_MSG_HEADER_RETRY, retry)
+                .withPayload(MESSAGE_DTO.toString())
+                .setHeader(ERROR_MSG_HEADER_RETRY, RETRY)
                 .build();
         Flux<Message<String>> flux = Flux.just(message);
         consumerCommands.accept(flux);
