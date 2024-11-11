@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
-public class SendNotificationServiceImpl implements SendNotificationService {
+public class NotifyServiceImpl implements NotifyService {
 
     private final WebClient webClient;
     private final NotifyErrorProducerService notifyErrorProducerService;
@@ -30,11 +30,11 @@ public class SendNotificationServiceImpl implements SendNotificationService {
     private final String grantType;
     private final String tenantId;
 
-    public SendNotificationServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
-                                       MessageRepository messageRepository, MessageMapperDTOToObject mapperDTOToObject, @Value("${app.token.client}") String client,
-                                       @Value("${app.token.clientId}") String clientId,
-                                       @Value("${app.token.grantType}") String grantType,
-                                       @Value("${app.token.tenantId}") String tenantId) {
+    public NotifyServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
+                             MessageRepository messageRepository, MessageMapperDTOToObject mapperDTOToObject, @Value("${app.token.client}") String client,
+                             @Value("${app.token.clientId}") String clientId,
+                             @Value("${app.token.grantType}") String grantType,
+                             @Value("${app.token.tenantId}") String tenantId) {
         this.webClient = WebClient.builder().build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
@@ -47,8 +47,10 @@ public class SendNotificationServiceImpl implements SendNotificationService {
 
 
 
-    @Override
     public Mono<Void> sendNotification(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
+        log.info("[NOTIFY-SERVICE] Starting notification process for message ID: {} to TPP: {} with retry: {}",
+                messageDTO.getMessageId(), entityId, retry);
+
         return getToken(authenticationUrl)
                 .flatMap(token -> toUrl(messageDTO, messageUrl, token, entityId))
                 .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(messageDTO, messageUrl, authenticationUrl, entityId, retry + 1))
@@ -56,7 +58,9 @@ public class SendNotificationServiceImpl implements SendNotificationService {
     }
 
     private Mono<TokenDTO> getToken(String authenticationUrl) {
-        authenticationUrl = authenticationUrl.replace("tenantId", tenantId);
+        String urlWithTenant = authenticationUrl.replace("tenantId", tenantId);
+
+        log.info("[NOTIFY-SERVICE] Requesting token from: {}", urlWithTenant);
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("client_secret", client);
@@ -64,16 +68,18 @@ public class SendNotificationServiceImpl implements SendNotificationService {
         formData.add("grant_type", grantType);
 
         return webClient.post()
-                .uri(authenticationUrl)
+                .uri(urlWithTenant)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .bodyValue(formData)
                 .retrieve()
                 .bodyToMono(TokenDTO.class)
-                .doOnSuccess(token -> log.info("[EMD-NOTIFIER-SENDER][SEND] Token obtained: {}", token))
-                .doOnError(error -> log.error("[EMD-NOTIFIER-SENDER][SEND] Error getting token"));
+                .doOnSuccess(token -> log.info("[NOTIFY-SERVICE] Token successfully obtained for message"))
+                .doOnError(error -> log.error("[NOTIFY-SERVICE] Error getting token from {}: {}", authenticationUrl, error.getMessage()));
     }
 
-    private Mono<String> toUrl(MessageDTO messageDTO, String messageUrl, TokenDTO token, String entityId ) {
+    private Mono<String> toUrl(MessageDTO messageDTO, String messageUrl, TokenDTO token, String entityId) {
+        log.info("[NOTIFY-SERVICE] Sending message {} to URL: {} for TPP: {}", messageDTO.getMessageId(), messageUrl, entityId);
+
         return webClient.post()
                 .uri(messageUrl)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccessToken())
@@ -82,15 +88,17 @@ public class SendNotificationServiceImpl implements SendNotificationService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnSuccess(response -> {
-                    log.info("[EMD-NOTIFIER-SENDER][SEND] Message sent. Response: {}", response);
-                    Message message = mapperDTOToObject.map(messageDTO,entityId);
+                    log.info("[NOTIFY-SERVICE] Message {} sent successfully. Response: {}", messageDTO.getMessageId(), response);
+                    Message message = mapperDTOToObject.map(messageDTO, entityId);
+
                     messageRepository.save(message)
-                            .doOnSuccess(messagePersisted -> log.info("[EMD-NOTIFIER-SENDER][SEND] Message {} save for entityId {}",messagePersisted.getMessageId(),messagePersisted.getEntityId()))
+                            .doOnSuccess(messagePersisted -> log.info("[NOTIFY-SERVICE] Message {} saved for entityId: {}", messagePersisted.getMessageId(), messagePersisted.getEntityId()))
                             .onErrorResume(error -> {
-                                log.error("[EMD-NOTIFIER-SENDER][SEND] Error save message");
+                                log.error("[NOTIFY-SERVICE] Error saving message ID: {} for entityId: {}", messageDTO.getMessageId(), entityId);
                                 return Mono.empty();
                             });
                 })
-                .doOnError(error -> log.error("[EMD-NOTIFIER-SENDER][SEND] Error sending notification"));
+                .doOnError(error -> log.error("[NOTIFY-SERVICE] Error sending message {} to URL: {}. Error: {}", messageDTO.getMessageId(), messageUrl, error.getMessage()));
     }
+
 }

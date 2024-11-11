@@ -29,7 +29,10 @@ public class MessageCoreProducer {
   }
 
   public void sendToMessageQueue(Message<MessageDTO> message) {
-    log.info("[EMD-NOTIFIER-SENDER][SEND] Scheduling message {} to messageSenderQueue",message.getPayload().getMessageId());
+    String messageId = message.getPayload().getMessageId();
+
+    log.info("[MESSAGE-CORE-PRODUCER] Scheduling message ID: {} to messageSenderQueue with a delay of 5 seconds.", messageId);
+
     scheduler.schedule(
             () -> streamBridge.send("messageSender-out-0", binder, message),
             5,

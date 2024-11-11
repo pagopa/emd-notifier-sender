@@ -26,9 +26,9 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     private final Duration commitDelay;
     private final Duration delayMinusCommit;
     private final ObjectReader objectReader;
-    private final SendNotificationServiceImpl sendMessageService;
+    private final NotifyServiceImpl sendMessageService;
     public NotifyErrorConsumerServiceImpl(ObjectMapper objectMapper,
-                                              SendNotificationServiceImpl sendMessageService,
+                                              NotifyServiceImpl sendMessageService,
                                               @Value("${spring.application.name}") String applicationName,
                                               @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitMillis,
                                               @Value("${app.message-core.build-delay-duration}") String delayMinusCommit) {
@@ -71,17 +71,32 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
 
     @Override
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
-        log.info("[NOTIFIER-ERROR-COMMANDS] Queue message received: {}",message.getPayload());
+        String messageId = messageDTO.getMessageId();
+        String payload = message.getPayload();
+        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE] Queue message received with ID: {} and payload: {}", messageId, payload);
+
         MessageHeaders headers = message.getHeaders();
         Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
-        if(retry!=null) {
-            String messageUrl = (String) headers.get(ERROR_MSG_MESSAGE_URL);
-            String authenticationUrl = (String) headers.get(ERROR_MSG_AUTH_URL);
-            String entityId = (String) headers.get(ERROR_MSG_ENTITY_ID);
-            sendMessageService.sendNotification(messageDTO, messageUrl, authenticationUrl, entityId,retry)
-                    .thenReturn("[NOTIFIER-ERROR-COMMANDS] Message %s processed successfully".formatted(messageDTO.getMessageId()))
-                    .subscribe();
+        String messageUrl = (String) headers.get(ERROR_MSG_MESSAGE_URL);
+        String authenticationUrl = (String) headers.get(ERROR_MSG_AUTH_URL);
+        String entityId = (String) headers.get(ERROR_MSG_ENTITY_ID);
+
+        if (retry == null || messageUrl == null || authenticationUrl == null || entityId == null) {
+            if (retry == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE] Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", messageId);
+            if (messageUrl == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE] Missing header: ERROR_MSG_MESSAGE_URL for message ID: {}", messageId);
+            if (authenticationUrl == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE] Missing header: ERROR_MSG_AUTH_URL for message ID: {}", messageId);
+            if (entityId == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE] Missing header: ERROR_MSG_ENTITY_ID for message ID: {}", messageId);
+            return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE] Message %s not processed due to missing headers".formatted(messageId));
         }
-        return Mono.just("[NOTIFIER-ERROR-COMMANDS] Message %s not processed".formatted(messageDTO.getMessageId()));
+
+        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE] Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, entityId, retry);
+
+        sendMessageService.sendNotification(messageDTO, messageUrl, authenticationUrl, entityId, retry)
+                .doOnSuccess(v -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE] Successfully sent message ID: {} to TPP: {}", messageId, entityId))
+                .doOnError(e -> log.error("[NOTIFY-ERROR-CONSUMER-SERVICE] Error sending message ID: {} to TPP: {}. Error: {}", messageId, entityId, e.getMessage()))
+                .subscribe();
+
+        return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE] Processing attempt for message %s to TPP %s in progress".formatted(messageId, entityId));
     }
+
 }

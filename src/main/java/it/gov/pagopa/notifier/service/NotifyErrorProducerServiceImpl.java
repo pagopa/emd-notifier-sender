@@ -30,16 +30,26 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
 
     @Override
     public Mono<String> enqueueNotify(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
+        String messageId = messageDTO.getMessageId();
+
         if (retry > maxTry) {
-            log.info("[NOTIFIER-ERROR-COMMANDS] Message {} not retryable", messageDTO.getMessageId());
+            log.info("[NOTIFY-ERROR-PRODUCER-SERVICE] Message ID: {} for TPP: {} exceeds max retry attempts ({}). Not retryable.", messageId, entityId, maxTry);
             return Mono.empty();
         }
-        log.info("[NOTIFIER-ERROR-COMMANDS] Enqueuing message {} for retry attempt {}", messageDTO.getMessageId(), retry);
-        return Mono.fromRunnable(() -> notifyErrorProducer.sendToNotifyErrorQueue(createMessage(messageDTO,messageUrl, authenticationUrl, entityId, retry)));
+
+        log.info("[NOTIFY-ERROR-PRODUCER-SERVICE] Enqueuing message ID: {} for TPP: {} with retry attempt: {}", messageId, entityId, retry);
+
+        return Mono.fromRunnable(() -> {
+            log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageId, entityId, retry);
+            notifyErrorProducer.sendToNotifyErrorQueue(createMessage(messageDTO, messageUrl, authenticationUrl, entityId, retry));
+        });
     }
 
     @NotNull
     private static Message<MessageDTO> createMessage(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
+        log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE] Creating message for ID: {} with retry: {}, messageUrl: {}, authenticationUrl: {}, entityId: {}",
+                messageDTO.getMessageId(), retry, messageUrl, authenticationUrl, entityId);
+
         return MessageBuilder
                 .withPayload(messageDTO)
                 .setHeader(ERROR_MSG_HEADER_RETRY, retry)
@@ -47,8 +57,8 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
                 .setHeader(ERROR_MSG_MESSAGE_URL, messageUrl)
                 .setHeader(ERROR_MSG_ENTITY_ID, entityId)
                 .build();
-
     }
+
 
 
 }

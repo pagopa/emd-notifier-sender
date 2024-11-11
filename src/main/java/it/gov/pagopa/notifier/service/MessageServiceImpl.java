@@ -23,11 +23,11 @@ public class MessageServiceImpl implements MessageService {
     private final CitizenConnectorImpl citizenConnector;
     private final TppConnectorImpl tppConnector;
     private final MessageCoreProducerServiceImpl messageCoreProducerService;
-    private final SendNotificationServiceImpl sendNotificationService;
+    private final NotifyServiceImpl sendNotificationService;
 
     public MessageServiceImpl(CitizenConnectorImpl citizenConnector,
                               TppConnectorImpl tppConnector,
-                              MessageCoreProducerServiceImpl messageCoreProducerService, SendNotificationServiceImpl sendNotificationService) {
+                              MessageCoreProducerServiceImpl messageCoreProducerService, NotifyServiceImpl sendNotificationService) {
         this.tppConnector = tppConnector;
         this.citizenConnector = citizenConnector;
         this.messageCoreProducerService = messageCoreProducerService;
@@ -37,51 +37,59 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public Mono<Void> processMessage(MessageDTO messageDTO, long retry) {
-        log.info("[EMD-NOTIFIER-SENDER][SEND] Received message: {}", messageDTO);
+        String messageId = messageDTO.getMessageId();
+        log.info("[MESSAGE-SERVICE] Start processing message ID: {} at retry attempt {}", messageId, retry);
 
         return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
-                .flatMap(tppIdList ->processTppList(tppIdList,messageDTO,retry))
+                .flatMap(tppIdList -> processTppList(tppIdList, messageDTO, retry))
                 .onErrorResume(e -> handleError(e, messageDTO, retry));
     }
 
-    private Mono<Void> processTppList(List<String> tppIdList,MessageDTO messageDTO,long retry) {
+    private Mono<Void> processTppList(List<String> tppIdList, MessageDTO messageDTO, long retry) {
+        String messageId = messageDTO.getMessageId();
+
         if (tppIdList.isEmpty()) {
-            log.info("[EMD-NOTIFIER-SENDER][SEND] Citizen consent list is empty");
+            log.info("[MESSAGE-SERVICE] No consents found for message ID: {} at retry attempt {}", messageId, retry);
             return Mono.empty();
         }
 
-        log.info("[EMD-NOTIFIER-SENDER][SEND] Citizen consent list: {}", tppIdList);
+        log.info("[MESSAGE-SERVICE] Consent list found for message ID: {} at retry attempt {}: {}", messageId, retry, tppIdList);
 
         return tppConnector.getTppsEnabled(new TppIdList(tppIdList))
-                .flatMap(tppList -> sendNotifications(tppList, messageDTO))
+                .flatMap(tppList -> sendNotifications(tppList, messageDTO, retry))
                 .onErrorResume(e -> handleError(e, messageDTO, retry));
     }
 
-    private Mono<Void> sendNotifications(List<TppDTO> tppDTOList, MessageDTO messageDTO) {
+    private Mono<Void> sendNotifications(List<TppDTO> tppDTOList, MessageDTO messageDTO, long retry) {
+        String messageId = messageDTO.getMessageId();
+
         if (tppDTOList.isEmpty()) {
-            log.info("[EMD-NOTIFIER-SENDER][SEND] Channel list is empty");
+            log.info("[MESSAGE-SERVICE] No channels available for message ID: {} at retry attempt {}", messageId, retry);
             return Mono.empty();
         }
 
-        log.info("[EMD-NOTIFIER-SENDER][SEND] Channel list: {}", tppDTOList);
+        log.info("[MESSAGE-SERVICE] Sending notifications for message ID: {} at retry attempt {} to channels: {}", messageId, retry, tppDTOList);
 
         return Flux.fromIterable(tppDTOList)
                 .flatMap(tppDTO -> {
-                    log.info("[EMD-NOTIFIER-SENDER][SEND] Preparing to send message to: {}", tppDTO.getTppId());
+                    log.info("[MESSAGE-SERVICE] Sending message ID: {} at retry attempt {} to TPP: {}", messageId, retry, tppDTO.getTppId());
                     return sendNotificationService.sendNotification(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId(), 0);
                 })
                 .then();
     }
 
     private Mono<Void> handleError(Throwable e, MessageDTO messageDTO, long retry) {
-        log.error("[EMD-NOTIFIER-SENDER][SEND] Error processing message {} . Retry attempt: {}", messageDTO.getMessageId(), retry , e);
+        String messageId = messageDTO.getMessageId();
+        log.error("[MESSAGE-SERVICE] Error processing message ID: {} at retry attempt {}. Error: {}", messageId, retry, e.getMessage(), e);
         enqueueWithRetry(messageDTO, retry);
         return Mono.empty();
     }
 
     private void enqueueWithRetry(MessageDTO messageDTO, long retry) {
-        log.info("[EMD-NOTIFIER-SENDER][RETRY] Enqueueing message {} . Retry attempt: {}", messageDTO, retry);
+        String messageId = messageDTO.getMessageId();
+        log.info("[MESSAGE-SERVICE] Re-enqueuing message ID: {} with increased retry count: {}", messageId, retry + 1);
         messageCoreProducerService.enqueueMessage(messageDTO, retry + 1);
     }
+
 
 }

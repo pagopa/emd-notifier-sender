@@ -24,9 +24,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SendNotificationServiceImplTest {
+class NotifyServiceImplTest {
 
-    private SendNotificationServiceImpl sendNotificationService;
+    private NotifyServiceImpl sendNotificationService;
     private MockWebServer mockWebServer;
 
     @Mock
@@ -43,7 +43,7 @@ class SendNotificationServiceImplTest {
         mockWebServer = new MockWebServer();
         mockWebServer.start();
 
-        sendNotificationService = new SendNotificationServiceImpl(
+        sendNotificationService = new NotifyServiceImpl(
                 errorProducerService,
                 messageRepository,
                 mapperDTOToObject,

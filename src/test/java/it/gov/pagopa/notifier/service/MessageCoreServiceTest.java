@@ -29,7 +29,7 @@ class MessageCoreServiceTest {
     @MockBean
     MessageCoreProducerServiceImpl messageCoreProducerService;
     @MockBean
-    SendNotificationServiceImpl sendNotificationService;
+    NotifyServiceImpl sendNotificationService;
 
     @Autowired
     MessageServiceImpl messageCoreService;

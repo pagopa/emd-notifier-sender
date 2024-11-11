@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 class NotifyErrorConsumerServiceImplTest {
 
     @MockBean
-    SendNotificationServiceImpl notificationService;
+    NotifyServiceImpl notificationService;
     @Autowired
     NotifyErrorConsumerServiceImpl notifyErrorConsumerService;
     private MemoryAppender memoryAppender;

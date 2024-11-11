@@ -29,13 +29,16 @@ public class NotifyErrorProducer {
   }
 
   public void sendToNotifyErrorQueue(Message<MessageDTO> message) {
-    log.info("[EMD-NOTIFIER-SENDER][SEND] Scheduling message {} to notifyErrorQueue",message.getPayload().getMessageId());
+    String messageId = message.getPayload().getMessageId();
+
+    log.info("[NOTIFY-ERROR-PRODUCER] Scheduling message ID: {} to notifyErrorQueue with a delay of 5 seconds.", messageId);
+
     scheduler.schedule(
-            () ->  streamBridge.send("notifySender-out-0", binder, message),
+            () -> streamBridge.send("notifySender-out-0", binder, message),
             5,
             TimeUnit.SECONDS);
-
   }
+
 }
 
 
