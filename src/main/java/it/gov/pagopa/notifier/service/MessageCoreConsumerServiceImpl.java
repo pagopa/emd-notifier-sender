@@ -77,7 +77,8 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
         if(retry != null) {
             log.info("[MESSAGE-CORE-COMMANDS] Try {} for message {}",retry,messageDTO.getMessageId());
             messageCoreService.processMessage(messageDTO, retry)
-                    .thenReturn("[MESSAGE-CORE-COMMANDS] Message %s processed successfully".formatted(messageDTO.getMessageId()));
+                    .thenReturn("[MESSAGE-CORE-COMMANDS] Message %s processed successfully".formatted(messageDTO.getMessageId()))
+                    .subscribe();
         }
         return Mono.just("[MESSAGE-CORE-COMMANDS] Message %s not processed".formatted(messageDTO.getMessageId()));
     }

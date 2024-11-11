@@ -79,7 +79,8 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
             String authenticationUrl = (String) headers.get(ERROR_MSG_AUTH_URL);
             String entityId = (String) headers.get(ERROR_MSG_ENTITY_ID);
             sendMessageService.sendNotification(messageDTO, messageUrl, authenticationUrl, entityId,retry)
-                    .thenReturn("[NOTIFIER-ERROR-COMMANDS] Message %s processed successfully".formatted(messageDTO.getMessageId()));
+                    .thenReturn("[NOTIFIER-ERROR-COMMANDS] Message %s processed successfully".formatted(messageDTO.getMessageId()))
+                    .subscribe();
         }
         return Mono.just("[NOTIFIER-ERROR-COMMANDS] Message %s not processed".formatted(messageDTO.getMessageId()));
     }
