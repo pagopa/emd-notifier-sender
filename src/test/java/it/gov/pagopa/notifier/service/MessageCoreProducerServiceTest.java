@@ -33,13 +33,13 @@ import static org.mockito.Mockito.times;
     @Test
     void enqueueMessage_OK(){
         messageCoreProducerService.enqueueMessage(MESSAGE_DTO,RETRY).block();
-        Mockito.verify(messageErrorProducer,times(1)).sendToMessageQueue(any());
+        Mockito.verify(messageErrorProducer,times(1)).scheduleMessage(any());
     }
 
     @Test
     void enqueueMessage_K0(){
         messageCoreProducerService.enqueueMessage(MESSAGE_DTO,RETRY_KO).block();
-        Mockito.verify(messageErrorProducer,times(0)).sendToMessageQueue(any());
+        Mockito.verify(messageErrorProducer,times(0)).scheduleMessage(any());
     }
 
 

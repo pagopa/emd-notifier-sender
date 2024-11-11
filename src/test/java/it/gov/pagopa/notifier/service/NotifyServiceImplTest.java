@@ -71,7 +71,7 @@ class NotifyServiceImplTest {
         when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
-        sendNotificationService.sendNotification(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
+        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
                 mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
 
         verifyRequests();
@@ -85,7 +85,7 @@ class NotifyServiceImplTest {
                 .setResponseCode(500)
                 .setBody("Internal Server Error"));
 
-        sendNotificationService.sendNotification(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
+        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
                 mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
 
         verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(), anyLong());
@@ -103,7 +103,7 @@ class NotifyServiceImplTest {
                 .setResponseCode(500)
                 .setBody("Internal Server Error"));
 
-        sendNotificationService.sendNotification(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
+        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
                 mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
 
         verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(), anyLong());
@@ -122,7 +122,7 @@ class NotifyServiceImplTest {
         when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
-        sendNotificationService.sendNotification(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
+        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
                 mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
 
         verifyRequests();

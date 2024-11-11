@@ -28,10 +28,10 @@ public class NotifyErrorProducer {
     this.scheduler = scheduler;
   }
 
-  public void sendToNotifyErrorQueue(Message<MessageDTO> message) {
+  public void scheduleMessage(Message<MessageDTO> message) {
     String messageId = message.getPayload().getMessageId();
 
-    log.info("[NOTIFY-ERROR-PRODUCER] Scheduling message ID: {} to notifyErrorQueue with a delay of 5 seconds.", messageId);
+    log.info("[NOTIFY-ERROR-PRODUCER][SCHEDULE-MESSAGE] Scheduling message ID: {} to notifyErrorQueue with a delay of 5 seconds.", messageId);
 
     scheduler.schedule(
             () -> streamBridge.send("notifySender-out-0", binder, message),

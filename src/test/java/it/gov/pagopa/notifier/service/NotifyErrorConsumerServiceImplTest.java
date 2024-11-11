@@ -58,16 +58,16 @@ class NotifyErrorConsumerServiceImplTest {
     }
     @Test
     void processCommand_Ok(){
-        when(notificationService.sendNotification(any(), any(),any(),any(),anyLong())).thenReturn(Mono.empty());
+        when(notificationService.sendNotify(any(), any(),any(),any(),anyLong())).thenReturn(Mono.empty());
         notifyErrorConsumerService.execute(MESSAGE_DTO,QUEUE_NOTIFIER_STRING_ERROR,null).block();
-        Mockito.verify(notificationService,times(1)).sendNotification(MESSAGE_DTO, MESSAGE_URL, AUTHENTICATION_URL, ENTITY_ID, RETRY);
+        Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE_DTO, MESSAGE_URL, AUTHENTICATION_URL, ENTITY_ID, RETRY);
     }
 
     @Test
     void processCommand_Ko(){
-        when(notificationService.sendNotification(any(), any(),any(),any(),anyLong())).thenReturn(Mono.empty());
+        when(notificationService.sendNotify(any(), any(),any(),any(),anyLong())).thenReturn(Mono.empty());
         notifyErrorConsumerService.execute(MESSAGE_DTO,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block();
-        Mockito.verify(notificationService,times(0)).sendNotification(MESSAGE_DTO, MESSAGE_URL, AUTHENTICATION_URL, ENTITY_ID, RETRY);
+        Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE_DTO, MESSAGE_URL, AUTHENTICATION_URL, ENTITY_ID, RETRY);
     }
 
     @Test

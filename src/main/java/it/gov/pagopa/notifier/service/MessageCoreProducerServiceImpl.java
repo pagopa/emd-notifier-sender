@@ -31,21 +31,21 @@ public class MessageCoreProducerServiceImpl implements MessageCoreProducerServic
         String messageId = messageDTO.getMessageId();
 
         if (retry > maxTry) {
-            log.info("[MESSAGE-CORE-PRODUCER-SERVICE] Message ID: {} exceeds max retry attempts ({}). Not retryable.", messageId, maxTry);
+            log.info("[MESSAGE-CORE-PRODUCER-SERVICE][ENQUEUE-MESSAGE] Message ID: {} exceeds max retry attempts ({}). Not retryable.", messageId, maxTry);
             return Mono.empty();
         }
 
-        log.info("[MESSAGE-CORE-PRODUCER-SERVICE] Enqueuing message ID: {} with retry attempt: {}", messageId, retry);
+        log.info("[MESSAGE-CORE-PRODUCER-SERVICE][ENQUEUE-MESSAGE] Enqueuing message ID: {} with retry attempt: {}", messageId, retry);
 
         return Mono.fromRunnable(() -> {
-            log.debug("[MESSAGE-CORE-PRODUCER-SERVICE] Sending message ID: {} with retry attempt: {} to message queue.", messageId, retry);
-            messageCoreProducer.sendToMessageQueue(createMessage(messageDTO, retry));
+            log.debug("[MESSAGE-CORE-PRODUCER-SERVICE][ENQUEUE-MESSAGE] Sending message ID: {} with retry attempt: {} to message queue.", messageId, retry);
+            messageCoreProducer.scheduleMessage(createMessage(messageDTO, retry));
         });
     }
 
     @NotNull
     private static Message<MessageDTO> createMessage(MessageDTO messageDTO, long retry) {
-        log.debug("[MESSAGE-CORE-PRODUCER-SERVICE] Creating message for ID: {} with retry attempt: {}", messageDTO.getMessageId(), retry);
+        log.debug("[MESSAGE-CORE-PRODUCER-SERVICE][CREATE-MESSAGE] Creating message for ID: {} with retry attempt: {}", messageDTO.getMessageId(), retry);
         return MessageBuilder
                 .withPayload(messageDTO)
                 .setHeader(ERROR_MSG_HEADER_RETRY, retry)

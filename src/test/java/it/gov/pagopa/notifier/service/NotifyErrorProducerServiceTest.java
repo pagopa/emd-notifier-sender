@@ -32,12 +32,12 @@ import static org.mockito.Mockito.times;
     @Test
     void enqueueNotify_OK(){
         notifyErrorProducerService.enqueueNotify(MESSAGE_DTO,MESSAGE_URL,AUTHENTICATION_URL,ENTITY_ID, RETRY).block();
-        Mockito.verify(notifyErrorProducer,times(1)).sendToNotifyErrorQueue(any());
+        Mockito.verify(notifyErrorProducer,times(1)).scheduleMessage(any());
     }
 
     @Test
     void enqueueNotify_KO(){
         notifyErrorProducerService.enqueueNotify(MESSAGE_DTO,MESSAGE_URL,AUTHENTICATION_URL,ENTITY_ID, RETRY_KO).block();
-        Mockito.verify(notifyErrorProducer,times(0)).sendToNotifyErrorQueue(any());
+        Mockito.verify(notifyErrorProducer,times(0)).scheduleMessage(any());
     }
 }

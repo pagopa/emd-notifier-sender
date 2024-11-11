@@ -42,7 +42,7 @@ class MessageCoreServiceTest {
         Mockito.when(tppService.getTppsEnabled(any()))
                 .thenReturn(Mono.just(TPP_DTO_LIST));
 
-        Mockito.when(sendNotificationService.sendNotification(MESSAGE_DTO,MESSAGE_URL,AUTHENTICATION_URL,ENTITY_ID,RETRY))
+        Mockito.when(sendNotificationService.sendNotify(MESSAGE_DTO,MESSAGE_URL,AUTHENTICATION_URL,ENTITY_ID,RETRY))
                         .thenReturn(Mono.empty());
 
        messageCoreService.processMessage(MESSAGE_DTO,0).block();

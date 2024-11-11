@@ -33,7 +33,7 @@ class MessageCoreProducerTest {
      void testStreamBridgeSendCalled() throws Exception {
         when(scheduler.schedule(runnableCaptor.capture(), eq(5L), eq(TimeUnit.SECONDS))).thenReturn(null);
 
-        messageErrorProducer.sendToMessageQueue(QUEUE_MESSAGE_CORE);
+        messageErrorProducer.scheduleMessage(QUEUE_MESSAGE_CORE);
 
         Callable<Object> capturedRunnable = runnableCaptor.getValue();
         capturedRunnable.call();

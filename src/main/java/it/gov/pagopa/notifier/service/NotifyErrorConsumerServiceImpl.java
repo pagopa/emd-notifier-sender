@@ -73,7 +73,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
         String messageId = messageDTO.getMessageId();
         String payload = message.getPayload();
-        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE] Queue message received with ID: {} and payload: {}", messageId, payload);
+        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {}", messageId, payload);
 
         MessageHeaders headers = message.getHeaders();
         Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
@@ -82,21 +82,21 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
         String entityId = (String) headers.get(ERROR_MSG_ENTITY_ID);
 
         if (retry == null || messageUrl == null || authenticationUrl == null || entityId == null) {
-            if (retry == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE] Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", messageId);
-            if (messageUrl == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE] Missing header: ERROR_MSG_MESSAGE_URL for message ID: {}", messageId);
-            if (authenticationUrl == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE] Missing header: ERROR_MSG_AUTH_URL for message ID: {}", messageId);
-            if (entityId == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE] Missing header: ERROR_MSG_ENTITY_ID for message ID: {}", messageId);
-            return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE] Message %s not processed due to missing headers".formatted(messageId));
+            if (retry == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", messageId);
+            if (messageUrl == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_MESSAGE_URL for message ID: {}", messageId);
+            if (authenticationUrl == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_AUTH_URL for message ID: {}", messageId);
+            if (entityId == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_ENTITY_ID for message ID: {}", messageId);
+            return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Message %s not processed due to missing headers".formatted(messageId));
         }
 
-        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE] Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, entityId, retry);
+        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, entityId, retry);
 
-        sendMessageService.sendNotification(messageDTO, messageUrl, authenticationUrl, entityId, retry)
-                .doOnSuccess(v -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE] Successfully sent message ID: {} to TPP: {}", messageId, entityId))
-                .doOnError(e -> log.error("[NOTIFY-ERROR-CONSUMER-SERVICE] Error sending message ID: {} to TPP: {}. Error: {}", messageId, entityId, e.getMessage()))
+        sendMessageService.sendNotify(messageDTO, messageUrl, authenticationUrl, entityId, retry)
+                .doOnSuccess(v -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Successfully sent message ID: {} to TPP: {}", messageId, entityId))
+                .doOnError(e -> log.error("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Error sending message ID: {} to TPP: {}. Error: {}", messageId, entityId, e.getMessage()))
                 .subscribe();
 
-        return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE] Processing attempt for message %s to TPP %s in progress".formatted(messageId, entityId));
+        return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Processing attempt for message %s to TPP %s in progress".formatted(messageId, entityId));
     }
 
 }

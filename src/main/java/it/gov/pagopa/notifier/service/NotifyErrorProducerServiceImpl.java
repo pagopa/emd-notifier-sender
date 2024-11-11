@@ -33,21 +33,21 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
         String messageId = messageDTO.getMessageId();
 
         if (retry > maxTry) {
-            log.info("[NOTIFY-ERROR-PRODUCER-SERVICE] Message ID: {} for TPP: {} exceeds max retry attempts ({}). Not retryable.", messageId, entityId, maxTry);
+            log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Message ID: {} for TPP: {} exceeds max retry attempts ({}). Not retryable.", messageId, entityId, maxTry);
             return Mono.empty();
         }
 
-        log.info("[NOTIFY-ERROR-PRODUCER-SERVICE] Enqueuing message ID: {} for TPP: {} with retry attempt: {}", messageId, entityId, retry);
+        log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Enqueuing message ID: {} for TPP: {} with retry attempt: {}", messageId, entityId, retry);
 
         return Mono.fromRunnable(() -> {
-            log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageId, entityId, retry);
-            notifyErrorProducer.sendToNotifyErrorQueue(createMessage(messageDTO, messageUrl, authenticationUrl, entityId, retry));
+            log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageId, entityId, retry);
+            notifyErrorProducer.scheduleMessage(createMessage(messageDTO, messageUrl, authenticationUrl, entityId, retry));
         });
     }
 
     @NotNull
     private static Message<MessageDTO> createMessage(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
-        log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE] Creating message for ID: {} with retry: {}, messageUrl: {}, authenticationUrl: {}, entityId: {}",
+        log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][CREATE-MESSAGE] Creating message for ID: {} with retry: {}, messageUrl: {}, authenticationUrl: {}, entityId: {}",
                 messageDTO.getMessageId(), retry, messageUrl, authenticationUrl, entityId);
 
         return MessageBuilder

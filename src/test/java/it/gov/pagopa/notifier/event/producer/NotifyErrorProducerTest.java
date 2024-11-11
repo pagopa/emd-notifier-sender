@@ -33,7 +33,7 @@ class NotifyErrorProducerTest {
 
         when(scheduler.schedule(runnableCaptor.capture(), eq(5L), eq(TimeUnit.SECONDS))).thenReturn(null);
 
-        notifyErrorProducer.sendToNotifyErrorQueue(QUEUE_NOTIFIER_ERROR);
+        notifyErrorProducer.scheduleMessage(QUEUE_NOTIFIER_ERROR);
 
         Callable<Object> capturedRunnable = runnableCaptor.getValue();
         capturedRunnable.call();

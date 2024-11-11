@@ -76,20 +76,20 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
         MessageHeaders headers = message.getHeaders();
         Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
 
-        log.info("[MESSAGE-CORE-CONSUMER-SERVICE] Received message with ID: {} and payload: {}", messageId, payload);
+        log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Received message with ID: {} and payload: {}", messageId, payload);
 
         if (retry == null) {
-            log.warn("[MESSAGE-CORE-CONSUMER-SERVICE] No retry header found. Message {} will not be processed.", messageId);
-            return Mono.just("[MESSAGE-CORE-CONSUMER-SERVICE] Message %s not processed due to missing headers".formatted(messageId));
+            log.warn("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] No retry header found. Message {} will not be processed.", messageId);
+            return Mono.just("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Message %s not processed due to missing headers".formatted(messageId));
         }
 
-        log.info("[MESSAGE-CORE-CONSUMER-SERVICE] Processing attempt {} for message ID: {}", retry, messageId);
+        log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Processing attempt {} for message ID: {}", retry, messageId);
         messageCoreService.processMessage(messageDTO, retry)
-                .doOnSuccess(v -> log.info("[MESSAGE-CORE-CONSUMER-SERVICE] Successfully processed message ID: {} on attempt {}", messageId, retry))
-                .doOnError(e -> log.error("[MESSAGE-CORE-CONSUMER-SERVICE] Error processing message ID: {} on attempt {}. Error: {}", messageId, retry, e.getMessage()))
+                .doOnSuccess(v -> log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Successfully processed message ID: {} on attempt {}", messageId, retry))
+                .doOnError(e -> log.error("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Error processing message ID: {} on attempt {}. Error: {}", messageId, retry, e.getMessage()))
                 .subscribe();
 
-        return Mono.just("[NOTIFIER-ERROR-CONSUMER] Processing attempt %s for message %s in progress".formatted(retry, messageId));
+        return Mono.just("[NOTIFIER-ERROR-CONSUMER][EXECUTE] Processing attempt %s for message %s in progress".formatted(retry, messageId));
     }
 
 }

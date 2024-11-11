@@ -38,7 +38,7 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public Mono<Void> processMessage(MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
-        log.info("[MESSAGE-SERVICE] Start processing message ID: {} at retry attempt {}", messageId, retry);
+        log.info("[MESSAGE-SERVICE][PROCESS-MESSAGE] Start processing message ID: {} at retry attempt {}", messageId, retry);
 
         return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
                 .flatMap(tppIdList -> processTppList(tppIdList, messageDTO, retry))
@@ -49,11 +49,11 @@ public class MessageServiceImpl implements MessageService {
         String messageId = messageDTO.getMessageId();
 
         if (tppIdList.isEmpty()) {
-            log.info("[MESSAGE-SERVICE] No consents found for message ID: {} at retry attempt {}", messageId, retry);
+            log.info("[MESSAGE-SERVICE][PROCESS-TPP-LIST] No consents found for message ID: {} at retry attempt {}", messageId, retry);
             return Mono.empty();
         }
 
-        log.info("[MESSAGE-SERVICE] Consent list found for message ID: {} at retry attempt {}: {}", messageId, retry, tppIdList);
+        log.info("[MESSAGE-SERVICE][PROCESS-TPP-LIST] Consent list found for message ID: {} at retry attempt {}: {}", messageId, retry, tppIdList);
 
         return tppConnector.getTppsEnabled(new TppIdList(tppIdList))
                 .flatMap(tppList -> sendNotifications(tppList, messageDTO, retry))
@@ -64,30 +64,30 @@ public class MessageServiceImpl implements MessageService {
         String messageId = messageDTO.getMessageId();
 
         if (tppDTOList.isEmpty()) {
-            log.info("[MESSAGE-SERVICE] No channels available for message ID: {} at retry attempt {}", messageId, retry);
+            log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] No channels available for message ID: {} at retry attempt {}", messageId, retry);
             return Mono.empty();
         }
 
-        log.info("[MESSAGE-SERVICE] Sending notifications for message ID: {} at retry attempt {} to channels: {}", messageId, retry, tppDTOList);
+        log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending notifications for message ID: {} at retry attempt {} to channels: {}", messageId, retry, tppDTOList);
 
         return Flux.fromIterable(tppDTOList)
                 .flatMap(tppDTO -> {
-                    log.info("[MESSAGE-SERVICE] Sending message ID: {} at retry attempt {} to TPP: {}", messageId, retry, tppDTO.getTppId());
-                    return sendNotificationService.sendNotification(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId(), 0);
+                    log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", messageId, retry, tppDTO.getTppId());
+                    return sendNotificationService.sendNotify(messageDTO, tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(), tppDTO.getEntityId(), 0);
                 })
                 .then();
     }
 
     private Mono<Void> handleError(Throwable e, MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
-        log.error("[MESSAGE-SERVICE] Error processing message ID: {} at retry attempt {}. Error: {}", messageId, retry, e.getMessage(), e);
+        log.error("[MESSAGE-SERVICE][HANDLE-ERROR] Error processing message ID: {} at retry attempt {}. Error: {}", messageId, retry, e.getMessage(), e);
         enqueueWithRetry(messageDTO, retry);
         return Mono.empty();
     }
 
     private void enqueueWithRetry(MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
-        log.info("[MESSAGE-SERVICE] Re-enqueuing message ID: {} with increased retry count: {}", messageId, retry + 1);
+        log.info("[MESSAGE-SERVICE][ENQUEUE-WITH-RETRY] Re-enqueuing message ID: {} with increased retry count: {}", messageId, retry + 1);
         messageCoreProducerService.enqueueMessage(messageDTO, retry + 1);
     }
 
