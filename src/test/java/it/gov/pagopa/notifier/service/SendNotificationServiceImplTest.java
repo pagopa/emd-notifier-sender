@@ -2,11 +2,6 @@ package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.mapper.MessageMapperDTOToObject;
-import it.gov.pagopa.notifier.dto.TokenDTO;
-import it.gov.pagopa.notifier.faker.MessageDTOFaker;
-import it.gov.pagopa.notifier.faker.MessageFaker;
-import it.gov.pagopa.notifier.faker.TokenDTOFaker;
-import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -24,25 +19,12 @@ import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 
+import static it.gov.pagopa.notifier.utils.TestUtils.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SendNotificationServiceImplTest {
-
-    private static final String MESSAGE_URL = "/message";
-    private static final String AUTHENTICATION_URL = "/auth";
-    private static final String ENTITY_ID = "entity-id";
-    private static final long RETRY = 1L;
-    private static final String CLIENT_SECRET = "client_secret";
-    private static final String CLIENT_ID = "client_id";
-    private static final String GRANT_TYPE = "grant_type";
-    private static final String TENANT_ID = "tenant_id";
-    private static final String BEARER_TOKEN = "Bearer ";
-
-    private static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
-    private static final Message MESSAGE = MessageFaker.mockInstance();
-    private static final TokenDTO TOKEN_DTO = TokenDTOFaker.mockInstance();
 
     private SendNotificationServiceImpl sendNotificationService;
     private MockWebServer mockWebServer;

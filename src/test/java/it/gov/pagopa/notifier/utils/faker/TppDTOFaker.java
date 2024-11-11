@@ -1,4 +1,4 @@
-package it.gov.pagopa.notifier.faker;
+package it.gov.pagopa.notifier.utils.faker;
 
 import it.gov.pagopa.notifier.dto.TppDTO;
 

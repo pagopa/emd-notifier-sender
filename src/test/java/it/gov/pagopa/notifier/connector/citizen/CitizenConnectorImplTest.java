@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 import java.util.List;
 
+import static it.gov.pagopa.notifier.utils.TestUtils.FISCAL_CODE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -24,11 +25,7 @@ class CitizenConnectorImplTest {
     private MockWebServer mockWebServer;
 
     private CitizenConnectorImpl citizenConnector;
-
     private ObjectMapper objectMapper;
-
-    private final static String FISCAL_CODE = "12345678901";
-
 
     @BeforeEach
     void setUp() throws IOException {

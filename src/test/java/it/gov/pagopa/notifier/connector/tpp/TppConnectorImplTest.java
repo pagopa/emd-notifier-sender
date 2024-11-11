@@ -4,8 +4,6 @@ package it.gov.pagopa.notifier.connector.tpp;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.gov.pagopa.notifier.dto.TppDTO;
-import it.gov.pagopa.notifier.dto.TppIdList;
-import it.gov.pagopa.notifier.faker.TppDTOFaker;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
@@ -18,6 +16,8 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 import java.util.List;
 
+import static it.gov.pagopa.notifier.utils.TestUtils.TPP_DTO;
+import static it.gov.pagopa.notifier.utils.TestUtils.TPP_ID_LIST;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,9 +26,7 @@ class TppConnectorImplTest {
     private MockWebServer mockWebServer;
     private TppConnectorImpl tppConnector;
     private ObjectMapper objectMapper;
-    private final static String TPP_ID = "12345678901";
-    private final static TppIdList TPP_ID_LIST = new TppIdList(List.of(TPP_ID));
-    private final static TppDTO TPP_DTO = TppDTOFaker.mockInstance();
+
 
     @BeforeEach
     void setUp() throws IOException {

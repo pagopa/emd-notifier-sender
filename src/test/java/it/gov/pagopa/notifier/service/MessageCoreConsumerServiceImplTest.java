@@ -4,8 +4,6 @@ import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.utils.MemoryAppender;
-import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.faker.MessageDTOFaker;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,8 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -26,7 +22,7 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.List;
 
-import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
+import static it.gov.pagopa.notifier.utils.TestUtils.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
@@ -50,9 +46,6 @@ class MessageCoreConsumerServiceImplTest {
     MessageCoreConsumerServiceImpl messageConsumerServiceImpl;
     private MemoryAppender memoryAppender;
 
-    private static final long RETRY = 1L;
-    private static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
-
     @BeforeEach
     public void setup() {
         ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("it.gov.pagopa.notifier.service.MessageCoreConsumerServiceImpl");
@@ -66,23 +59,16 @@ class MessageCoreConsumerServiceImplTest {
 
     @Test
     void processCommand_Ok(){
-        Message<String> message = MessageBuilder
-                .withPayload(MESSAGE_DTO.toString())
-                .setHeader(ERROR_MSG_HEADER_RETRY, RETRY)
-                .build();
         when(messageService.processMessage(any(),anyLong())).thenReturn(Mono.empty());
-        messageConsumerServiceImpl.execute(MESSAGE_DTO,message,null).block();
+        messageConsumerServiceImpl.execute(MESSAGE_DTO,QUEUE_MESSAGE_STRING_CORE,null).block();
         Mockito.verify(messageService,times(1)).processMessage(MESSAGE_DTO,RETRY);
 
     }
 
     @Test
     void processCommand_Ko(){
-        Message<String> message = MessageBuilder
-                .withPayload(MESSAGE_DTO.toString())
-                .build();
         when(messageService.processMessage(any(), anyLong())).thenReturn(Mono.empty());
-        messageConsumerServiceImpl.execute(MESSAGE_DTO, message, null).block();
+        messageConsumerServiceImpl.execute(MESSAGE_DTO, QUEUE_MESSAGE_NO_RETRY_CORE, null).block();
         Mockito.verify(messageService, times(0)).processMessage(MESSAGE_DTO, RETRY);
     }
     @Test

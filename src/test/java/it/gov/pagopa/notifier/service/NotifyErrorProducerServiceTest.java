@@ -2,7 +2,7 @@ package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.event.producer.NotifyErrorProducer;
-import it.gov.pagopa.notifier.faker.MessageDTOFaker;
+import it.gov.pagopa.notifier.utils.faker.MessageDTOFaker;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
