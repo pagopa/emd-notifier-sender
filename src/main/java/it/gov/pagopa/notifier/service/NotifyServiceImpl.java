@@ -92,7 +92,6 @@ public class NotifyServiceImpl implements NotifyService {
                     Message message = mapperDTOToObject.map(messageDTO, entityId);
 
                     messageRepository.save(message)
-                            .doOnSuccess(messagePersisted -> log.info("[NOTIFY-SERVICE][TO-URL] Message {} saved for entityId: {}", messagePersisted.getMessageId(), messagePersisted.getEntityId()))
                             .onErrorResume(error -> {
                                 log.error("[NOTIFY-SERVICE][TO-URL] Error saving message ID: {} for entityId: {}", messageDTO.getMessageId(), entityId);
                                 return Mono.empty();
