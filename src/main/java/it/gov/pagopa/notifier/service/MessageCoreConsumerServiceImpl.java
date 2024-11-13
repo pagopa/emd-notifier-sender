@@ -85,7 +85,6 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
 
         log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Processing attempt {} for message ID: {}", retry, messageId);
         messageCoreService.processMessage(messageDTO, retry)
-                .doOnSuccess(v -> log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Successfully processed message ID: {} on attempt {}", messageId, retry))
                 .doOnError(e -> log.error("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Error processing message ID: {} on attempt {}. Error: {}", messageId, retry, e.getMessage()))
                 .subscribe();
 

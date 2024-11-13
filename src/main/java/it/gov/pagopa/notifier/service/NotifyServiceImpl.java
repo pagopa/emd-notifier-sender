@@ -96,7 +96,8 @@ public class NotifyServiceImpl implements NotifyService {
                             .onErrorResume(error -> {
                                 log.error("[NOTIFY-SERVICE][TO-URL] Error saving message ID: {} for entityId: {}", messageDTO.getMessageId(), entityId);
                                 return Mono.empty();
-                            });
+                            })
+                            .subscribe();
                 })
                 .doOnError(error -> log.error("[NOTIFY-SERVICE][TO-URL] Error sending message {} at try {} to URL: {}. Error: {}", messageDTO.getMessageId(), retry, messageUrl, error.getMessage()));
     }
