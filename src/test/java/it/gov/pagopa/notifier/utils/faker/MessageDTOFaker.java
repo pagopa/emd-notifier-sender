@@ -16,6 +16,7 @@ public class MessageDTOFaker {
                 .senderDescription("sender")
                 .recipientId("recipientId")
                 .originId("originId")
+                .associatedPayment(true)
                 .build();
 
     }

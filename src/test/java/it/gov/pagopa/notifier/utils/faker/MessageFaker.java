@@ -12,9 +12,10 @@ public class MessageFaker {
                 .content("message")
                 .triggerDateTime("date")
                 .senderDescription("sender")
-                .hashedFiscalCode("recipientId")
+                .recipientId("recipientId")
                 .originId("originId")
                 .entityId("entityId")
+                .associatedPayment(true)
                 .build();
 
     }
