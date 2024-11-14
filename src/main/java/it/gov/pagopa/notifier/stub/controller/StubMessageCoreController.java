@@ -14,6 +14,6 @@ import java.util.List;
 public interface StubMessageCoreController {
 
 
-    @GetMapping("/get/{fiscalCode}")
-    Mono<ResponseEntity<List<MessageDTO>>> getMessages(@Valid @PathVariable String fiscalCode);
+    @GetMapping("/get/{entityId}/{fiscalCode}")
+    Mono<ResponseEntity<List<MessageDTO>>> getMessages(@Valid @PathVariable String fiscalCode,@PathVariable String entityId);
 }

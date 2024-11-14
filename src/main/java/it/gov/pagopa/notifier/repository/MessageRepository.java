@@ -7,6 +7,6 @@ import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import reactor.core.publisher.Flux;
 
 public interface MessageRepository extends ReactiveMongoRepository<Message,String> {
-    Flux<Message> findByRecipientId(String recipientId);
+    Flux<Message> findByRecipientIdAndEntityId(String recipientId, String entityId);
 
 }

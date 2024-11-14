@@ -21,11 +21,11 @@ public class StubMessageCoreServiceImpl implements StubMessageCoreService {
     }
 
     @Override
-    public Mono<List<MessageDTO>> getMessages(String fiscalCode) {
-        return messageRepository.findByRecipientId(fiscalCode)
+    public Mono<List<MessageDTO>> getMessages(String fiscalCode, String entityId) {
+        return messageRepository.findByRecipientIdAndEntityId(fiscalCode,entityId)
                 .collectList()
                 .map(messageList -> messageList.stream()
-                        .map(message ->  mapperToDTO.map(message,fiscalCode))
+                        .map(mapperToDTO::map)
                         .toList()
                 )
                 .defaultIfEmpty(Collections.emptyList());
