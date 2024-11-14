@@ -10,12 +10,14 @@ import java.time.LocalDateTime;
 @Builder
 public class Message {
     private String messageId;
-    private String hashedFiscalCode;
+    private String recipientId;
     private String triggerDateTime;
     private String senderDescription;
     private String messageUrl;
     private String originId;
     private String content;
-    private LocalDateTime elaborationDateTime;
     private String entityId;
+    private Boolean associatedPayment;
+    private LocalDateTime elaborationDateTime;
+
 }

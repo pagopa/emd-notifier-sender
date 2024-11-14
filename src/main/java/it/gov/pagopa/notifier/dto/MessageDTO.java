@@ -23,6 +23,8 @@ public class MessageDTO {
     @JsonAlias("message")
     private String content;
     private String entityId;
+    private Boolean associatedPayment;
+
 
     @Override
     public String toString() {
