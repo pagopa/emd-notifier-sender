@@ -72,11 +72,10 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     @Override
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
         String messageId = messageDTO.getMessageId();
-        String payload = message.getPayload();
         MessageHeaders headers = message.getHeaders();
         Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
 
-        log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Received message with ID: {} and payload: {}", messageId, payload);
+        log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Received message with ID: {} and payload: {}", messageId, messageDTO);
 
         if (retry == null) {
             log.warn("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] No retry header found. Message {} will not be processed.", messageId);

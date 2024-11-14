@@ -49,6 +49,6 @@ public class PerformanceLogger {
 //endregion
 
     public static void logTiming(String flowName, long startTime, String logPayload){
-        log.info("[PERFORMANCE_LOG] [{}] Time occurred to perform business logic: {} ms {}", flowName, System.currentTimeMillis() - startTime, logPayload);
+        log.debug("[PERFORMANCE_LOG] [{}] Time occurred to perform business logic: {} ms {}", flowName, System.currentTimeMillis() - startTime, logPayload);
     }
 }

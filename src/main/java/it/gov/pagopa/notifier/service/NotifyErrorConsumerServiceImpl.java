@@ -72,8 +72,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     @Override
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
         String messageId = messageDTO.getMessageId();
-        String payload = message.getPayload();
-        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {}", messageId, payload);
+        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {}", messageId, messageDTO);
 
         MessageHeaders headers = message.getHeaders();
         Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
