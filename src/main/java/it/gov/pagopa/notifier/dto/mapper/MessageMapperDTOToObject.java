@@ -19,7 +19,7 @@ public class MessageMapperDTOToObject {
                 .originId(messageDTO.getOriginId())
                 .elaborationDateTime(LocalDateTime.now())
                 .entityId(entityId)
-                .associatedPayment(messageDTO.getAssociatedPayment())
+                .associatedPayment(true)
                 .build();
     }
 }
