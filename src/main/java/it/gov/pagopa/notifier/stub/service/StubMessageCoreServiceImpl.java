@@ -24,7 +24,7 @@ public class StubMessageCoreServiceImpl implements StubMessageCoreService {
     @Override
     public Mono<List<MessageDTO>> getMessages(String fiscalCode) {
         String hashedFiscalCode = CommonUtilities.createSHA256(fiscalCode);
-        return messageRepository.findByHashedFiscalCode(hashedFiscalCode)
+        return messageRepository.findByRecipientId(hashedFiscalCode)
                 .collectList()
                 .map(messageList -> messageList.stream()
                         .map(message ->  mapperToDTO.map(message,hashedFiscalCode))
