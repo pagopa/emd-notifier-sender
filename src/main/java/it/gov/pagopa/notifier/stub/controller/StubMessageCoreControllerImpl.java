@@ -22,8 +22,8 @@ public class StubMessageCoreControllerImpl implements StubMessageCoreController 
     }
 
     @Override
-    public Mono<ResponseEntity<List<MessageDTO>>> getMessages(String fiscalCode) {
-        return stubMessageCoreService.getMessages(fiscalCode)
+    public Mono<ResponseEntity<List<MessageDTO>>> getMessages(String fiscalCode, String entityId) {
+        return stubMessageCoreService.getMessages(fiscalCode,entityId)
                 .map(ResponseEntity::ok);
     }
 }

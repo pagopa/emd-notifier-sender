@@ -4,7 +4,8 @@ package it.gov.pagopa.notifier.service;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import reactor.core.publisher.Mono;
 
-public interface MessageService {
+public interface MessageCoreProducerService {
 
-    Mono<Void> processMessage(MessageDTO messageDTO, long retry);
+     Mono<Void> enqueueMessage(MessageDTO messageDTO, long retry);
+
 }

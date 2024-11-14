@@ -1,8 +1,7 @@
 package it.gov.pagopa.notifier.stub.service;
 
-import it.gov.pagopa.common.utils.CommonUtilities;
 import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.model.MessageMapperObjectToDTO;
+import it.gov.pagopa.notifier.model.mapper.MessageMapperObjectToDTO;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -22,12 +21,11 @@ public class StubMessageCoreServiceImpl implements StubMessageCoreService {
     }
 
     @Override
-    public Mono<List<MessageDTO>> getMessages(String fiscalCode) {
-        String hashedFiscalCode = CommonUtilities.createSHA256(fiscalCode);
-        return messageRepository.findByHashedFiscalCode(hashedFiscalCode)
+    public Mono<List<MessageDTO>> getMessages(String fiscalCode, String entityId) {
+        return messageRepository.findByRecipientIdAndEntityId(fiscalCode,entityId)
                 .collectList()
                 .map(messageList -> messageList.stream()
-                        .map(message ->  mapperToDTO.map(message,hashedFiscalCode))
+                        .map(mapperToDTO::map)
                         .toList()
                 )
                 .defaultIfEmpty(Collections.emptyList());

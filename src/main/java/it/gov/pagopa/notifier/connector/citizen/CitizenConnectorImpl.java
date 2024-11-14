@@ -1,7 +1,6 @@
 package it.gov.pagopa.notifier.connector.citizen;
 
 
-import it.gov.pagopa.notifier.dto.CitizenConsentDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,7 @@ public class CitizenConnectorImpl implements CitizenConnector {
 
     }
 
-    public Mono<List<CitizenConsentDTO>> getCitizenConsentsEnabled(String fiscalCode) {
+    public Mono<List<String>> getCitizenConsentsEnabled(String fiscalCode) {
         return webClient.get()
                 .uri("/emd/citizen/list/{fiscalCode}/enabled",fiscalCode)
                 .retrieve()

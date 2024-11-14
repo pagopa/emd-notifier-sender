@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 public interface StubMessageCoreService {
 
-    Mono<List<MessageDTO>> getMessages(String fiscalCode);
+    Mono<List<MessageDTO>> getMessages(String fiscalCode,String entityId);
 
 
 }
