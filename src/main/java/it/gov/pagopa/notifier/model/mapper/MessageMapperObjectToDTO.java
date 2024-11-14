@@ -16,7 +16,7 @@ public class MessageMapperObjectToDTO {
                 .messageUrl(message.getMessageUrl())
                 .content(message.getContent())
                 .originId(message.getOriginId())
-                .associatedPayment(true)
+                .associatedPayment(message.getAssociatedPayment())
                 .build();
 
     }
