@@ -88,7 +88,7 @@ public class NotifyServiceImpl implements NotifyService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnSuccess(response -> {
-                    log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent successfully at try {}. Response: {}", messageDTO.getMessageId(), retry, response);
+                    log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent successfully to TPP {} at try {}. Response: {}", messageDTO.getMessageId(), entityId, retry, response);
                     Message message = mapperDTOToObject.map(messageDTO, entityId);
 
                     messageRepository.save(message)
