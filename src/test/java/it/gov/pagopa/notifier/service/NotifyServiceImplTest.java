@@ -38,6 +38,9 @@ class NotifyServiceImplTest {
     @Mock
     private MessageMapperDTOToObject mapperDTOToObject;
 
+    @Mock
+    private SecretService secretService;
+
     @BeforeEach
     void setUp() throws IOException {
         mockWebServer = new MockWebServer();
@@ -47,10 +50,7 @@ class NotifyServiceImplTest {
                 errorProducerService,
                 messageRepository,
                 mapperDTOToObject,
-                CLIENT_SECRET,
-                CLIENT_ID,
-                GRANT_TYPE,
-                TENANT_ID);
+                secretService);
     }
 
     @AfterEach
@@ -71,8 +71,7 @@ class NotifyServiceImplTest {
         when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
-                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
 
         verifyRequests();
         verify(messageRepository, times(1)).save(any());
@@ -80,20 +79,19 @@ class NotifyServiceImplTest {
 
     @Test
     void testSendMessage_TokenFailure() {
-        when(errorProducerService.enqueueNotify(any(),any(),any(),any(),anyLong())).thenReturn(Mono.just("Error"));
+        when(errorProducerService.enqueueNotify(any(),any(),anyLong())).thenReturn(Mono.just("Error"));
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(500)
                 .setBody("Internal Server Error"));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
-                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
 
-        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(), anyLong());
+        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
     }
 
     @Test
     void testSendMessage_ToUrlFailure() {
-        when(errorProducerService.enqueueNotify(any(),any(),any(),any(),anyLong())).thenReturn(Mono.just("Error"));
+        when(errorProducerService.enqueueNotify(any(),any(),anyLong())).thenReturn(Mono.just("Error"));
 
         mockWebServer.enqueue(new MockResponse()
                 .setBody("{\"access_token\":\"accessToken\"}")
@@ -103,10 +101,9 @@ class NotifyServiceImplTest {
                 .setResponseCode(500)
                 .setBody("Internal Server Error"));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
-                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
 
-        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(), anyLong());
+        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
     }
 
     @Test
@@ -122,8 +119,7 @@ class NotifyServiceImplTest {
         when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
-                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
 
         verifyRequests();
         verify(messageRepository, times(1)).save(any());

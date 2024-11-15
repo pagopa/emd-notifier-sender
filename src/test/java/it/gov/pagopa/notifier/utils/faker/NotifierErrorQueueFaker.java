@@ -1,6 +1,8 @@
 package it.gov.pagopa.notifier.utils.faker;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
+import it.gov.pagopa.notifier.dto.NotifyErrorQueueMessageDTO;
+import it.gov.pagopa.notifier.dto.TppDTO;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
@@ -12,13 +14,10 @@ public class NotifierErrorQueueFaker {
 
     public  NotifierErrorQueueFaker(){}
 
-    public static Message<MessageDTO> mockInstance(MessageDTO messageDTO) {
+    public static Message<NotifyErrorQueueMessageDTO> mockInstance(MessageDTO messageDTO, TppDTO tppDTO) {
         return MessageBuilder
-                .withPayload(messageDTO)
+                .withPayload(new NotifyErrorQueueMessageDTO(messageDTO,tppDTO))
                 .setHeader(ERROR_MSG_HEADER_RETRY, RETRY)
-                .setHeader(ERROR_MSG_AUTH_URL, AUTHENTICATION_URL)
-                .setHeader(ERROR_MSG_MESSAGE_URL, MESSAGE_URL)
-                .setHeader(ERROR_MSG_ENTITY_ID,ENTITY_ID)
                 .build();
     }
 
