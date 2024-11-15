@@ -61,13 +61,20 @@ public class NotifyServiceImpl implements NotifyService {
 
         String authenticationUrl = tppDTO.getAuthenticationUrl();
 
-        for (Map.Entry<String, String> entry : tppDTO.getTokenSection().getPathAdditionalProperties().entrySet())
+        log.info(authenticationUrl);
+        for (Map.Entry<String, String> entry : tppDTO.getTokenSection().getPathAdditionalProperties().entrySet()) {
+            log.info("{} : {}",entry.getKey(), secretService.getSecret(entry.getValue()));
             authenticationUrl = authenticationUrl.replace(entry.getKey(), secretService.getSecret(entry.getValue()));
+        }
+        log.info(authenticationUrl);
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 
-        for (Map.Entry<String, String> entry : tppDTO.getTokenSection().getBodyAdditionalProperties().entrySet())
+        for (Map.Entry<String, String> entry : tppDTO.getTokenSection().getBodyAdditionalProperties().entrySet()) {
+            log.info("{} : {}",entry.getKey(), secretService.getSecret(entry.getValue()));
             formData.add(entry.getKey(), secretService.getSecret(entry.getValue()));
+        }
+        log.info(formData.toString());
 
         return webClient.post()
                 .uri(authenticationUrl)
