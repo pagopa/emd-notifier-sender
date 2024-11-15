@@ -15,6 +15,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -59,22 +60,12 @@ public class NotifyServiceImpl implements NotifyService {
 
         log.info("[NOTIFY-SERVICE][GET-TOKEN] Requesting token for message ID: {} to TPP: {} at retry: {}", messageId,tppDTO.getTppId(),retry);
 
-        String authenticationUrl = tppDTO.getAuthenticationUrl();
+        log.info("[NOTIFY-SERVICE][GET-TOKEN] Requesting token for message ID: {} to TPP: {} at retry: {}", messageId, tppDTO.getTppId(), retry);
 
-        log.info(authenticationUrl);
-        for (Map.Entry<String, String> entry : tppDTO.getTokenSection().getPathAdditionalProperties().entrySet()) {
-            log.info("{} : {}",entry.getKey(), secretService.getSecret(entry.getValue()));
-            authenticationUrl = authenticationUrl.replace(entry.getKey(), secretService.getSecret(entry.getValue()));
-        }
-        log.info(authenticationUrl);
+        String authenticationUrl = replaceSecrets(tppDTO.getAuthenticationUrl(), tppDTO.getTokenSection().getPathAdditionalProperties());
 
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-
-        for (Map.Entry<String, String> entry : tppDTO.getTokenSection().getBodyAdditionalProperties().entrySet()) {
-            log.info("{} : {}",entry.getKey(), secretService.getSecret(entry.getValue()));
-            formData.add(entry.getKey(), secretService.getSecret(entry.getValue()));
-        }
-        log.info(formData.toString());
+        replaceSecretsInFormData(tppDTO.getTokenSection().getBodyAdditionalProperties(), formData);
 
         return webClient.post()
                 .uri(authenticationUrl)
@@ -84,6 +75,32 @@ public class NotifyServiceImpl implements NotifyService {
                 .bodyToMono(TokenDTO.class)
                 .doOnSuccess(token -> log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} at retry: {}",messageId,tppDTO.getEntityId(),retry))
                 .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from : {}", error.getMessage()));
+    }
+
+    private String replaceSecrets(String url, Map<String, String> pathSecrets) {
+        Map<String, String> secretsMap = new HashMap<>();
+
+        pathSecrets.forEach((key, secretName) ->
+                secretService.getSecret(secretName)
+                        .doOnSuccess(secretValue -> secretsMap.put(key, secretValue))
+                        .subscribe()
+        );
+
+
+        String updatedUrl = url;
+        for (Map.Entry<String, String> entry : secretsMap.entrySet()) {
+            updatedUrl = updatedUrl.replace(entry.getKey(), entry.getValue());
+        }
+
+        return updatedUrl;
+    }
+
+    private void replaceSecretsInFormData(Map<String, String> bodySecrets, MultiValueMap<String, String> formData) {
+        bodySecrets.forEach((key, secretName) ->
+                secretService.getSecret(secretName)
+                        .doOnSuccess(secretValue -> formData.add(key, secretValue))
+                        .subscribe()
+        );
     }
 
     private Mono<String> toUrl(MessageDTO messageDTO, TppDTO tppDTO, TokenDTO token, long retry) {

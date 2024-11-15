@@ -6,6 +6,7 @@ import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class SecretService {
@@ -18,9 +19,12 @@ public class SecretService {
                 .credential(new DefaultAzureCredentialBuilder().build())
                 .buildClient();
     }
-    public String getSecret(String secretName) {
+    public Mono<String> getSecret(String secretName) {
+        return Mono.fromCallable(() -> {
             KeyVaultSecret retrievedSecret = secretClient.getSecret(secretName);
             return retrievedSecret.getValue();
+        });
     }
-
 }
+
+
