@@ -13,9 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -58,49 +58,45 @@ public class NotifyServiceImpl implements NotifyService {
 
     private Mono<TokenDTO> getToken(TppDTO tppDTO, String messageId, long retry) {
 
-        log.info("[NOTIFY-SERVICE][GET-TOKEN] Requesting token for message ID: {} to TPP: {} at retry: {}", messageId,tppDTO.getTppId(),retry);
-
         log.info("[NOTIFY-SERVICE][GET-TOKEN] Requesting token for message ID: {} to TPP: {} at retry: {}", messageId, tppDTO.getTppId(), retry);
 
-        String authenticationUrl = replaceSecrets(tppDTO.getAuthenticationUrl(), tppDTO.getTokenSection().getPathAdditionalProperties());
+        return replaceSecrets(tppDTO.getAuthenticationUrl(), tppDTO.getTokenSection().getPathAdditionalProperties())
+                .flatMap(authenticationUrl -> {
+                    MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+                    return replaceSecretsInFormData(tppDTO.getTokenSection().getBodyAdditionalProperties(), formData)
+                            .then(Mono.defer(() -> webClient.post()
+                                    .uri(authenticationUrl)
+                                    .contentType(MediaType.valueOf(tppDTO.getTokenSection().getContentType()))
+                                    .bodyValue(formData)
+                                    .retrieve()
+                                    .bodyToMono(TokenDTO.class)));
+                })
+                .doOnSuccess(token -> log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message ID: {} to TPP: {} at retry: {}", messageId, tppDTO.getEntityId(), retry))
+                .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token: {}", error.getMessage()));
 
-        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        replaceSecretsInFormData(tppDTO.getTokenSection().getBodyAdditionalProperties(), formData);
-
-        return webClient.post()
-                .uri(authenticationUrl)
-                .contentType(MediaType.valueOf(tppDTO.getTokenSection().getContentType()))
-                .bodyValue(formData)
-                .retrieve()
-                .bodyToMono(TokenDTO.class)
-                .doOnSuccess(token -> log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} at retry: {}",messageId,tppDTO.getEntityId(),retry))
-                .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from : {}", error.getMessage()));
+    }
+    private Mono<String> replaceSecrets(String url, Map<String, String> pathSecrets) {
+        return Flux.fromIterable(pathSecrets.entrySet())
+                .flatMap(entry -> secretService.getSecret(entry.getValue())
+                        .map(secretValue -> Map.entry(entry.getKey(), secretValue))
+                )
+                .collectMap(Map.Entry::getKey, Map.Entry::getValue)
+                .map(secretsMap -> {
+                    String updatedUrl = url;
+                    for (Map.Entry<String, String> entry : secretsMap.entrySet()) {
+                        updatedUrl = updatedUrl.replace(entry.getKey(), entry.getValue());
+                    }
+                    return updatedUrl;
+                });
     }
 
-    private String replaceSecrets(String url, Map<String, String> pathSecrets) {
-        Map<String, String> secretsMap = new HashMap<>();
+    private Mono<Void> replaceSecretsInFormData(Map<String, String> bodySecrets, MultiValueMap<String, String> formData) {
+        return Flux.fromIterable(bodySecrets.entrySet())
+                .flatMap(entry -> secretService.getSecret(entry.getValue())
 
-        pathSecrets.forEach((key, secretName) ->
-                secretService.getSecret(secretName)
-                        .doOnSuccess(secretValue -> secretsMap.put(key, secretValue))
-                        .subscribe()
-        );
-
-
-        String updatedUrl = url;
-        for (Map.Entry<String, String> entry : secretsMap.entrySet()) {
-            updatedUrl = updatedUrl.replace(entry.getKey(), entry.getValue());
-        }
-
-        return updatedUrl;
-    }
-
-    private void replaceSecretsInFormData(Map<String, String> bodySecrets, MultiValueMap<String, String> formData) {
-        bodySecrets.forEach((key, secretName) ->
-                secretService.getSecret(secretName)
-                        .doOnSuccess(secretValue -> formData.add(key, secretValue))
-                        .subscribe()
-        );
+                        .doOnNext(secretValue -> formData.add(entry.getKey(), secretValue))
+                )
+                .then();
     }
 
     private Mono<String> toUrl(MessageDTO messageDTO, TppDTO tppDTO, TokenDTO token, long retry) {

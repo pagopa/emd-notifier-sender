@@ -23,6 +23,7 @@ public class SecretService {
         return secretClient.getSecret(secretName)
                 .map(KeyVaultSecret::getValue);
     }
+
 }
 
 
