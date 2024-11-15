@@ -12,8 +12,7 @@ public class SecretService {
 
     private final SecretClient secretClient;
 
-    public SecretService(@Value("${app.retry.max-retry}") SecretClient keyVaultName) {
-        String keyVaultUri = "https://" + keyVaultName + ".vault.azure.net";
+    public SecretService(@Value("${app.key-vault-uri}") String keyVaultUri) {
         this.secretClient = new SecretClientBuilder()
                 .vaultUrl(keyVaultUri)
                 .credential(new DefaultAzureCredentialBuilder().build())
