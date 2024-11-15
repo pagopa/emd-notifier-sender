@@ -93,7 +93,6 @@ public class NotifyServiceImpl implements NotifyService {
     private Mono<Void> replaceSecretsInFormData(Map<String, String> bodySecrets, MultiValueMap<String, String> formData) {
         return Flux.fromIterable(bodySecrets.entrySet())
                 .flatMap(entry -> secretService.getSecret(entry.getValue())
-
                         .doOnNext(secretValue -> formData.add(entry.getKey(), secretValue))
                 )
                 .then();
