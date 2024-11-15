@@ -2,6 +2,8 @@ package it.gov.pagopa.notifier.service;
 
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
+import it.gov.pagopa.notifier.dto.NotifyErrorQueueMessageDTO;
+import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.event.producer.NotifyErrorProducer;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -29,33 +31,29 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
 
 
     @Override
-    public Mono<String> enqueueNotify(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
-        String messageId = messageDTO.getMessageId();
+    public Mono<String> enqueueNotify(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
 
         if (retry > maxTry) {
-            log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Message ID: {} for TPP: {} exceeds max retry attempts ({}). Not retryable.", messageId, entityId, maxTry);
+            log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Message ID: {} for TPP: {} exceeds max retry attempts ({}). Not retryable.", messageDTO.getMessageId(), tppDTO.getTppId(), maxTry);
             return Mono.empty();
         }
 
-        log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Enqueuing message ID: {} for TPP: {} with retry attempt: {}", messageId, entityId, retry);
+        log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Enqueuing message ID: {} for TPP: {} with retry attempt: {}", messageDTO.getMessageId(), tppDTO.getTppId(), retry);
 
         return Mono.fromRunnable(() -> {
-            log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageId, entityId, retry);
-            notifyErrorProducer.scheduleMessage(createMessage(messageDTO, messageUrl, authenticationUrl, entityId, retry));
+            log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageDTO.getMessageId(), tppDTO.getTppId(), retry);
+            notifyErrorProducer.scheduleMessage(createMessage(messageDTO, tppDTO, retry));
         });
     }
 
     @NotNull
-    private static Message<MessageDTO> createMessage(MessageDTO messageDTO, String messageUrl, String authenticationUrl, String entityId, long retry) {
-        log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][CREATE-MESSAGE] Creating message for ID: {} with retry: {}, messageUrl: {}, authenticationUrl: {}, entityId: {}",
-                messageDTO.getMessageId(), retry, messageUrl, authenticationUrl, entityId);
+    private static Message<NotifyErrorQueueMessageDTO> createMessage(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
+        log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][CREATE-MESSAGE] Creating message for ID: {} with retry: {}, entityId: {}",
+                messageDTO.getMessageId(), retry, tppDTO.getEntityId());
 
         return MessageBuilder
-                .withPayload(messageDTO)
+                .withPayload(new NotifyErrorQueueMessageDTO(messageDTO,tppDTO))
                 .setHeader(ERROR_MSG_HEADER_RETRY, retry)
-                .setHeader(ERROR_MSG_AUTH_URL, authenticationUrl)
-                .setHeader(ERROR_MSG_MESSAGE_URL, messageUrl)
-                .setHeader(ERROR_MSG_ENTITY_ID, entityId)
                 .build();
     }
 

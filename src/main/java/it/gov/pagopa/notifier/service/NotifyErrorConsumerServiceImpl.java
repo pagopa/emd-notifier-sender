@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
 import it.gov.pagopa.notifier.dto.MessageDTO;
+import it.gov.pagopa.notifier.dto.NotifyErrorQueueMessageDTO;
+import it.gov.pagopa.notifier.dto.TppDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
@@ -21,7 +23,7 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 
 @Service
 @Slf4j
-public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,String> implements NotifyErrorConsumerService {
+public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErrorQueueMessageDTO,String> implements NotifyErrorConsumerService {
 
     private final Duration commitDelay;
     private final Duration delayMinusCommit;
@@ -70,27 +72,26 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
 //    }
 
     @Override
-    protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
+    protected Mono<String> execute(NotifyErrorQueueMessageDTO notifyErrorQueueMessageDTO, Message<String> message, Map<String, Object> ctx) {
+
+        MessageDTO messageDTO = notifyErrorQueueMessageDTO.getMessageDTO();
+        TppDTO tppDTO = notifyErrorQueueMessageDTO.getTppDTO();
         String messageId = messageDTO.getMessageId();
-        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {}", messageId, messageDTO);
+        String entityId = tppDTO.getEntityId();
+        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {}", messageId);
 
         MessageHeaders headers = message.getHeaders();
         Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
-        String messageUrl = (String) headers.get(ERROR_MSG_MESSAGE_URL);
-        String authenticationUrl = (String) headers.get(ERROR_MSG_AUTH_URL);
-        String entityId = (String) headers.get(ERROR_MSG_ENTITY_ID);
 
-        if (retry == null || messageUrl == null || authenticationUrl == null || entityId == null) {
-            if (retry == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", messageId);
-            if (messageUrl == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_MESSAGE_URL for message ID: {}", messageId);
-            if (authenticationUrl == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_AUTH_URL for message ID: {}", messageId);
-            if (entityId == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_ENTITY_ID for message ID: {}", messageId);
+
+        if (retry == null) {
+            log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", messageId);
             return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Message %s not processed due to missing headers".formatted(messageId));
         }
 
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, entityId, retry);
 
-        sendMessageService.sendNotify(messageDTO, messageUrl, authenticationUrl, entityId, retry)
+        sendMessageService.sendNotify(messageDTO, tppDTO, retry)
                 .doOnSuccess(v -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Successfully sent message ID: {} to TPP: {}", messageId, entityId))
                 .doOnError(e -> log.error("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Error sending message ID: {} to TPP: {}. Error: {}", messageId, entityId, e.getMessage()))
                 .subscribe();
