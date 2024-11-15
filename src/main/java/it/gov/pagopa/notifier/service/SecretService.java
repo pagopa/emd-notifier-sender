@@ -1,7 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
 import com.azure.identity.DefaultAzureCredentialBuilder;
-import com.azure.security.keyvault.secrets.SecretClient;
+import com.azure.security.keyvault.secrets.SecretAsyncClient;
 import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,19 +11,17 @@ import reactor.core.publisher.Mono;
 @Service
 public class SecretService {
 
-    private final SecretClient secretClient;
+    private final SecretAsyncClient secretClient;
 
     public SecretService(@Value("${app.key-vault-uri}") String keyVaultUri) {
         this.secretClient = new SecretClientBuilder()
                 .vaultUrl(keyVaultUri)
                 .credential(new DefaultAzureCredentialBuilder().build())
-                .buildClient();
+                .buildAsyncClient();
     }
     public Mono<String> getSecret(String secretName) {
-        return Mono.fromCallable(() -> {
-            KeyVaultSecret retrievedSecret = secretClient.getSecret(secretName);
-            return retrievedSecret.getValue();
-        });
+        return secretClient.getSecret(secretName)
+                .map(KeyVaultSecret::getValue);
     }
 }
 
