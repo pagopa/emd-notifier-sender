@@ -76,18 +76,21 @@ public class NotifyServiceImpl implements NotifyService {
 
     }
     private Mono<String> replaceSecrets(String url, Map<String, String> pathSecrets) {
-        return Flux.fromIterable(pathSecrets.entrySet())
-                .flatMap(entry -> secretService.getSecret(entry.getValue())
-                        .map(secretValue -> Map.entry(entry.getKey(), secretValue))
-                )
-                .collectMap(Map.Entry::getKey, Map.Entry::getValue)
-                .map(secretsMap -> {
-                    String updatedUrl = url;
-                    for (Map.Entry<String, String> entry : secretsMap.entrySet()) {
-                        updatedUrl = updatedUrl.replace(entry.getKey(), entry.getValue());
-                    }
-                    return updatedUrl;
-                });
+        if(pathSecrets != null)
+            return Flux.fromIterable(pathSecrets.entrySet())
+                    .flatMap(entry -> secretService.getSecret(entry.getValue())
+                            .map(secretValue -> Map.entry(entry.getKey(), secretValue))
+                    )
+                    .collectMap(Map.Entry::getKey, Map.Entry::getValue)
+                    .map(secretsMap -> {
+                        String updatedUrl = url;
+                        for (Map.Entry<String, String> entry : secretsMap.entrySet()) {
+                            updatedUrl = updatedUrl.replace(entry.getKey(), entry.getValue());
+                        }
+                        return updatedUrl;
+                    });
+        else
+            return Mono.just(url);
     }
 
     private Mono<Void> replaceSecretsInFormData(Map<String, String> bodySecrets, MultiValueMap<String, String> formData) {
