@@ -25,7 +25,9 @@ public class TestUtils {
     public static Message<MessageDTO> QUEUE_MESSAGE_CORE = MessageCoreQueueFaker.mockInstance(MESSAGE_DTO);
     public static Message<NotifyErrorQueueMessageDTO> QUEUE_NOTIFIER_ERROR = NotifierErrorQueueFaker.mockInstance(MESSAGE_DTO, TPP_DTO);
 
-    public static NotifyErrorQueueMessageDTO QUEUE_MESSAGE_BODY = new NotifyErrorQueueMessageDTO(MESSAGE_DTO, TPP_DTO);
+    public static MessageDTO OUEUE_MESSAGE_BODY = new MessageDTO();
+
+   // public static NotifyErrorQueueMessageDTO QUEUE_MESSAGE_BODY = new NotifyErrorQueueMessageDTO(MESSAGE_DTO, TPP_DTO);
     public static final String MESSAGE_URL = "/message";
     public static final String AUTHENTICATION_URL = "/auth";
     public static final String ENTITY_ID = "entity-id";
