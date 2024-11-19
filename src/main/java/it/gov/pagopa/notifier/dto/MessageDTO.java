@@ -22,7 +22,7 @@ public class MessageDTO {
     private String originId;
     @JsonAlias("message")
     private String content;
-    private String entityId;
+    private String idPsp;
     private Boolean associatedPayment;
 
 
@@ -36,6 +36,8 @@ public class MessageDTO {
                 ", senderDescription='" + senderDescription + '\'' +
                 ", messageUrl='" + messageUrl + '\'' +
                 ", originId='" + originId + '\'' +
+                ", idPsp='" + idPsp + '\'' +
+                ", associatedPayment='" + associatedPayment + '\'' +
                 '}';
     }
 }
