@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
         "app.retry.max-retry=5",
         "spring.application.name=test",
         "spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime=500",
-        "app.notifier-sender.build-delay-duration=PT1S"
+        "app.message-core.build-delay-duration=PT1S"
 })
 class NotifyErrorConsumerServiceImplTest {
 
