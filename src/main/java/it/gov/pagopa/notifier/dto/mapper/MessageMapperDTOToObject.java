@@ -18,6 +18,7 @@ public class MessageMapperDTOToObject {
                 .entityId(entityId)
                 .associatedPayment(true)
                 .senderDescription(messageDTO.getSenderDescription())
+                .idPsp(messageDTO.getIdPsp())
                 .build();
     }
 }
