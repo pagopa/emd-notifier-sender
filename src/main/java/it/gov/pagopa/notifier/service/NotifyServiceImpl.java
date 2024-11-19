@@ -103,7 +103,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     private Mono<String> toUrl(MessageDTO messageDTO, TppDTO tppDTO, TokenDTO token, long retry) {
         log.info("[NOTIFY-SERVICE][TO-URL] Sending message {} to URL: {} for TPP: {} at try {}", messageDTO.getMessageId(), tppDTO.getMessageUrl(), tppDTO.getEntityId(), retry);
-
+        messageDTO.setIdPsp(tppDTO.getIdPsp());
         return webClient.post()
                 .uri(tppDTO.getMessageUrl())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccessToken())
