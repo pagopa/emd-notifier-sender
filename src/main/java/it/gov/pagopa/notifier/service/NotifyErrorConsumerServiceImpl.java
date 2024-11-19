@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
 import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.dto.NotifyErrorQueueMessageDTO;
-import it.gov.pagopa.notifier.dto.TppDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
@@ -18,12 +16,12 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
+import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
 
 
 @Service
 @Slf4j
-public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErrorQueueMessageDTO,String> implements NotifyErrorConsumerService {
+public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,String> implements NotifyErrorConsumerService {
 
     private final Duration commitDelay;
     private final Duration delayMinusCommit;
@@ -72,12 +70,10 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
 //    }
 
     @Override
-    protected Mono<String> execute(NotifyErrorQueueMessageDTO notifyErrorQueueMessageDTO, Message<String> message, Map<String, Object> ctx) {
+    protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
 
-        MessageDTO messageDTO = notifyErrorQueueMessageDTO.getMessageDTO();
-        TppDTO tppDTO = notifyErrorQueueMessageDTO.getTppDTO();
         String messageId = messageDTO.getMessageId();
-        String entityId = tppDTO.getEntityId();
+        String entityId = "entityId";
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {}", messageId);
 
         MessageHeaders headers = message.getHeaders();
@@ -91,7 +87,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
 
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, entityId, retry);
 
-        sendMessageService.sendNotify(messageDTO, tppDTO, retry)
+        sendMessageService.sendNotify(messageDTO, null, retry)
                 .doOnSuccess(v -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Successfully sent message ID: {} to TPP: {}", messageId, entityId))
                 .doOnError(e -> log.error("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Error sending message ID: {} to TPP: {}. Error: {}", messageId, entityId, e.getMessage()))
                 .subscribe();
