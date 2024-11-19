@@ -139,6 +139,7 @@ app:
     build-delay-duration: ${BENEFICIARY_RULE_BUILD_DELAY_DURATION:PT1S}
   retry:
     max-retry: ${ERROR_MESSAGE_MAX_RETRY:3}
+  key-vault-uri:  ${KEY_VAULT_URI:https://cstar-d-weu-mil-kv.vault.azure.net}
 
 management:
   health:
