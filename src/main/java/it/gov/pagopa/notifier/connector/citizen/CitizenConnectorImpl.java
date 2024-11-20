@@ -20,7 +20,7 @@ public class CitizenConnectorImpl implements CitizenConnector {
 
     public Mono<List<String>> getCitizenConsentsEnabled(String fiscalCode) {
         return webClient.get()
-                .uri("/emd/citizen/list/{fiscalCode}/enabled",fiscalCode)
+                .uri("/emd/citizen/list/{fiscalCode}/enabled/tpp",fiscalCode)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<>() {
                 });
