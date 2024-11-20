@@ -2,6 +2,7 @@ package it.gov.pagopa.notifier.service;
 
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
+import it.gov.pagopa.notifier.dto.NotifyErrorQueueMessageDTO;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.event.producer.NotifyErrorProducer;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +13,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
+import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
 
 @Slf4j
 @Service
@@ -46,12 +47,12 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
     }
 
     @NotNull
-    private static Message<MessageDTO> createMessage(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
+    private static Message<NotifyErrorQueueMessageDTO> createMessage(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
         log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][CREATE-MESSAGE] Creating message for ID: {} with retry: {}, entityId: {}",
                 messageDTO.getMessageId(), retry, tppDTO.getEntityId());
 
         return MessageBuilder
-                .withPayload(messageDTO)
+                .withPayload(new NotifyErrorQueueMessageDTO(messageDTO,tppDTO))
                 .setHeader(ERROR_MSG_HEADER_RETRY, retry)
                 .build();
     }
