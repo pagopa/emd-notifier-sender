@@ -14,7 +14,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static it.gov.pagopa.notifier.utils.TestUtils.QUEUE_MESSAGE_CORE;
 import static it.gov.pagopa.notifier.utils.TestUtils.QUEUE_NOTIFIER_ERROR;
 import static org.mockito.Mockito.*;
 
@@ -34,7 +33,7 @@ class NotifyErrorProducerTest {
 
         when(scheduler.schedule(runnableCaptor.capture(), eq(5L), eq(TimeUnit.SECONDS))).thenReturn(null);
 
-        notifyErrorProducer.scheduleMessage(QUEUE_MESSAGE_CORE);
+        notifyErrorProducer.scheduleMessage(QUEUE_NOTIFIER_ERROR);
 
         Callable<Object> capturedRunnable = runnableCaptor.getValue();
         capturedRunnable.call();
