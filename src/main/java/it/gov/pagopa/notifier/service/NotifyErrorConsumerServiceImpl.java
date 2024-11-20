@@ -33,7 +33,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
                                               NotifyServiceImpl sendMessageService,
                                               @Value("${spring.application.name}") String applicationName,
                                               @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitMillis,
-                                              @Value("${app.message-core.build-delay-duration}") String delayMinusCommit) {
+                                              @Value("${app.notifier-sender.build-delay-duration}") String delayMinusCommit) {
         super(applicationName);
         this.commitDelay = Duration.ofMillis(commitMillis);
         Duration buildDelayDuration = Duration.parse(delayMinusCommit).minusMillis(commitMillis);
