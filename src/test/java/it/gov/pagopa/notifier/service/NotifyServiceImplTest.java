@@ -38,9 +38,6 @@ class NotifyServiceImplTest {
     @Mock
     private MessageMapperDTOToObject mapperDTOToObject;
 
-    @Mock
-    private SecretService secretService;
-
     @BeforeEach
     void setUp() throws IOException {
         mockWebServer = new MockWebServer();
@@ -49,8 +46,7 @@ class NotifyServiceImplTest {
         sendNotificationService = new NotifyServiceImpl(
                 errorProducerService,
                 messageRepository,
-                mapperDTOToObject,
-                secretService);
+                mapperDTOToObject);
     }
 
     @AfterEach
