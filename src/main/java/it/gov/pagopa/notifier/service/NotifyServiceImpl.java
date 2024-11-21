@@ -3,8 +3,8 @@ package it.gov.pagopa.notifier.service;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.TokenDTO;
 import it.gov.pagopa.notifier.dto.TppDTO;
-import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.dto.mapper.MessageMapperDTOToObject;
+import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -29,15 +28,12 @@ public class NotifyServiceImpl implements NotifyService {
 
     private final MessageMapperDTOToObject mapperDTOToObject;
 
-    private final SecretService secretService;
 
 
 
     public NotifyServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
                              MessageRepository messageRepository,
-                             MessageMapperDTOToObject mapperDTOToObject,
-                             SecretService secretService) {
-        this.secretService = secretService;
+                             MessageMapperDTOToObject mapperDTOToObject) {
         this.webClient = WebClient.builder().build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
@@ -60,45 +56,31 @@ public class NotifyServiceImpl implements NotifyService {
 
         log.info("[NOTIFY-SERVICE][GET-TOKEN] Requesting token for message ID: {} to TPP: {} at retry: {}", messageId, tppDTO.getTppId(), retry);
 
-        return replaceSecrets(tppDTO.getAuthenticationUrl(), tppDTO.getTokenSection().getPathAdditionalProperties())
-                .flatMap(authenticationUrl -> {
-                    MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-                    return replaceSecretsInFormData(tppDTO.getTokenSection().getBodyAdditionalProperties(), formData)
-                            .then(Mono.defer(() -> webClient.post()
-                                    .uri(authenticationUrl)
-                                    .contentType(MediaType.valueOf(tppDTO.getTokenSection().getContentType()))
-                                    .bodyValue(formData)
-                                    .retrieve()
-                                    .bodyToMono(TokenDTO.class)));
-                })
-                .doOnSuccess(token -> log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message ID: {} to TPP: {} at retry: {}", messageId, tppDTO.getEntityId(), retry))
-                .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token: {}", error.getMessage()));
+        String urlWithTenant = tppDTO.getAuthenticationUrl();
 
-    }
-    private Mono<String> replaceSecrets(String url, Map<String, String> pathSecrets) {
-        if(pathSecrets != null)
-            return Flux.fromIterable(pathSecrets.entrySet())
-                    .flatMap(entry -> secretService.getSecret(entry.getValue())
-                            .map(secretValue -> Map.entry(entry.getKey(), secretValue))
-                    )
-                    .collectMap(Map.Entry::getKey, Map.Entry::getValue)
-                    .map(secretsMap -> {
-                        String updatedUrl = url;
-                        for (Map.Entry<String, String> entry : secretsMap.entrySet()) {
-                            updatedUrl = updatedUrl.replace(entry.getKey(), entry.getValue());
-                        }
-                        return updatedUrl;
-                    });
-        else
-            return Mono.just(url);
-    }
+        if(tppDTO.getTokenSection().getPathAdditionalProperties()!=null) {
+            for(Map.Entry<String, String> entry : tppDTO.getTokenSection().getPathAdditionalProperties().entrySet()){
+                urlWithTenant = urlWithTenant.replace(entry.getKey(),entry.getValue());
+            }
+        }
 
-    private Mono<Void> replaceSecretsInFormData(Map<String, String> bodySecrets, MultiValueMap<String, String> formData) {
-        return Flux.fromIterable(bodySecrets.entrySet())
-                .flatMap(entry -> secretService.getSecret(entry.getValue())
-                        .doOnNext(secretValue -> formData.add(entry.getKey(), secretValue))
-                )
-                .then();
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        if(tppDTO.getTokenSection().getBodyAdditionalProperties()!=null) {
+            for(Map.Entry<String, String> entry : tppDTO.getTokenSection().getBodyAdditionalProperties().entrySet()){
+                formData.add(entry.getKey(),entry.getValue());
+                urlWithTenant = urlWithTenant.replace(entry.getKey(),entry.getValue());
+            }
+        }
+
+        return webClient.post()
+                .uri(urlWithTenant)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .bodyValue(formData)
+                .retrieve()
+                .bodyToMono(TokenDTO.class)
+                .doOnSuccess(token -> log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} at retry: {}",messageId,tppDTO.getTppId(),retry))
+                .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getAuthenticationUrl(), error.getMessage()));
+
     }
 
     private Mono<String> toUrl(MessageDTO messageDTO, TppDTO tppDTO, TokenDTO token, long retry) {
