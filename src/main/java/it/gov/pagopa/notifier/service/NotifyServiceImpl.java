@@ -74,7 +74,7 @@ public class NotifyServiceImpl implements NotifyService {
 
         return webClient.post()
                 .uri(urlWithTenant)
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .contentType(MediaType.valueOf(tppDTO.getTokenSection().getContentType()))
                 .bodyValue(formData)
                 .retrieve()
                 .bodyToMono(TokenDTO.class)
