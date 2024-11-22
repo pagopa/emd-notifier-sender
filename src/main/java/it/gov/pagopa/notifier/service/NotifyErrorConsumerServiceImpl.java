@@ -90,7 +90,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
 
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, entityId, retry);
 
-        sendMessageService.sendNotify(messageDTO, messageUrl, authenticationUrl, entityId, retry)
+        sendMessageService.sendNotify(messageDTO, null, retry)
                 .doOnSuccess(v -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Successfully sent message ID: {} to TPP: {}", messageId, entityId))
                 .doOnError(e -> log.error("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Error sending message ID: {} to TPP: {}. Error: {}", messageId, entityId, e.getMessage()))
                 .subscribe();

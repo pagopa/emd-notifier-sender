@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
+import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.dto.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import okhttp3.mockwebserver.MockResponse;
@@ -46,11 +47,7 @@ class NotifyServiceImplTest {
         sendNotificationService = new NotifyServiceImpl(
                 errorProducerService,
                 messageRepository,
-                mapperDTOToObject,
-                CLIENT_SECRET,
-                CLIENT_ID,
-                GRANT_TYPE,
-                TENANT_ID);
+                mapperDTOToObject);
     }
 
     @AfterEach
@@ -71,8 +68,7 @@ class NotifyServiceImplTest {
         when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
-                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
 
         verifyRequests();
         verify(messageRepository, times(1)).save(any());
@@ -85,8 +81,7 @@ class NotifyServiceImplTest {
                 .setResponseCode(500)
                 .setBody("Internal Server Error"));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
-                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
 
         verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(), anyLong());
     }
@@ -103,8 +98,7 @@ class NotifyServiceImplTest {
                 .setResponseCode(500)
                 .setBody("Internal Server Error"));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
-                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,RETRY).block();
 
         verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(), anyLong());
     }
@@ -122,8 +116,7 @@ class NotifyServiceImplTest {
         when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO, mockWebServer.url(MESSAGE_URL).toString(),
-                mockWebServer.url(AUTHENTICATION_URL).toString(), ENTITY_ID, RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
 
         verifyRequests();
         verify(messageRepository, times(1)).save(any());
