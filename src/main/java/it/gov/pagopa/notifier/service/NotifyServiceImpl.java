@@ -48,7 +48,7 @@ public class NotifyServiceImpl implements NotifyService {
 
         return getToken(tppDTO, messageDTO.getMessageId(), retry)
                 .flatMap(token -> toUrl(messageDTO, tppDTO, token, retry))
-                .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(messageDTO,tppDTO.getMessageUrl(), tppDTO.getAuthenticationUrl(),tppDTO.getEntityId(),retry + 1))
+                .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(messageDTO,tppDTO,retry + 1))
                 .then();
     }
 

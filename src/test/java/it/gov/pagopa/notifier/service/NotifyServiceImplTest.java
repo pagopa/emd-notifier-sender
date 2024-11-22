@@ -1,7 +1,6 @@
 package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.dto.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import okhttp3.mockwebserver.MockResponse;
@@ -76,19 +75,19 @@ class NotifyServiceImplTest {
 
     @Test
     void testSendMessage_TokenFailure() {
-        when(errorProducerService.enqueueNotify(any(),any(),any(),any(),anyLong())).thenReturn(Mono.just("Error"));
+        when(errorProducerService.enqueueNotify(any(),any(),anyLong())).thenReturn(Mono.just("Error"));
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(500)
                 .setBody("Internal Server Error"));
 
         sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
 
-        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(), anyLong());
+        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
     }
 
     @Test
     void testSendMessage_ToUrlFailure() {
-        when(errorProducerService.enqueueNotify(any(),any(),any(),any(),anyLong())).thenReturn(Mono.just("Error"));
+        when(errorProducerService.enqueueNotify(any(),any(),anyLong())).thenReturn(Mono.just("Error"));
 
         mockWebServer.enqueue(new MockResponse()
                 .setBody("{\"access_token\":\"accessToken\"}")
@@ -100,7 +99,7 @@ class NotifyServiceImplTest {
 
         sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,RETRY).block();
 
-        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), any(), any(), anyLong());
+        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
     }
 
     @Test
