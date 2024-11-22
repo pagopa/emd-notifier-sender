@@ -42,35 +42,28 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
         this.delayMinusCommit = defaultDurationDelay.compareTo(buildDelayDuration) >= 0 ? defaultDurationDelay : buildDelayDuration;
         this.objectReader = objectMapper.readerFor(MessageDTO.class);
     }
-
     @Override
     protected Duration getCommitDelay() {
         return commitDelay;
     }
-
     @Override
     protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
         afterCommits2subscribe
                 .buffer(delayMinusCommit)
                 .subscribe(r -> log.info("[MESSAGE-CORE-COMMANDS] Processed offsets committed successfully"));
     }
-
     @Override
     protected ObjectReader getObjectReader() {
         return objectReader;
     }
-
     @Override
     protected Consumer<Throwable> onDeserializationError(Message<String> message) {
         return e -> log.info("[MESSAGE-CORE-CONSUMER-SERVICE][DESERIALIZATION-ERROR] Unexpected JSON : {}", e.getMessage());
     }
-
     @Override
     protected void notifyError(Message<String> message, Throwable e) {
         log.info("[MESSAGE-CORE-CONSUMER-SERVICE][ERROR] Unexpected error : {}", e.getMessage());
     }
-
-
     @Override
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
         String messageId = messageDTO.getMessageId();
