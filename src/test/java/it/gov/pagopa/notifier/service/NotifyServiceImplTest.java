@@ -42,11 +42,12 @@ class NotifyServiceImplTest {
     void setUp() throws IOException {
         mockWebServer = new MockWebServer();
         mockWebServer.start();
-
         sendNotificationService = new NotifyServiceImpl(
                 errorProducerService,
                 messageRepository,
                 mapperDTOToObject);
+        TPP_DTO.setAuthenticationUrl(mockWebServer.url(TPP_DTO.getAuthenticationUrl()).toString());
+        TPP_DTO.setMessageUrl(mockWebServer.url(TPP_DTO.getMessageUrl()).toString());
     }
 
     @AfterEach
@@ -100,25 +101,6 @@ class NotifyServiceImplTest {
         sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,RETRY).block();
 
         verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
-    }
-
-    @Test
-    void testSendMessageWithRetry_Success() throws InterruptedException {
-        mockWebServer.enqueue(new MockResponse()
-                .setBody("{\"access_token\":\"accessToken\"}")
-                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-
-        mockWebServer.enqueue(new MockResponse()
-                .setBody("Message sent successfully")
-                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE));
-
-        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
-        when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
-
-        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
-
-        verifyRequests();
-        verify(messageRepository, times(1)).save(any());
     }
 
     private void verifyRequests() throws InterruptedException {

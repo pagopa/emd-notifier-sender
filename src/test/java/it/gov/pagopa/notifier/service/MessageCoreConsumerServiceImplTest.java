@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -92,4 +93,22 @@ class MessageCoreConsumerServiceImplTest {
                 memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
         );
     }
+
+    @Test
+    void onDeserializationError(){
+        Consumer<Throwable> result =  messageConsumerServiceImpl.onDeserializationError(QUEUE_NOTIFIER_STRING_ERROR);
+        Assertions.assertNotNull(result);
+    }
+
+    @Test
+    void notifyError(){
+        Throwable t = new RuntimeException();
+        messageConsumerServiceImpl.notifyError(QUEUE_NOTIFIER_STRING_ERROR,t);
+        Assertions.assertEquals(
+                ("[MESSAGE-CORE-CONSUMER-SERVICE][ERROR] Unexpected error : %s".formatted(t.getMessage())),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
+
+
 }

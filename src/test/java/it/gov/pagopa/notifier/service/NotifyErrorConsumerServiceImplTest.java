@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -59,14 +60,14 @@ class NotifyErrorConsumerServiceImplTest {
     @Test
     void processCommand_Ok(){
         when(notificationService.sendNotify(any(),any(),anyLong())).thenReturn(Mono.empty());
-        notifyErrorConsumerService.execute(null,QUEUE_NOTIFIER_STRING_ERROR,null).block();
+        notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_STRING_ERROR,null).block();
         Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
     }
 
     @Test
     void processCommand_Ko(){
         when(notificationService.sendNotify(any(), any(),anyLong())).thenReturn(Mono.empty());
-        notifyErrorConsumerService.execute(null,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block();
+        notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block();
         Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
     }
 
@@ -89,6 +90,22 @@ class NotifyErrorConsumerServiceImplTest {
         notifyErrorConsumerService.subscribeAfterCommits(afterCommits2Subscribe);
         Assertions.assertEquals(
                 ("[NOTIFIER-ERROR-COMMANDS] Processed offsets committed successfully"),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
+
+    @Test
+    void onDeserializationError(){
+        Consumer<Throwable> result =  notifyErrorConsumerService.onDeserializationError(QUEUE_NOTIFIER_STRING_ERROR);
+        Assertions.assertNotNull(result);
+    }
+
+    @Test
+    void notifyError(){
+        Throwable t = new RuntimeException();
+        notifyErrorConsumerService.notifyError(QUEUE_NOTIFIER_STRING_ERROR,t);
+        Assertions.assertEquals(
+                ("[NOTIFY-ERROR-CONSUMER-SERVICE][ERROR] Unexpected error : %s".formatted(t.getMessage())),
                 memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
         );
     }

@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
 
@@ -59,15 +60,16 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
         return objectReader;
     }
 
-//    @Override
-//    protected Consumer<Throwable> onDeserializationError(Message<String> message) {
-//        return null;
-//    }
-//
-//    @Override
-//    protected void notifyError(Message<String> message, Throwable e) {
-//
-//    }
+    @Override
+    protected Consumer<Throwable> onDeserializationError(Message<String> message) {
+        return e -> log.info("[MESSAGE-CORE-CONSUMER-SERVICE][DESERIALIZATION-ERROR] Unexpected JSON : {}", e.getMessage());
+    }
+
+    @Override
+    protected void notifyError(Message<String> message, Throwable e) {
+        log.info("[MESSAGE-CORE-CONSUMER-SERVICE][ERROR] Unexpected error : {}", e.getMessage());
+    }
+
 
     @Override
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {

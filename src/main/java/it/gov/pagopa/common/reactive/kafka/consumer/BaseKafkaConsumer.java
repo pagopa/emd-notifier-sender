@@ -12,11 +12,13 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.concurrent.Queues;
 import reactor.util.context.Context;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -57,7 +59,7 @@ public abstract class BaseKafkaConsumer<T, R> {
     record KafkaAcknowledgeResult<T> (Acknowledgment ack, Integer partition, Long offset, T result){
         public KafkaAcknowledgeResult(Message<?> message, T result) {
             this(
-                    (Acknowledgment) CommonUtilities.getHeaderValue(message, KafkaHeaders.ACKNOWLEDGMENT),
+                    (Acknowledgment)CommonUtilities.getHeaderValue(message, KafkaHeaders.ACKNOWLEDGMENT),
                     getMessagePartitionId(message),
                     getMessageOffset(message),
                     result
@@ -66,7 +68,7 @@ public abstract class BaseKafkaConsumer<T, R> {
     }
 
     private static Integer getMessagePartitionId(Message<?> message) {
-        return (Integer) CommonUtilities.getHeaderValue(message, KafkaHeaders.RECEIVED_PARTITION);
+        return (Integer )CommonUtilities.getHeaderValue(message, KafkaHeaders.RECEIVED_PARTITION);
     }
 
     private static Long getMessageOffset(Message<?> message) {
@@ -77,7 +79,7 @@ public abstract class BaseKafkaConsumer<T, R> {
     public final void execute(Flux<Message<String>> messagesFlux) {
         Flux<List<R>> processUntilCommits =
                 messagesFlux
-                        .flatMapSequential(this::executeAcknowledgeAware)
+                        .flatMapSequential(this::executeAcknowledgeAware, getConcurrency())
 
                         .buffer(getCommitDelay())
                         .map(p -> {
@@ -101,6 +103,11 @@ public abstract class BaseKafkaConsumer<T, R> {
         subscribeAfterCommits(processUntilCommits);
     }
 
+    /** Concurrency level used to process polled messages */
+    protected int getConcurrency() {
+        return Queues.SMALL_BUFFER_SIZE;
+    }
+
     /** The {@link Duration} to wait before to commit processed messages */
     protected abstract Duration getCommitDelay();
 
@@ -118,7 +125,7 @@ public abstract class BaseKafkaConsumer<T, R> {
 
         Map<String, Object> ctx=new HashMap<>();
         ctx.put(CONTEXT_KEY_START_TIME, System.currentTimeMillis());
-        ctx.put(CONTEXT_KEY_MSG_ID, CommonUtilities.readMessagePayload(message));
+        ctx.put(CONTEXT_KEY_MSG_ID,  CommonUtilities.readMessagePayload(message));
 
         return execute(message, ctx)
                 .map(r -> new KafkaAcknowledgeResult<>(message, r))
@@ -128,11 +135,11 @@ public abstract class BaseKafkaConsumer<T, R> {
                     if(e instanceof UncommittableError) {
                         return Mono.error(e);
                     } else {
-                        //notifyError(message, e);
+                        notifyError(message, e);
                         return Mono.just(defaultAck);
                     }
                 })
-                .doOnNext(r -> doFinally(message, ctx))
+                .doOnNext(r -> doFinally(message, r.result, ctx))
 
                 .onErrorResume(e -> {
                     log.info("Retrying after reactive pipeline error: ", e);
@@ -141,7 +148,8 @@ public abstract class BaseKafkaConsumer<T, R> {
     }
 
     /** to perform some operation at the end of business logic execution, thus before to wait for commit. As default, it will perform an INFO logging with performance time */
-    protected void doFinally(Message<String> message, Map<String, Object> ctx) {
+    @SuppressWarnings({"sonar:S1172", "unused"}) // suppressing unused parameters
+    protected void doFinally(Message<String> message, R r, Map<String, Object> ctx) {
         Long startTime = (Long)ctx.get(CONTEXT_KEY_START_TIME);
         String msgId = (String)ctx.get(CONTEXT_KEY_MSG_ID);
         if(startTime != null){
@@ -164,17 +172,17 @@ public abstract class BaseKafkaConsumer<T, R> {
 
     /** The {@link ObjectReader} to use in order to deserialize the input message */
     protected abstract ObjectReader getObjectReader();
-//    /** The action to take if the deserialization will throw an error */
-//    protected abstract Consumer<Throwable> onDeserializationError(Message<String> message);
-//    /** The action to take if an unexpected exception occurs */
-//    protected abstract void notifyError(Message<String> message, Throwable e);
+    /** The action to take if the deserialization will throw an error */
+    protected abstract Consumer<Throwable> onDeserializationError(Message<String> message);
+    /** The action to take if an unexpected exception occurs */
+    protected abstract void notifyError(Message<String> message, Throwable e);
 
     /** The function invoked in order to process the current message */
     protected abstract Mono<R> execute(T payload, Message<String> message, Map<String, Object> ctx);
 
     /** It will read and deserialize {@link Message#getPayload()} using the given {@link #getObjectReader()} */
     protected T deserializeMessage(Message<String> message) {
-        return CommonUtilities.deserializeMessage(message, getObjectReader(),null/*onDeserializationError(message)*/);
+        return CommonUtilities.deserializeMessage(message, getObjectReader(), onDeserializationError(message));
     }
 
 }
