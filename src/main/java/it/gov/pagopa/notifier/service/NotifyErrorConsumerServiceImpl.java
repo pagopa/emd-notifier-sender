@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
 import it.gov.pagopa.notifier.dto.MessageDTO;
+import it.gov.pagopa.notifier.dto.NotifyErrorQueuePayload;
+import it.gov.pagopa.notifier.dto.TppDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
@@ -21,7 +23,7 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 
 @Service
 @Slf4j
-public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,String> implements NotifyErrorConsumerService {
+public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErrorQueuePayload,String> implements NotifyErrorConsumerService {
 
     private final Duration commitDelay;
     private final Duration delayMinusCommit;
@@ -70,9 +72,11 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
 //    }
 
     @Override
-    protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
+    protected Mono<String> execute(NotifyErrorQueuePayload payload, Message<String> message, Map<String, Object> ctx) {
+        TppDTO tppDTO = payload.getTppDTO();
+        MessageDTO messageDTO = payload.getMessageDTO();
         String messageId = messageDTO.getMessageId();
-        String entityId = "test";
+        String entityId = tppDTO.getEntityId();
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {}", messageId, messageDTO);
 
         MessageHeaders headers = message.getHeaders();
@@ -85,7 +89,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
 
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, entityId, retry);
 
-        sendMessageService.sendNotify(messageDTO, null, retry)
+        sendMessageService.sendNotify(messageDTO, tppDTO, retry)
                 .doOnSuccess(v -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Successfully sent message ID: {} to TPP: {}", messageId, entityId))
                 .doOnError(e -> log.error("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Error sending message ID: {} to TPP: {}. Error: {}", messageId, entityId, e.getMessage()))
                 .subscribe();
