@@ -72,19 +72,14 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     @Override
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
         String messageId = messageDTO.getMessageId();
+        String entityId = "null";
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {}", messageId, messageDTO);
 
         MessageHeaders headers = message.getHeaders();
         Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
-        String messageUrl = (String) headers.get(ERROR_MSG_MESSAGE_URL);
-        String authenticationUrl = (String) headers.get(ERROR_MSG_AUTH_URL);
-        String entityId = (String) headers.get(ERROR_MSG_ENTITY_ID);
 
-        if (retry == null || messageUrl == null || authenticationUrl == null || entityId == null) {
-            if (retry == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", messageId);
-            if (messageUrl == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_MESSAGE_URL for message ID: {}", messageId);
-            if (authenticationUrl == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_AUTH_URL for message ID: {}", messageId);
-            if (entityId == null) log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_ENTITY_ID for message ID: {}", messageId);
+        if (retry == null){
+            log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", messageId);
             return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Message %s not processed due to missing headers".formatted(messageId));
         }
 
