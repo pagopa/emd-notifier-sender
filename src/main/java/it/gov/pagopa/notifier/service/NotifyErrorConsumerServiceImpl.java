@@ -39,7 +39,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
         Duration buildDelayDuration = Duration.parse(delayMinusCommit).minusMillis(commitMillis);
         Duration defaultDurationDelay = Duration.ofMillis(2L);
         this.delayMinusCommit = defaultDurationDelay.compareTo(buildDelayDuration) >= 0 ? defaultDurationDelay : buildDelayDuration;
-        this.objectReader = objectMapper.readerFor(MessageDTO.class);
+        this.objectReader = objectMapper.readerFor(NotifyErrorQueuePayload.class);
         this.sendMessageService = sendMessageService;
     }
 
