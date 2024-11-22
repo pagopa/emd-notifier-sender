@@ -2,6 +2,7 @@ package it.gov.pagopa.notifier.service;
 
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
+import it.gov.pagopa.notifier.dto.NotifyErrorQueuePayload;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.event.producer.NotifyErrorProducer;
 import jakarta.validation.constraints.NotNull;
@@ -48,12 +49,12 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
     }
 
     @NotNull
-    private static Message<MessageDTO> createMessage(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
+    private static Message<NotifyErrorQueuePayload> createMessage(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
         log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][CREATE-MESSAGE] Creating message for ID: {} with retry: {}, entityId: {}",
                 messageDTO.getMessageId(), retry, tppDTO.getEntityId());
 
         return MessageBuilder
-                .withPayload(messageDTO)
+                .withPayload(new NotifyErrorQueuePayload(tppDTO,messageDTO))
                 .setHeader(ERROR_MSG_HEADER_RETRY, retry)
                 .build();
     }
