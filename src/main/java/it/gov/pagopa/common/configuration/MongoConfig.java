@@ -2,10 +2,12 @@ package it.gov.pagopa.common.configuration;
 
 import com.mongodb.lang.NonNull;
 import it.gov.pagopa.common.utils.CommonConstants;
+import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.Decimal128;
 import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -20,16 +22,19 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
+@EnableConfigurationProperties(MongoConfig.MongoDbCustomProperties.class)
 public class MongoConfig {
 
-    @Configuration
     @ConfigurationProperties(prefix = "spring.data.mongodb.config")
+    @Getter
+    @Setter
     public static class MongoDbCustomProperties {
-        @Setter
+
         ConnectionPoolSettings connectionPool;
 
+        @Getter
         @Setter
-        static class ConnectionPoolSettings {
+        public static class ConnectionPoolSettings {
             int maxSize;
             int minSize;
             long maxWaitTimeMS;
@@ -67,7 +72,7 @@ public class MongoConfig {
     }
 
     @WritingConverter
-    private static class BigDecimalDecimal128Converter implements Converter<BigDecimal, Decimal128> {
+    public static class BigDecimalDecimal128Converter implements Converter<BigDecimal, Decimal128> {
 
         @Override
         public Decimal128 convert(@NonNull BigDecimal source) {
@@ -76,7 +81,7 @@ public class MongoConfig {
     }
 
     @ReadingConverter
-    private static class Decimal128BigDecimalConverter implements Converter<Decimal128, BigDecimal> {
+    public static class Decimal128BigDecimalConverter implements Converter<Decimal128, BigDecimal> {
 
         @Override
         public BigDecimal convert(@NonNull Decimal128 source) {
