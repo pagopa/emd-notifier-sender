@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -92,4 +93,13 @@ class MessageCoreConsumerServiceImplTest {
                 memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
         );
     }
+
+    @Test
+    void onDeserializationError(){
+        Consumer<Throwable> result =  messageConsumerServiceImpl.onDeserializationError(QUEUE_NOTIFIER_STRING_ERROR);
+        Assertions.assertNotNull(result);
+    }
+
+
+
 }

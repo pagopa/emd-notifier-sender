@@ -31,13 +31,13 @@ import static org.mockito.Mockito.times;
 
     @Test
     void enqueueNotify_OK(){
-        notifyErrorProducerService.enqueueNotify(MESSAGE_DTO,MESSAGE_URL,AUTHENTICATION_URL,ENTITY_ID, RETRY).block();
+        notifyErrorProducerService.enqueueNotify(MESSAGE_DTO,TPP_DTO, RETRY).block();
         Mockito.verify(notifyErrorProducer,times(1)).scheduleMessage(any());
     }
 
     @Test
     void enqueueNotify_KO(){
-        notifyErrorProducerService.enqueueNotify(MESSAGE_DTO,MESSAGE_URL,AUTHENTICATION_URL,ENTITY_ID, RETRY_KO).block();
+        notifyErrorProducerService.enqueueNotify(MESSAGE_DTO,TPP_DTO, RETRY_KO).block();
         Mockito.verify(notifyErrorProducer,times(0)).scheduleMessage(any());
     }
 }

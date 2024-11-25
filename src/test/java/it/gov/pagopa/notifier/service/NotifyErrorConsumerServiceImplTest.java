@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,16 +59,16 @@ class NotifyErrorConsumerServiceImplTest {
     }
     @Test
     void processCommand_Ok(){
-        when(notificationService.sendNotify(any(), any(),any(),any(),anyLong())).thenReturn(Mono.empty());
-        notifyErrorConsumerService.execute(MESSAGE_DTO,QUEUE_NOTIFIER_STRING_ERROR,null).block();
-        Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE_DTO, MESSAGE_URL, AUTHENTICATION_URL, ENTITY_ID, RETRY);
+        when(notificationService.sendNotify(any(),any(),anyLong())).thenReturn(Mono.empty());
+        notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_STRING_ERROR,null).block();
+        Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
     }
 
     @Test
     void processCommand_Ko(){
-        when(notificationService.sendNotify(any(), any(),any(),any(),anyLong())).thenReturn(Mono.empty());
-        notifyErrorConsumerService.execute(MESSAGE_DTO,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block();
-        Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE_DTO, MESSAGE_URL, AUTHENTICATION_URL, ENTITY_ID, RETRY);
+        when(notificationService.sendNotify(any(), any(),anyLong())).thenReturn(Mono.empty());
+        notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block();
+        Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
     }
 
     @Test
@@ -92,4 +93,12 @@ class NotifyErrorConsumerServiceImplTest {
                 memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
         );
     }
+
+    @Test
+    void onDeserializationError(){
+        Consumer<Throwable> result =  notifyErrorConsumerService.onDeserializationError(QUEUE_NOTIFIER_STRING_ERROR);
+        Assertions.assertNotNull(result);
+    }
+
+
 }

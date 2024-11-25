@@ -24,6 +24,7 @@ public class MessageDTO {
     private String content;
     private String entityId;
     private Boolean associatedPayment;
+    private String idPsp;
 
 
     @Override

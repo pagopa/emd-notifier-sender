@@ -14,13 +14,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
+
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = MessageServiceImpl.class)
-class MessageCoreServiceTest {
+class MessageServiceTest {
 
     @MockBean
     CitizenConnectorImpl citizenService;
@@ -32,7 +35,7 @@ class MessageCoreServiceTest {
     NotifyServiceImpl sendNotificationService;
 
     @Autowired
-    MessageServiceImpl messageCoreService;
+    MessageServiceImpl messageService;
 
     @Test
     void sendMessage_Ok()  {
@@ -42,10 +45,10 @@ class MessageCoreServiceTest {
         Mockito.when(tppService.getTppsEnabled(any()))
                 .thenReturn(Mono.just(TPP_DTO_LIST));
 
-        Mockito.when(sendNotificationService.sendNotify(MESSAGE_DTO,MESSAGE_URL,AUTHENTICATION_URL,ENTITY_ID,RETRY))
+        Mockito.when(sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,RETRY))
                         .thenReturn(Mono.empty());
 
-       messageCoreService.processMessage(MESSAGE_DTO,0).block();
+       messageService.processMessage(MESSAGE_DTO,0).block();
        verify(messageCoreProducerService,times(0)).enqueueMessage(MESSAGE_DTO,0);
 
     }
@@ -53,9 +56,9 @@ class MessageCoreServiceTest {
     @Test
     void sendMessage_NoChannelEnabled_Case_NoConsents()  {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
-                .thenReturn(Mono.just(TPP_ID_STRING_LIST));
+                .thenReturn(Mono.just(Collections.emptyList()));
 
-        messageCoreService.processMessage(MESSAGE_DTO,0).block();
+        messageService.processMessage(MESSAGE_DTO,0).block();
         verify(messageCoreProducerService,times(0)).enqueueMessage(MESSAGE_DTO,0);
 
     }
@@ -66,9 +69,9 @@ class MessageCoreServiceTest {
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));
 
         Mockito.when(tppService.getTppsEnabled(any()))
-                .thenReturn(Mono.just(TPP_DTO_LIST));
+                .thenReturn(Mono.just(Collections.emptyList()));
 
-        messageCoreService.processMessage(MESSAGE_DTO,0).block();
+        messageService.processMessage(MESSAGE_DTO,0).block();
         verify(messageCoreProducerService,times(0)).enqueueMessage(MESSAGE_DTO,0);
 
     }
@@ -79,7 +82,7 @@ class MessageCoreServiceTest {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.error(new CitizenInvocationException()));
 
-        messageCoreService.processMessage(MESSAGE_DTO,0).block();
+        messageService.processMessage(MESSAGE_DTO,0).block();
         verify(messageCoreProducerService,times(1)).enqueueMessage(MESSAGE_DTO,1);
 
     }
@@ -93,7 +96,7 @@ class MessageCoreServiceTest {
         Mockito.when(tppService.getTppsEnabled(any()))
                 .thenReturn(Mono.error(new TppInvocationException()));
 
-        messageCoreService.processMessage(MESSAGE_DTO,0).block();
+        messageService.processMessage(MESSAGE_DTO,0).block();
         verify(messageCoreProducerService,times(1)).enqueueMessage(MESSAGE_DTO,1);
 
     }

@@ -23,4 +23,5 @@ public class TppDTO {
     private Boolean state;
     private LocalDateTime creationDate;
     private LocalDateTime lastUpdateDate;
+    private TokenSection tokenSection;
 }

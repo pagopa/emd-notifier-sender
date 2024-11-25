@@ -1,9 +1,6 @@
 package it.gov.pagopa.notifier.utils;
 
-import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.dto.TokenDTO;
-import it.gov.pagopa.notifier.dto.TppDTO;
-import it.gov.pagopa.notifier.dto.TppIdList;
+import it.gov.pagopa.notifier.dto.*;
 import it.gov.pagopa.notifier.utils.faker.*;
 import org.springframework.messaging.Message;
 
@@ -22,21 +19,19 @@ public class TestUtils {
     public static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
     public final static String FISCAL_CODE = MESSAGE_DTO.getRecipientId();
     public static Message<String> QUEUE_MESSAGE_NO_RETRY_CORE = MessageCoreQueueFaker.mockNoRetryInstance(MESSAGE_DTO);
-    public static Message<String> QUEUE_NOTIFIER_NO_RETRY_ERROR = NotifierErrorQueueFaker.mockNoRetryInstance(MESSAGE_DTO);
+    public static Message<String> QUEUE_NOTIFIER_NO_RETRY_ERROR = NotifierErrorQueueFaker.mockNoRetryInstance(MESSAGE_DTO,TPP_DTO);
     public static Message<String> QUEUE_MESSAGE_STRING_CORE = MessageCoreQueueFaker.mockStringInstance(MESSAGE_DTO);
-    public static Message<String> QUEUE_NOTIFIER_STRING_ERROR = NotifierErrorQueueFaker.mockStringInstance(MESSAGE_DTO);
+    public static Message<String> QUEUE_NOTIFIER_STRING_ERROR = NotifierErrorQueueFaker.mockStringInstance(MESSAGE_DTO,TPP_DTO);
     public static Message<MessageDTO> QUEUE_MESSAGE_CORE = MessageCoreQueueFaker.mockInstance(MESSAGE_DTO);
-    public static Message<MessageDTO> QUEUE_NOTIFIER_ERROR = NotifierErrorQueueFaker.mockInstance(MESSAGE_DTO);
+    public static Message<NotifyErrorQueuePayload> QUEUE_NOTIFIER_ERROR = NotifierErrorQueueFaker.mockInstance(MESSAGE_DTO,TPP_DTO);
+
+    public static NotifyErrorQueuePayload NOTIFIER_ERROR_PAYLOAD = new NotifyErrorQueuePayload(TPP_DTO,MESSAGE_DTO);
     public static final String MESSAGE_URL = "/message";
     public static final String AUTHENTICATION_URL = "/auth";
-    public static final String ENTITY_ID = "entity-id";
     public static final long RETRY = 1L;
     public static final long RETRY_KO = 10L;
-    public static final String CLIENT_SECRET = "client_secret";
-    public static final String CLIENT_ID = "client_id";
-    public static final String GRANT_TYPE = "grant_type";
-    public static final String TENANT_ID = "tenant_id";
     public static final String BEARER_TOKEN = "Bearer ";
     public static final TokenDTO TOKEN_DTO = TokenDTOFaker.mockInstance();
     public static final it.gov.pagopa.notifier.model.Message MESSAGE = MessageFaker.mockInstance();
+
 }

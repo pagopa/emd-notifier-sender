@@ -76,6 +76,39 @@ class ErrorManagerTest {
 
     checkStackTraceSuppressedLog(memoryAppender,
             "A ClientExceptionNoBody occurred handling request GET /test: HttpStatus 400 BAD_REQUEST - NOTFOUND ClientExceptionNoBody at it.gov.pagopa.common.web.exception.ErrorManagerTest\\$TestController.testEndpoint\\(ErrorManagerTest.java:[0-9]+\\)");
+
+    memoryAppender.reset();
+
+    Throwable throwable = new Exception("Cause of the exception");
+
+    Mockito.doThrow(
+                    new ClientExceptionNoBody(HttpStatus.BAD_REQUEST, "ClientExceptionNoBody with Throwable", throwable))
+            .when(testControllerSpy).testEndpoint();
+
+    webTestClient.get()
+            .uri("/test")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isBadRequest();
+
+    checkStackTraceSuppressedLog(memoryAppender,
+            "Something went wrong handling request GET /test: HttpStatus 400 BAD_REQUEST - ClientExceptionNoBody with Throwable");
+
+    memoryAppender.reset();
+
+    Mockito.doThrow(
+                    new ClientExceptionNoBody(HttpStatus.BAD_REQUEST, "ClientExceptionNoBody", true, throwable))
+            .when(testControllerSpy).testEndpoint();
+
+    webTestClient.get()
+            .uri("/test")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isBadRequest();
+
+    checkStackTraceSuppressedLog(memoryAppender,
+            "Something went wrong handling request GET /test: HttpStatus 400 BAD_REQUEST - ClientExceptionNoBody");
+
   }
 
   @Test

@@ -51,7 +51,6 @@ class ValidationExceptionHandlerTest {
     @Test
     void testHandleValueNotValidException() {
         String invalidJson = "{}";
-
         webTestClient.put()
                 .uri("/test")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -69,7 +68,6 @@ class ValidationExceptionHandlerTest {
     }
     @Test
     void testHandleHeaderNotValidException() {
-
         webTestClient.put()
                 .uri("/test")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -77,13 +75,29 @@ class ValidationExceptionHandlerTest {
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody(ErrorDTO.class)
-
                 .consumeWith(response -> {
                     ErrorDTO errorDTO = response.getResponseBody();
                     assertThat(errorDTO).isNotNull();
                     assertThat(errorDTO.getCode()).isEqualTo("INVALID_REQUEST");
                     assertThat(errorDTO.getMessage()).isEqualTo("Invalid request");
 
+                });
+    }
+
+    @Test
+    void testHandleNoResourceFoundException() {
+        webTestClient.put()
+                .uri("/test/missing")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(new ValidationDTO("someData"))
+                .exchange()
+                .expectStatus().isNotFound()  // Expect 404 Not Found
+                .expectBody(ErrorDTO.class)
+                .consumeWith(response -> {
+                    ErrorDTO errorDTO = response.getResponseBody();
+                    assertThat(errorDTO).isNotNull();
+                    assertThat(errorDTO.getCode()).isEqualTo("INVALID_REQUEST");  // Check the code from ErrorDTO
+                    assertThat(errorDTO.getMessage()).isEqualTo("Invalid request");  // Check the message from ErrorDTO
                 });
     }
 }
