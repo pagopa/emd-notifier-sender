@@ -100,15 +100,6 @@ class MessageCoreConsumerServiceImplTest {
         Assertions.assertNotNull(result);
     }
 
-    @Test
-    void notifyError(){
-        Throwable t = new RuntimeException();
-        messageConsumerServiceImpl.notifyError(QUEUE_NOTIFIER_STRING_ERROR,t);
-        Assertions.assertEquals(
-                ("[MESSAGE-CORE-CONSUMER-SERVICE][ERROR] Unexpected error : %s".formatted(t.getMessage())),
-                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
-        );
-    }
 
 
 }

@@ -61,10 +61,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
     protected Consumer<Throwable> onDeserializationError(Message<String> message) {
         return e -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][DESERIALIZATION-ERROR] Unexpected JSON : {}", e.getMessage());
     }
-    @Override
-    protected void notifyError(Message<String> message, Throwable e) {
-        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][ERROR] Unexpected error : {}", e.getMessage());
-    }
+
     @Override
     protected Mono<String> execute(NotifyErrorQueuePayload payload, Message<String> message, Map<String, Object> ctx) {
         TppDTO tppDTO = payload.getTppDTO();

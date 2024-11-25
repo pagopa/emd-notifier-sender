@@ -135,7 +135,6 @@ public abstract class BaseKafkaConsumer<T, R> {
                     if(e instanceof UncommittableError) {
                         return Mono.error(e);
                     } else {
-                        notifyError(message, e);
                         return Mono.just(defaultAck);
                     }
                 })
@@ -174,8 +173,6 @@ public abstract class BaseKafkaConsumer<T, R> {
     protected abstract ObjectReader getObjectReader();
     /** The action to take if the deserialization will throw an error */
     protected abstract Consumer<Throwable> onDeserializationError(Message<String> message);
-    /** The action to take if an unexpected exception occurs */
-    protected abstract void notifyError(Message<String> message, Throwable e);
 
     /** The function invoked in order to process the current message */
     protected abstract Mono<R> execute(T payload, Message<String> message, Map<String, Object> ctx);

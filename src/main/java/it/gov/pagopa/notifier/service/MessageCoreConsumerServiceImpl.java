@@ -60,10 +60,7 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     protected Consumer<Throwable> onDeserializationError(Message<String> message) {
         return e -> log.info("[MESSAGE-CORE-CONSUMER-SERVICE][DESERIALIZATION-ERROR] Unexpected JSON : {}", e.getMessage());
     }
-    @Override
-    protected void notifyError(Message<String> message, Throwable e) {
-        log.info("[MESSAGE-CORE-CONSUMER-SERVICE][ERROR] Unexpected error : {}", e.getMessage());
-    }
+
     @Override
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
         String messageId = messageDTO.getMessageId();
