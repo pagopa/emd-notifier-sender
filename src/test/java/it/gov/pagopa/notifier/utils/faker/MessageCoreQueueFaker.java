@@ -9,7 +9,6 @@ import static it.gov.pagopa.notifier.utils.TestUtils.RETRY;
 
 public class MessageCoreQueueFaker {
 
-    public MessageCoreQueueFaker(){}
 
     public static Message<String> mockStringInstance(MessageDTO messageDTO) {
         return MessageBuilder

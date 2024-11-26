@@ -9,7 +9,6 @@ import static it.gov.pagopa.notifier.utils.TestUtils.AUTHENTICATION_URL;
 import static it.gov.pagopa.notifier.utils.TestUtils.MESSAGE_URL;
 
 public class TppDTOFaker {
-    private TppDTOFaker(){}
     public static TppDTO mockInstance() {
         return TppDTO.builder()
                 .tppId("tppId")

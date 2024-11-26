@@ -12,7 +12,6 @@ import static it.gov.pagopa.notifier.utils.TestUtils.*;
 
 public class NotifierErrorQueueFaker {
 
-    public  NotifierErrorQueueFaker(){}
 
     public static Message<NotifyErrorQueuePayload> mockInstance(MessageDTO messageDTO, TppDTO tppDTO) {
         return MessageBuilder
