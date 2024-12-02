@@ -1,7 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.dto.mapper.MessageMapperDTOToObject;
+import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;

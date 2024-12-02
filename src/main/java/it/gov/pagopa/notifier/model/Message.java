@@ -1,5 +1,6 @@
 package it.gov.pagopa.notifier.model;
 
+import it.gov.pagopa.notifier.enums.Channel;
 import lombok.Builder;
 import lombok.Data;
 
@@ -7,13 +8,17 @@ import lombok.Data;
 @Data
 @Builder
 public class Message {
-    private String messageId;
-    private String recipientId;
-    private String triggerDateTime;
-    private String senderDescription;
-    private String messageUrl;
-    private String originId;
+
+    private Boolean associatedPayment;
     private String content;
     private String entityId;
-    private Boolean associatedPayment;
+    private String idPsp;
+    private String messageId;
+    private String messageUrl;
+    private String originId;
+    private String recipientId;
+    private String senderDescription;
+    private Channel channel;
+    private String triggerDateTime;
+    private String messageRegistrationDate;
 }
