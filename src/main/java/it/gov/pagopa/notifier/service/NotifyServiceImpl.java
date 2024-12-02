@@ -4,7 +4,7 @@ import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.TokenDTO;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.model.Message;
-import it.gov.pagopa.notifier.dto.mapper.MessageMapperDTOToObject;
+import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +16,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+
+import static it.gov.pagopa.notifier.dto.BaseMessage.extractBaseFields;
 
 @Service
 @Slf4j
@@ -85,12 +87,11 @@ public class NotifyServiceImpl implements NotifyService {
 
     private Mono<String> toUrl(MessageDTO messageDTO, TppDTO tppDTO, TokenDTO token, long retry) {
         log.info("[NOTIFY-SERVICE][TO-URL] Sending message {} to URL: {} for TPP: {} at try {}", messageDTO.getMessageId(), tppDTO.getMessageUrl(), tppDTO.getEntityId(), retry);
-        messageDTO.setIdPsp(tppDTO.getIdPsp());
         return webClient.post()
                 .uri(tppDTO.getMessageUrl())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(messageDTO)
+                .bodyValue(extractBaseFields(messageDTO))
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnSuccess(response -> {

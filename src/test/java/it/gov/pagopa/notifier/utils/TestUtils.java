@@ -9,7 +9,7 @@ import java.util.List;
 
 public class TestUtils {
 
-  public static final TppDTO TPP_DTO = TppDTOFaker.mockInstance();
+    public static final TppDTO TPP_DTO = TppDTOFaker.mockInstance();
     public static final List<TppDTO> TPP_DTO_LIST = List.of(TPP_DTO);
     public static final String TPP_ID = TPP_DTO.getTppId();
     public static final List<String> TPP_ID_STRING_LIST = List.of(TPP_ID);
@@ -22,7 +22,6 @@ public class TestUtils {
     public static final Message<String> QUEUE_NOTIFIER_STRING_ERROR = NotifierErrorQueueFaker.mockStringInstance(MESSAGE_DTO,TPP_DTO);
     public static final Message<MessageDTO> QUEUE_MESSAGE_CORE = MessageCoreQueueFaker.mockInstance(MESSAGE_DTO);
     public static final Message<NotifyErrorQueuePayload> QUEUE_NOTIFIER_ERROR = NotifierErrorQueueFaker.mockInstance(MESSAGE_DTO,TPP_DTO);
-
     public static final NotifyErrorQueuePayload NOTIFIER_ERROR_PAYLOAD = new NotifyErrorQueuePayload(TPP_DTO,MESSAGE_DTO);
     public static final String MESSAGE_URL = "/message";
     public static final String AUTHENTICATION_URL = "/auth";

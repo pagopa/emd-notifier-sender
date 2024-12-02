@@ -1,42 +1,35 @@
 package it.gov.pagopa.notifier.dto;
 
-
-import com.fasterxml.jackson.annotation.JsonAlias;
 import it.gov.pagopa.common.utils.CommonUtilities;
+import it.gov.pagopa.notifier.enums.Channel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
-@Builder
-public class MessageDTO {
-    private String messageId;
-    private String recipientId;
-    private String triggerDateTime;
-    private String senderDescription;
-    private String messageUrl;
-    private String originId;
-    @JsonAlias("message")
-    private String content;
-    private String entityId;
-    private Boolean associatedPayment;
-    private String idPsp;
+@SuperBuilder
+public class MessageDTO extends BaseMessage {
 
+    private Channel channel;
 
     @Override
     public String toString() {
 
         return "MessageDTO{" +
-                "messageId='" + messageId + '\'' +
-                ", recipientId='" + CommonUtilities.createSHA256(recipientId) + '\'' +
-                ", triggerDateTime='" + triggerDateTime + '\'' +
-                ", senderDescription='" + senderDescription + '\'' +
-                ", messageUrl='" + messageUrl + '\'' +
-                ", originId='" + originId + '\'' +
+                "messageId='" + getMessageId()+ '\'' +
+                ", recipientId='" + CommonUtilities.createSHA256(getRecipientId()) + '\'' +
+                ", triggerDateTime='" + getTriggerDateTime() + '\'' +
+                ", senderDescription='" + getSenderDescription() + '\'' +
+                ", messageUrl='" + getMessageUrl() + '\'' +
+                ", originId='" + getOriginId() + '\'' +
+                ", content='" + getContent() + '\'' +
+                ", idPsp='" + getIdPsp() + '\'' +
+                ", channel='" + channel + '\'' +
                 '}';
     }
 }
