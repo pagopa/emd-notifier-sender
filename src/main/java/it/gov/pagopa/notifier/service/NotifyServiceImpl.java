@@ -50,7 +50,7 @@ public class NotifyServiceImpl implements NotifyService {
 
         return getToken(tppDTO, messageDTO.getMessageId(), retry)
                 .flatMap(token -> toUrl(messageDTO, tppDTO, token, retry))
-                .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(messageDTO,tppDTO,retry + 1))
+                .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(messageDTO,tppDTO.getTppId(),retry + 1))
                 .then();
     }
 
@@ -97,7 +97,6 @@ public class NotifyServiceImpl implements NotifyService {
                 .doOnSuccess(response -> {
                     log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent successfully to TPP {} at try {}. Response: {}", messageDTO.getMessageId(), tppDTO.getEntityId(), retry, response);
                     Message message = mapperDTOToObject.map(messageDTO,tppDTO.getEntityId());
-
                     messageRepository.save(message)
                             .doOnSuccess(savedMessage -> log.info("[NOTIFY-SERVICE][TO-URL] Saved message ID: {} for entityId: {}", savedMessage.getMessageId(), tppDTO.getEntityId()))
                             .onErrorResume(error -> {
@@ -108,5 +107,4 @@ public class NotifyServiceImpl implements NotifyService {
                 })
                 .doOnError(error -> log.error("[NOTIFY-SERVICE][TO-URL] Error sending message {} at try {} to URL: {}. Error: {}", messageDTO.getMessageId(), retry, tppDTO.getMessageUrl(), error.getMessage()));
     }
-
 }

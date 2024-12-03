@@ -1,35 +1,36 @@
 package it.gov.pagopa.notifier.utils.faker;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.dto.NotifyErrorQueuePayload;
-import it.gov.pagopa.notifier.dto.TppDTO;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
-import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
-import static it.gov.pagopa.notifier.utils.TestUtils.*;
+import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
+import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_TPP_ID;
+import static it.gov.pagopa.notifier.utils.TestUtils.RETRY;
 
 
 public class NotifierErrorQueueFaker {
 
 
-    public static Message<NotifyErrorQueuePayload> mockInstance(MessageDTO messageDTO, TppDTO tppDTO) {
+    public static Message<MessageDTO> mockInstance(MessageDTO messageDTO, String tppId) {
         return MessageBuilder
-                .withPayload(new NotifyErrorQueuePayload(tppDTO,messageDTO))
+                .withPayload(messageDTO)
+                .setHeader(ERROR_MSG_HEADER_TPP_ID,tppId)
                 .setHeader(ERROR_MSG_HEADER_RETRY, RETRY)
                 .build();
     }
 
-    public static Message<String> mockStringInstance(MessageDTO messageDTO, TppDTO tppDTO) {
+    public static Message<String> mockStringInstance(MessageDTO messageDTO, String tppId) {
         return MessageBuilder
-                .withPayload(new NotifyErrorQueuePayload(tppDTO,messageDTO).toString())
+                .withPayload(messageDTO.toString())
+                .setHeader(ERROR_MSG_HEADER_TPP_ID,tppId)
                 .setHeader(ERROR_MSG_HEADER_RETRY, RETRY)
                 .build();
     }
 
-    public static Message<String> mockNoRetryInstance(MessageDTO messageDTO, TppDTO tppDTO) {
+    public static Message<String> mockNoRetryInstance(MessageDTO messageDTO, String tppId) {
         return MessageBuilder
-                .withPayload(new NotifyErrorQueuePayload(tppDTO,messageDTO).toString())
+                .withPayload(messageDTO.toString())
                 .build();
     }
 }

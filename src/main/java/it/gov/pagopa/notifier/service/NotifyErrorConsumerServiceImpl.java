@@ -3,9 +3,10 @@ package it.gov.pagopa.notifier.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
+import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.dto.NotifyErrorQueuePayload;
 import it.gov.pagopa.notifier.dto.TppDTO;
+import it.gov.pagopa.notifier.dto.TppIdList;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
@@ -24,23 +25,27 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 
 @Service
 @Slf4j
-public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErrorQueuePayload,String> implements NotifyErrorConsumerService {
+public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,String> implements NotifyErrorConsumerService {
 
     private final Duration commitDelay;
     private final Duration delayMinusCommit;
     private final ObjectReader objectReader;
     private final NotifyServiceImpl sendMessageService;
+    private final NotifyErrorProducerService notifyErrorProducerService;
+    private final TppConnectorImpl tppConnector;
     public NotifyErrorConsumerServiceImpl(ObjectMapper objectMapper,
-                                              NotifyServiceImpl sendMessageService,
-                                              @Value("${spring.application.name}") String applicationName,
-                                              @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitMillis,
-                                              @Value("${app.message-core.build-delay-duration}") String delayMinusCommit) {
+                                          NotifyServiceImpl sendMessageService,
+                                          @Value("${spring.application.name}") String applicationName,
+                                          @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitMillis,
+                                          @Value("${app.message-core.build-delay-duration}") String delayMinusCommit, NotifyErrorProducerService notifyErrorProducerService, TppConnectorImpl tppConnector) {
         super(applicationName);
         this.commitDelay = Duration.ofMillis(commitMillis);
+        this.notifyErrorProducerService = notifyErrorProducerService;
+        this.tppConnector = tppConnector;
         Duration buildDelayDuration = Duration.parse(delayMinusCommit).minusMillis(commitMillis);
         Duration defaultDurationDelay = Duration.ofMillis(2L);
         this.delayMinusCommit = defaultDurationDelay.compareTo(buildDelayDuration) >= 0 ? defaultDurationDelay : buildDelayDuration;
-        this.objectReader = objectMapper.readerFor(NotifyErrorQueuePayload.class);
+        this.objectReader = objectMapper.readerFor(MessageDTO.class);
         this.sendMessageService = sendMessageService;
     }
     @Override
@@ -63,29 +68,38 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
     }
 
     @Override
-    protected Mono<String> execute(NotifyErrorQueuePayload payload, Message<String> message, Map<String, Object> ctx) {
-        TppDTO tppDTO = payload.getTppDTO();
-        MessageDTO messageDTO = payload.getMessageDTO();
-        String messageId = messageDTO.getMessageId();
-        String entityId = tppDTO.getEntityId();
-        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {}", messageId, messageDTO);
+    protected Mono<String> execute(MessageDTO payload, Message<String> message, Map<String, Object> ctx) {
 
+        String messageId = payload.getMessageId();
         MessageHeaders headers = message.getHeaders();
-        Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
+        String tppId = (String) headers.get(ERROR_MSG_HEADER_TPP_ID);
+        if (tppId == null){
+            log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Missing header: ERROR_MSG_HEADER_TPP_ID for message ID: {}", messageId);
+            return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Message %s not processed due to missing headers".formatted(messageId));
+        }
 
+        Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
         if (retry == null){
             log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", messageId);
             return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Message %s not processed due to missing headers".formatted(messageId));
         }
+        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {} for tppId", messageId, payload);
 
-        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, entityId, retry);
-
-        sendMessageService.sendNotify(messageDTO, tppDTO, retry)
-                .doOnSuccess(v -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Successfully sent message ID: {} to TPP: {}", messageId, entityId))
-                .doOnError(e -> log.error("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Error sending message ID: {} to TPP: {}. Error: {}", messageId, entityId, e.getMessage()))
-                .subscribe();
-
-        return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Processing attempt for message %s to TPP %s in progress".formatted(messageId, entityId));
+        return tppConnector.getTppsEnabled(new TppIdList(List.of(tppId)))
+                        .flatMap(tppDTOList -> {
+                            TppDTO tppDTO = tppDTOList.get(0);
+                            String entityId = tppDTO.getEntityId();
+                            log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, entityId, retry);
+                            sendMessageService.sendNotify(payload, tppDTO, retry)
+                                    .doOnSuccess(v -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Successfully sent message ID: {} to TPP: {}", messageId, entityId))
+                                    .doOnError(e -> log.error("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Error sending message ID: {} to TPP: {}. Error: {}", messageId, entityId, e.getMessage()))
+                                    .subscribe();
+                            return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Processing attempt for message %s to TPP %s in progress".formatted(messageId, entityId));
+                        })
+                        .doOnError(e -> {
+                            log.error("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Error getting tppID: {} for messageId: {}. Error: {}", tppId, messageId, e.getMessage());
+                            notifyErrorProducerService.enqueueNotify(payload,tppId,retry + 1);
+                        });
     }
 
 }

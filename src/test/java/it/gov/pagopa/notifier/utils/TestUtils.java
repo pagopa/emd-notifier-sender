@@ -17,12 +17,11 @@ public class TestUtils {
     public static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
     public static final String FISCAL_CODE = MESSAGE_DTO.getRecipientId();
     public static final Message<String> QUEUE_MESSAGE_NO_RETRY_CORE = MessageCoreQueueFaker.mockNoRetryInstance(MESSAGE_DTO);
-    public static final Message<String> QUEUE_NOTIFIER_NO_RETRY_ERROR = NotifierErrorQueueFaker.mockNoRetryInstance(MESSAGE_DTO,TPP_DTO);
+    public static final Message<String> QUEUE_NOTIFIER_NO_RETRY_ERROR = NotifierErrorQueueFaker.mockNoRetryInstance(MESSAGE_DTO,TPP_DTO.getTppId());
     public static final Message<String> QUEUE_MESSAGE_STRING_CORE = MessageCoreQueueFaker.mockStringInstance(MESSAGE_DTO);
-    public static final Message<String> QUEUE_NOTIFIER_STRING_ERROR = NotifierErrorQueueFaker.mockStringInstance(MESSAGE_DTO,TPP_DTO);
+    public static final Message<String> QUEUE_NOTIFIER_STRING_ERROR = NotifierErrorQueueFaker.mockStringInstance(MESSAGE_DTO,TPP_DTO.getTppId());
     public static final Message<MessageDTO> QUEUE_MESSAGE_CORE = MessageCoreQueueFaker.mockInstance(MESSAGE_DTO);
-    public static final Message<NotifyErrorQueuePayload> QUEUE_NOTIFIER_ERROR = NotifierErrorQueueFaker.mockInstance(MESSAGE_DTO,TPP_DTO);
-    public static final NotifyErrorQueuePayload NOTIFIER_ERROR_PAYLOAD = new NotifyErrorQueuePayload(TPP_DTO,MESSAGE_DTO);
+    public static final Message<MessageDTO> QUEUE_NOTIFIER_ERROR = NotifierErrorQueueFaker.mockInstance(MESSAGE_DTO,TPP_DTO.getTppId());
     public static final String MESSAGE_URL = "/message";
     public static final String AUTHENTICATION_URL = "/auth";
     public static final long RETRY = 1L;

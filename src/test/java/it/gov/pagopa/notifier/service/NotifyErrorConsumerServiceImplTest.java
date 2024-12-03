@@ -4,6 +4,7 @@ import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.utils.MemoryAppender;
+import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,8 +45,15 @@ class NotifyErrorConsumerServiceImplTest {
 
     @MockBean
     NotifyServiceImpl notificationService;
+
+    @MockBean
+    TppConnectorImpl tppConnector;
+    @MockBean
+    NotifyErrorProducerService notifyErrorProducerService;
     @Autowired
     NotifyErrorConsumerServiceImpl notifyErrorConsumerService;
+
+
     private MemoryAppender memoryAppender;
 
     @BeforeEach
@@ -60,14 +68,15 @@ class NotifyErrorConsumerServiceImplTest {
     @Test
     void processCommand_Ok(){
         when(notificationService.sendNotify(any(),any(),anyLong())).thenReturn(Mono.empty());
-        notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_STRING_ERROR,null).block();
+        when(tppConnector.getTppsEnabled(any())).thenReturn(Mono.just(List.of(TPP_DTO)));
+        notifyErrorConsumerService.execute(MESSAGE_DTO,QUEUE_NOTIFIER_STRING_ERROR,null).block();
         Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
     }
 
     @Test
     void processCommand_Ko(){
         when(notificationService.sendNotify(any(), any(),anyLong())).thenReturn(Mono.empty());
-        notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block();
+        notifyErrorConsumerService.execute(MESSAGE_DTO,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block();
         Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
     }
 
