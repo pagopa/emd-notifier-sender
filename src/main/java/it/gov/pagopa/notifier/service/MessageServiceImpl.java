@@ -34,7 +34,7 @@ public class MessageServiceImpl implements MessageService {
 
         return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
                 .flatMap(tppIdList -> processTppList(tppIdList, messageDTO, retry))
-                .onErrorResume(e -> handleCitizenError(e, messageDTO, retry).then(Mono.empty()))
+                .onErrorResume(e ->messageCoreProducerService.enqueueMessage(messageDTO, retry + 1))
                 .then();
     }
 
@@ -51,13 +51,6 @@ public class MessageServiceImpl implements MessageService {
         return Flux.fromIterable(tppIdList)
                 .flatMap(tppId -> sendNotificationService.sendNotify(messageDTO, tppId, retry))
                 .then();
-    }
-
-    private Mono<Void> handleCitizenError(Throwable e, MessageDTO messageDTO, long retry) {
-        String messageId = messageDTO.getMessageId();
-        log.error("[MESSAGE-SERVICE][HANDLE-CITIZEN-ERROR] Error processing message ID: {} at retry attempt {}. Error: {}", messageId, retry, e.getMessage(), e);
-        messageCoreProducerService.enqueueMessage(messageDTO, retry + 1);
-        return Mono.empty();
     }
 
 }
