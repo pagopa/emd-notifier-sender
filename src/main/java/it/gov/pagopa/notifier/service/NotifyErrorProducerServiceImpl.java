@@ -41,7 +41,7 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
         log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Enqueuing message ID: {} for TPP: {} with retry attempt: {}", messageId, tppId, retry);
 
         return Mono.fromRunnable(() -> {
-            log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageId, tppId, retry);
+            log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageId, tppId, retry);
             notifyErrorProducer.scheduleMessage(createMessage(messageDTO, tppId, retry));
         });
     }
