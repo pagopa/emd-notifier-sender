@@ -34,7 +34,8 @@ public class MessageServiceImpl implements MessageService {
 
         return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
                 .flatMap(tppIdList -> processTppList(tppIdList, messageDTO, retry))
-                .onErrorResume(e -> handleCitizenError(e, messageDTO, retry).then(Mono.empty()));
+                .onErrorResume(e -> handleCitizenError(e, messageDTO, retry).then(Mono.empty()))
+                .then();
     }
 
     private Mono<Void> processTppList(List<String> tppIdList, MessageDTO messageDTO, long retry) {
