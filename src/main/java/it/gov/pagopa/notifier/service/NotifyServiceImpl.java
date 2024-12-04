@@ -1,5 +1,6 @@
 package it.gov.pagopa.notifier.service;
 
+import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.TokenDTO;
 import it.gov.pagopa.notifier.dto.TppDTO;
@@ -30,12 +31,14 @@ public class NotifyServiceImpl implements NotifyService {
 
     private final MessageMapperDTOToObject mapperDTOToObject;
 
-
+    private final TppConnectorImpl tppConnector;
 
 
     public NotifyServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
                              MessageRepository messageRepository,
-                             MessageMapperDTOToObject mapperDTOToObject) {
+                             MessageMapperDTOToObject mapperDTOToObject,
+                             TppConnectorImpl tppConnector) {
+        this.tppConnector = tppConnector;
         this.webClient = WebClient.builder().build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
@@ -44,13 +47,15 @@ public class NotifyServiceImpl implements NotifyService {
 
 
 
-    public Mono<Void> sendNotify(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
+    public Mono<Void> sendNotify(MessageDTO messageDTO, String tppId, long retry) {
         log.info("[NOTIFY-SERVICE][SEND-NOTIFY] Starting notification process for message ID: {} to TPP: {} at retry: {}",
-                messageDTO.getMessageId(), tppDTO.getEntityId(), retry);
+                messageDTO.getMessageId(), tppId, retry);
 
-        return getToken(tppDTO, messageDTO.getMessageId(), retry)
-                .flatMap(token -> toUrl(messageDTO, tppDTO, token, retry))
-                .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(messageDTO,tppDTO.getTppId(),retry + 1))
+        return tppConnector.getTppEnabled(tppId)
+                .flatMap(tppDTO ->
+                        getToken(tppDTO, messageDTO.getMessageId(), retry)
+                            .flatMap(token -> toUrl(messageDTO, tppDTO, token, retry)))
+                .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(messageDTO,tppId,retry + 1))
                 .then();
     }
 

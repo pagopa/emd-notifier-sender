@@ -1,5 +1,6 @@
 package it.gov.pagopa.notifier.service;
 
+import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
@@ -33,6 +34,9 @@ class NotifyServiceImplTest {
     private NotifyErrorProducerService errorProducerService;
 
     @Mock
+    private TppConnectorImpl tppConnector;
+
+    @Mock
     private MessageRepository messageRepository;
 
     @Mock
@@ -45,7 +49,8 @@ class NotifyServiceImplTest {
         sendNotificationService = new NotifyServiceImpl(
                 errorProducerService,
                 messageRepository,
-                mapperDTOToObject);
+                mapperDTOToObject,
+                tppConnector);
         TPP_DTO.setAuthenticationUrl(mockWebServer.url(TPP_DTO.getAuthenticationUrl()).toString());
         TPP_DTO.setMessageUrl(mockWebServer.url(TPP_DTO.getMessageUrl()).toString());
     }
@@ -67,8 +72,8 @@ class NotifyServiceImplTest {
 
         when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
-
-        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
+        when(tppConnector.getTppEnabled(TPP_DTO.getTppId())).thenReturn(Mono.just(TPP_DTO));
+        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO.getTppId(), RETRY).block();
 
         verifyRequests();
         verify(messageRepository, times(1)).save(any());
@@ -76,18 +81,20 @@ class NotifyServiceImplTest {
 
     @Test
     void testSendMessage_TokenFailure() {
+        when(tppConnector.getTppEnabled(TPP_DTO.getTppId())).thenReturn(Mono.just(TPP_DTO));
         when(errorProducerService.enqueueNotify(any(),any(),anyLong())).thenReturn(Mono.just("Error"));
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(500)
                 .setBody("Internal Server Error"));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO.getTppId(), RETRY).block();
 
         verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
     }
 
     @Test
     void testSendMessage_ToUrlFailure() {
+        when(tppConnector.getTppEnabled(TPP_DTO.getTppId())).thenReturn(Mono.just(TPP_DTO));
         when(errorProducerService.enqueueNotify(any(),any(),anyLong())).thenReturn(Mono.just("Error"));
 
         mockWebServer.enqueue(new MockResponse()
@@ -98,7 +105,7 @@ class NotifyServiceImplTest {
                 .setResponseCode(500)
                 .setBody("Internal Server Error"));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO.getTppId(),RETRY).block();
 
         verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
     }

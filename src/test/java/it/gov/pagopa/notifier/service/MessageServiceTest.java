@@ -3,7 +3,6 @@ package it.gov.pagopa.notifier.service;
 import it.gov.pagopa.notifier.connector.citizen.CitizenConnectorImpl;
 import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.custom.CitizenInvocationException;
-import it.gov.pagopa.notifier.custom.TppInvocationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -32,8 +31,6 @@ class MessageServiceTest {
     @MockBean
     MessageCoreProducerServiceImpl messageCoreProducerService;
     @MockBean
-    NotifyErrorProducerServiceImpl notifyErrorProducerService;
-    @MockBean
     NotifyServiceImpl sendNotificationService;
 
     @Autowired
@@ -47,7 +44,7 @@ class MessageServiceTest {
         Mockito.when(tppService.getTppEnabled(any()))
                 .thenReturn(Mono.just(TPP_DTO));
 
-        Mockito.when(sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,RETRY))
+        Mockito.when(sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO.getTppId(),RETRY))
                         .thenReturn(Mono.empty());
 
        messageService.processMessage(MESSAGE_DTO,0).block();
@@ -89,17 +86,4 @@ class MessageServiceTest {
 
     }
 
-    @Test
-    void sendMessage_Ko_TppException()  {
-
-        Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
-                .thenReturn(Mono.just(TPP_ID_STRING_LIST));
-
-        Mockito.when(tppService.getTppEnabled(any()))
-                .thenReturn(Mono.error(new TppInvocationException()));
-
-        messageService.processMessage(MESSAGE_DTO,0).block();
-        verify(notifyErrorProducerService,times(1)).enqueueNotify(MESSAGE_DTO,TPP_ID,1);
-
-    }
 }

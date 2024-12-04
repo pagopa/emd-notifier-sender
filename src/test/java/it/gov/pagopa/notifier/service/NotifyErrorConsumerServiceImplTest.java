@@ -48,8 +48,6 @@ class NotifyErrorConsumerServiceImplTest {
 
     @MockBean
     TppConnectorImpl tppConnector;
-    @MockBean
-    NotifyErrorProducerService notifyErrorProducerService;
     @Autowired
     NotifyErrorConsumerServiceImpl notifyErrorConsumerService;
 
@@ -70,14 +68,14 @@ class NotifyErrorConsumerServiceImplTest {
         when(notificationService.sendNotify(any(),any(),anyLong())).thenReturn(Mono.empty());
         when(tppConnector.getTppEnabled(any())).thenReturn(Mono.just(TPP_DTO));
         notifyErrorConsumerService.execute(MESSAGE_DTO,QUEUE_NOTIFIER_STRING_ERROR,null).block();
-        Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
+        Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE_DTO, TPP_DTO.getTppId(), RETRY);
     }
 
     @Test
     void processCommand_Ko(){
         when(notificationService.sendNotify(any(), any(),anyLong())).thenReturn(Mono.empty());
         notifyErrorConsumerService.execute(MESSAGE_DTO,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block();
-        Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
+        Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE_DTO, TPP_DTO.getTppId(), RETRY);
     }
 
     @Test

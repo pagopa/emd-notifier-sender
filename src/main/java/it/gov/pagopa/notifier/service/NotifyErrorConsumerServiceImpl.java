@@ -3,7 +3,6 @@ package it.gov.pagopa.notifier.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
-import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,17 +29,13 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     private final Duration delayMinusCommit;
     private final ObjectReader objectReader;
     private final NotifyServiceImpl sendMessageService;
-    private final NotifyErrorProducerService notifyErrorProducerService;
-    private final TppConnectorImpl tppConnector;
     public NotifyErrorConsumerServiceImpl(ObjectMapper objectMapper,
                                           NotifyServiceImpl sendMessageService,
                                           @Value("${spring.application.name}") String applicationName,
                                           @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitMillis,
-                                          @Value("${app.message-core.build-delay-duration}") String delayMinusCommit, NotifyErrorProducerService notifyErrorProducerService, TppConnectorImpl tppConnector) {
+                                          @Value("${app.message-core.build-delay-duration}") String delayMinusCommit){
         super(applicationName);
         this.commitDelay = Duration.ofMillis(commitMillis);
-        this.notifyErrorProducerService = notifyErrorProducerService;
-        this.tppConnector = tppConnector;
         Duration buildDelayDuration = Duration.parse(delayMinusCommit).minusMillis(commitMillis);
         Duration defaultDurationDelay = Duration.ofMillis(2L);
         this.delayMinusCommit = defaultDurationDelay.compareTo(buildDelayDuration) >= 0 ? defaultDurationDelay : buildDelayDuration;
@@ -84,18 +79,11 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
             return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Message %s not processed due to missing headers".formatted(messageId));
         }
 
-        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {} for tppId", messageId, payload);
-        return tppConnector.getTppEnabled(tppId)
-                        .flatMap(tppDTO -> {
-                            String entityId = tppDTO.getEntityId();
-                            log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, entityId, retry);
-                            sendMessageService.sendNotify(payload, tppDTO, retry).subscribe();
-                            return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Processing attempt for message %s to TPP %s in progress".formatted(messageId, entityId));
-                        })
-                        .doOnError(e -> {
-                            log.error("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Error getting tppID: {} for messageId: {}. Error: {}", tppId, messageId, e.getMessage());
-                            notifyErrorProducerService.enqueueNotify(payload,tppId,retry + 1);
-                        });
+        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, tppId, retry);
+
+        sendMessageService.sendNotify(payload, tppId, retry).subscribe();
+
+        return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Processing attempt for message %s to TPP %s in progress".formatted(messageId, tppId));
     }
 
 }
