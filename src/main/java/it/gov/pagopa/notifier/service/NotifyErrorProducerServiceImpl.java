@@ -53,7 +53,7 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
 
         return MessageBuilder
                 .withPayload(messageDTO)
-                .setHeader(ERROR_MSG_HEADER_TPP_ID,tppId)
+                .setHeader(ERROR_MSG_HEADER_TPP_ID, tppId)
                 .setHeader(ERROR_MSG_HEADER_RETRY, retry)
                 .build();
     }
