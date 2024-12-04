@@ -60,9 +60,8 @@ public class MessageServiceImpl implements MessageService {
         return Flux.fromIterable(tppIdList)
                 .flatMap(tppId ->
                         tppConnector.getTppEnabled(tppId)
-                                .onErrorResume(e -> handleTppError(e,messageDTO,tppId,retry))
                                 .flatMap(tppDTO -> sendNotificationService.sendNotify(messageDTO, tppDTO, retry))
-                                .then()
+                                .onErrorResume(e -> handleTppError(e,messageDTO,tppId,retry).then())
                 )
                 .then();
     }
