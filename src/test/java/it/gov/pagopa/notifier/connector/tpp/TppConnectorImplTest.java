@@ -14,10 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.util.List;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.TPP_DTO;
-import static it.gov.pagopa.notifier.utils.TestUtils.TPP_ID_LIST;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,12 +45,11 @@ class TppConnectorImplTest {
     void testGetTppSEnabled() throws JsonProcessingException {
         mockWebServer.enqueue(new MockResponse()
                .setResponseCode(200)
-               .setBody(objectMapper.writeValueAsString(List.of(TPP_DTO)))
+               .setBody(objectMapper.writeValueAsString(TPP_DTO))
                .addHeader("Content-Type", "application/json"));
 
-         Mono<List<TppDTO>> resultMono = tppConnector.getTppsEnabled(TPP_ID_LIST);
-         List<TppDTO> consentList = resultMono.block();
-         assertThat(consentList).hasSize(1);
-         assertThat(consentList.get(0)).isEqualTo(TPP_DTO);
+         Mono<TppDTO> resultMono = tppConnector.getTppEnabled(TPP_DTO.getTppId());
+         TppDTO tppDTO = resultMono.block();
+         assertThat(tppDTO).isEqualTo(TPP_DTO);
     }
 }

@@ -68,7 +68,7 @@ class NotifyErrorConsumerServiceImplTest {
     @Test
     void processCommand_Ok(){
         when(notificationService.sendNotify(any(),any(),anyLong())).thenReturn(Mono.empty());
-        when(tppConnector.getTppsEnabled(any())).thenReturn(Mono.just(List.of(TPP_DTO)));
+        when(tppConnector.getTppEnabled(any())).thenReturn(Mono.just(TPP_DTO));
         notifyErrorConsumerService.execute(MESSAGE_DTO,QUEUE_NOTIFIER_STRING_ERROR,null).block();
         Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
     }

@@ -32,6 +32,8 @@ class MessageServiceTest {
     @MockBean
     MessageCoreProducerServiceImpl messageCoreProducerService;
     @MockBean
+    NotifyErrorProducerServiceImpl notifyErrorProducerService;
+    @MockBean
     NotifyServiceImpl sendNotificationService;
 
     @Autowired
@@ -42,8 +44,8 @@ class MessageServiceTest {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));
 
-        Mockito.when(tppService.getTppsEnabled(any()))
-                .thenReturn(Mono.just(TPP_DTO_LIST));
+        Mockito.when(tppService.getTppEnabled(any()))
+                .thenReturn(Mono.just(TPP_DTO));
 
         Mockito.when(sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,RETRY))
                         .thenReturn(Mono.empty());
@@ -68,8 +70,8 @@ class MessageServiceTest {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));
 
-        Mockito.when(tppService.getTppsEnabled(any()))
-                .thenReturn(Mono.just(Collections.emptyList()));
+        Mockito.when(tppService.getTppEnabled(any()))
+                .thenReturn(Mono.empty());
 
         messageService.processMessage(MESSAGE_DTO,0).block();
         verify(messageCoreProducerService,times(0)).enqueueMessage(MESSAGE_DTO,0);
@@ -93,11 +95,11 @@ class MessageServiceTest {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));
 
-        Mockito.when(tppService.getTppsEnabled(any()))
+        Mockito.when(tppService.getTppEnabled(any()))
                 .thenReturn(Mono.error(new TppInvocationException()));
 
         messageService.processMessage(MESSAGE_DTO,0).block();
-        verify(messageCoreProducerService,times(1)).enqueueMessage(MESSAGE_DTO,1);
+        verify(notifyErrorProducerService,times(1)).enqueueNotify(MESSAGE_DTO,TPP_ID,1);
 
     }
 }

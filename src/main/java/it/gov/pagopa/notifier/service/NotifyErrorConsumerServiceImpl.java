@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
 import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.dto.TppDTO;
-import it.gov.pagopa.notifier.dto.TppIdList;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
@@ -20,7 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
+import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
+import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_TPP_ID;
 
 
 @Service
@@ -71,6 +70,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     protected Mono<String> execute(MessageDTO payload, Message<String> message, Map<String, Object> ctx) {
 
         String messageId = payload.getMessageId();
+
         MessageHeaders headers = message.getHeaders();
         String tppId = (String) headers.get(ERROR_MSG_HEADER_TPP_ID);
         if (tppId == null){
@@ -83,17 +83,13 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
             log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", messageId);
             return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Message %s not processed due to missing headers".formatted(messageId));
         }
-        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {} for tppId", messageId, payload);
 
-        return tppConnector.getTppsEnabled(new TppIdList(List.of(tppId)))
-                        .flatMap(tppDTOList -> {
-                            TppDTO tppDTO = tppDTOList.get(0);
+        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {} for tppId", messageId, payload);
+        return tppConnector.getTppEnabled(tppId)
+                        .flatMap(tppDTO -> {
                             String entityId = tppDTO.getEntityId();
                             log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Attempting to send message ID: {} to TPP: {} at retry attempt: {}", messageId, entityId, retry);
-                            sendMessageService.sendNotify(payload, tppDTO, retry)
-                                    .doOnSuccess(v -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Successfully sent message ID: {} to TPP: {}", messageId, entityId))
-                                    .doOnError(e -> log.error("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Error sending message ID: {} to TPP: {}. Error: {}", messageId, entityId, e.getMessage()))
-                                    .subscribe();
+                            sendMessageService.sendNotify(payload, tppDTO, retry).subscribe();
                             return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Processing attempt for message %s to TPP %s in progress".formatted(messageId, entityId));
                         })
                         .doOnError(e -> {

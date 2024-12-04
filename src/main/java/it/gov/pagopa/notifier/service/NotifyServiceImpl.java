@@ -46,7 +46,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     public Mono<Void> sendNotify(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
         log.info("[NOTIFY-SERVICE][SEND-NOTIFY] Starting notification process for message ID: {} to TPP: {} at retry: {}",
-                messageDTO.getMessageId(), tppDTO, retry);
+                messageDTO.getMessageId(), tppDTO.getEntityId(), retry);
 
         return getToken(tppDTO, messageDTO.getMessageId(), retry)
                 .flatMap(token -> toUrl(messageDTO, tppDTO, token, retry))
