@@ -10,8 +10,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-
-
 @Slf4j
 @Service
 public class MessageServiceImpl implements MessageService {
@@ -42,8 +40,7 @@ public class MessageServiceImpl implements MessageService {
 
         return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
                 .flatMap(tppIdList -> processTppList(tppIdList, messageDTO, retry))
-                .doOnError(e -> handleCitizenError(e, messageDTO, retry));
-
+                .onErrorResume(e -> handleCitizenError(e, messageDTO, retry).then(Mono.empty()));
     }
 
     private Mono<Void> processTppList(List<String> tppIdList, MessageDTO messageDTO, long retry) {
@@ -60,22 +57,24 @@ public class MessageServiceImpl implements MessageService {
                 .flatMap(tppId ->
                         tppConnector.getTppEnabled(tppId)
                                 .flatMap(tppDTO -> sendNotificationService.sendNotify(messageDTO, tppDTO, retry))
-                                .doOnError(e -> handleTppError(e,messageDTO,tppId,retry))
+                                .onErrorResume(e -> handleTppError(e,messageDTO,tppId,retry).then(Mono.empty()))
                 )
                 .then();
     }
 
-    private void handleCitizenError(Throwable e, MessageDTO messageDTO, long retry) {
+    private Mono<Void> handleCitizenError(Throwable e, MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
         log.error("[MESSAGE-SERVICE][HANDLE-CITIZEN-ERROR] Error processing message ID: {} at retry attempt {}. Error: {}", messageId, retry, e.getMessage(), e);
         log.info("[MESSAGE-SERVICE][HANDLE-CITIZEN-ERROR] Re-enqueuing message ID: {} with increased retry count: {}", messageId, retry + 1);
         messageCoreProducerService.enqueueMessage(messageDTO, retry + 1);
+        return Mono.empty();
     }
 
-    private void handleTppError(Throwable e, MessageDTO messageDTO, String tppId, long retry) {
+    private Mono<Void> handleTppError(Throwable e, MessageDTO messageDTO, String tppId, long retry) {
         String messageId = messageDTO.getMessageId();
         log.error("[MESSAGE-SERVICE][HANDLE-TPP-ERROR] Error getting TPP: {} for message ID: {} at retry attempt {}. Error: {}", tppId,messageId, retry, e.getMessage(), e);
         notifyErrorProducerService.enqueueNotify(messageDTO, tppId,retry + 1);
+        return Mono.empty();
     }
 
 }
