@@ -61,7 +61,8 @@ public class MessageServiceImpl implements MessageService {
                 .flatMap(tppId ->
                         tppConnector.getTppEnabled(tppId)
                                 .onErrorResume(e -> handleTppError(e,messageDTO,tppId,retry))
-                                .map(tppDTO -> sendNotificationService.sendNotify(messageDTO, tppDTO, retry))
+                                .flatMap(tppDTO -> sendNotificationService.sendNotify(messageDTO, tppDTO, retry))
+                                .then()
                 )
                 .then();
     }
