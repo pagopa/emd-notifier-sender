@@ -6,5 +6,4 @@ import java.util.List;
 public interface CitizenConnector {
     Mono<List<String>> getCitizenConsentsEnabled(String fiscalCode);
 
-
 }
