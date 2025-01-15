@@ -69,7 +69,7 @@ spring:
           binder: kafka-notify-error-in
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_NOTIFY_ERROR:emd-notify-error}
-          group: consumerOutcomeGroup-${T(java.util.UUID).randomUUID()}
+          group: consumerOutcomeGroup-#T(java.util.UUID).randomUUID().toString()
         notifySender-out-0:
           binder: kafka-notify-error-out
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
