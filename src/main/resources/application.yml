@@ -60,7 +60,7 @@ spring:
           binder: kafka-message-core-in
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_MESSAGE_CORE:emd-courtesy-message}
-          group: ${consumerMessageGroup}
+          group: ${kafkaGroupConfig.getGroup()}
         messageSender-out-0:
           binder: kafka-message-core-out
           content-type: ${KAFKA_CONTENT_TYPE:application/json}

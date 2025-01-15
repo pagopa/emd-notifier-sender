@@ -2,14 +2,14 @@ package it.gov.pagopa.notifier.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.UUID;
+import org.springframework.context.annotation.PropertySource;
 
 @Configuration
+@PropertySource("classpath:application.properties")
 public class KafkaConfig {
 
     @Bean
-    public String consumerMessageGroup() {
-        return "group-test-" + UUID.randomUUID();
+    public KafkaGroupConfig kafkaGroupConfig() {
+        return new KafkaGroupConfig();
     }
 }
