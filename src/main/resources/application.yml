@@ -60,7 +60,7 @@ spring:
           binder: kafka-message-core-in
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_MESSAGE_CORE:emd-courtesy-message}
-          group: consumerOutcomeGroup-Test-${uuid:random}
+          group: ${KAFKA_MESSAGE_CORE_GROUP_IN_TEST}
         messageSender-out-0:
           binder: kafka-message-core-out
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
@@ -69,7 +69,7 @@ spring:
           binder: kafka-notify-error-in
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_NOTIFY_ERROR:emd-notify-error}
-          group: ${KAFKA_MESSAGE_CORE_GROUP_IN_1:consumerOutcomeGroup}
+          group: ${KAFKA_MESSAGE_CORE_GROUP_IN:consumerOutcomeGroup}
         notifySender-out-0:
           binder: kafka-notify-error-out
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
