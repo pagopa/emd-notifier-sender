@@ -60,11 +60,11 @@ spring:
           binder: kafka-message-core-in
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_MESSAGE_CORE:emd-courtesy-message}
-          group: consumerOutcomeGroup-${.Values.consumerGroup}
+          group: ${KAFKA_MESSAGE_CORE_GROUP_RANDOM:consumerOutcomeGroup}
         messageSender-out-0:
           binder: kafka-message-core-out
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
-          destination: ${KAFKA_TOPIC_MESSAGE_CORE:emd-courtesy-message}
+          destination: ${KAFKA_MESSAGE_CORE_GROUP_IN:consumerOutcomeGroup}
         consumerNotify-in-0:
           binder: kafka-notify-error-in
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
