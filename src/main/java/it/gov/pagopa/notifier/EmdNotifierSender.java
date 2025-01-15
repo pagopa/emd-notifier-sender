@@ -16,14 +16,6 @@ import java.util.UUID;
 public class EmdNotifierSender {
 
 	public static void main(String[] args) {
-		SpringApplication application = new SpringApplication(EmdNotifierSender.class);
-		application.addInitializers(applicationContext -> {
-            ConfigurableEnvironment environment = applicationContext.getEnvironment();
-            String dynamicGroup = "consumer-group-" + UUID.randomUUID();
-            environment.getSystemProperties().put("KAFKA_MESSAGE_CORE_GROUP_IN_TEST", dynamicGroup);
-            log.info("Dynamically set Kafka group: " + dynamicGroup);
-        });
-
 		SpringApplication.run(EmdNotifierSender.class, args);
 	}
 
