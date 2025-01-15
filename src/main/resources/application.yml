@@ -60,16 +60,16 @@ spring:
           binder: kafka-message-core-in
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_MESSAGE_CORE:emd-courtesy-message}
-          group: ${KAFKA_MESSAGE_CORE_GROUP_RANDOM:consumerOutcomeGroup}
+          group: ${KAFKA_MESSAGE_CORE_GROUP_IN_TEST:consumerOutcomeGroup}-${RANDOM}
         messageSender-out-0:
           binder: kafka-message-core-out
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
-          destination: ${KAFKA_MESSAGE_CORE_GROUP_IN:consumerOutcomeGroup}
+          destination: ${KAFKA_TOPIC_MESSAGE_CORE:emd-courtesy-message}
         consumerNotify-in-0:
           binder: kafka-notify-error-in
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_NOTIFY_ERROR:emd-notify-error}
-          group: ${KAFKA_MESSAGE_CORE_GROUP_IN:consumerOutcomeGroup}
+          group: ${KAFKA_NOTIFY_ERROR_GROUP_IN:consumerOutcomeGroup}
         notifySender-out-0:
           binder: kafka-notify-error-out
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
