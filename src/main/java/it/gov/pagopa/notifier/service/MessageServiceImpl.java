@@ -5,7 +5,7 @@ import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.dto.TppIdList;
-
+import it.gov.pagopa.notifier.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -24,14 +24,17 @@ public class MessageServiceImpl implements MessageService {
     private final TppConnectorImpl tppConnector;
     private final MessageCoreProducerServiceImpl messageCoreProducerService;
     private final NotifyServiceImpl sendNotificationService;
+    private final MessageRepository messageRepository;
 
     public MessageServiceImpl(CitizenConnectorImpl citizenConnector,
                               TppConnectorImpl tppConnector,
-                              MessageCoreProducerServiceImpl messageCoreProducerService, NotifyServiceImpl sendNotificationService) {
+                              MessageCoreProducerServiceImpl messageCoreProducerService, NotifyServiceImpl sendNotificationService,
+                              MessageRepository messageRepository) {
         this.tppConnector = tppConnector;
         this.citizenConnector = citizenConnector;
         this.messageCoreProducerService = messageCoreProducerService;
         this.sendNotificationService = sendNotificationService;
+        this.messageRepository = messageRepository;
     }
 
 
@@ -73,7 +76,14 @@ public class MessageServiceImpl implements MessageService {
         return Flux.fromIterable(tppDTOList)
                 .flatMap(tppDTO -> {
                     log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", messageId, retry, tppDTO.getTppId());
-                    return sendNotificationService.sendNotify(messageDTO, tppDTO, 0);
+                    return messageRepository.findByMessageIdAndEntityId(messageId, tppDTO.getEntityId())
+                            .collectList()
+                            .map(messages -> {
+                                if(messages.isEmpty()){
+                                    return sendNotificationService.sendNotify(messageDTO, tppDTO, 0);
+                                }
+                                return null;
+                            });
                 })
                 .then();
     }

@@ -4,6 +4,7 @@ import it.gov.pagopa.notifier.connector.citizen.CitizenConnectorImpl;
 import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.custom.CitizenInvocationException;
 import it.gov.pagopa.notifier.custom.TppInvocationException;
+import it.gov.pagopa.notifier.repository.MessageRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -33,6 +34,8 @@ class MessageServiceTest {
     MessageCoreProducerServiceImpl messageCoreProducerService;
     @MockBean
     NotifyServiceImpl sendNotificationService;
+    @MockBean
+    MessageRepository messageRepository;
 
     @Autowired
     MessageServiceImpl messageService;
