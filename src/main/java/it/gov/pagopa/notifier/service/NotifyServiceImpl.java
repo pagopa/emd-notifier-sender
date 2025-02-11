@@ -82,7 +82,6 @@ public class NotifyServiceImpl implements NotifyService {
                 .bodyToMono(TokenDTO.class)
                 .doOnSuccess(token -> log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} at retry: {}",messageId,tppDTO.getTppId(),retry))
                 .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getAuthenticationUrl(), error.getMessage()));
-
     }
 
     private Mono<String> toUrl(MessageDTO messageDTO, TppDTO tppDTO, TokenDTO token, long retry) {
