@@ -73,18 +73,18 @@ public class MessageServiceImpl implements MessageService {
 
         log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending notifications for message ID: {} at retry attempt {} to channels: {}", messageId, retry, tppDTOList);
 
-        return Flux.fromIterable(tppDTOList)
+        Flux<TppDTO> tppDTOFlux = Flux.fromIterable(tppDTOList)
+                .filterWhen(tppDTO -> messageRepository.findByMessageIdAndEntityId(messageId, tppDTO.getEntityId())
+                        .hasElement()
+                        .map(exists -> !exists)
+                );
+
+        return tppDTOFlux
                 .flatMap(tppDTO -> {
                     log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", messageId, retry, tppDTO.getTppId());
-//                    return messageRepository.findByMessageIdAndEntityId(messageId, tppDTO.getEntityId())
-//                            .doOnNext(message -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Message found for TPP: {} with message ID: {}", tppDTO.getTppId(), messageId))
-//                            .switchIfEmpty(Mono.fromRunnable(() -> sendNotificationService.sendNotify(messageDTO, tppDTO, 0).subscribe()));
                     return sendNotificationService.sendNotify(messageDTO, tppDTO, 0);
-
-
                 })
                 .then();
-
     }
 
     private Mono<Void> handleError(Throwable e, MessageDTO messageDTO, long retry) {
