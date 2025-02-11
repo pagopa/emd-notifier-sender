@@ -78,12 +78,9 @@ public class MessageServiceImpl implements MessageService {
                     log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", messageId, retry, tppDTO.getTppId());
                     return messageRepository.findByMessageIdAndEntityId(messageId, tppDTO.getEntityId())
                             .doOnNext(message -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Message found for TPP: {} with message ID: {}", tppDTO.getTppId(), messageId))
-                            .switchIfEmpty(Mono.fromRunnable(() ->
-                                    sendNotificationService.sendNotify(messageDTO, tppDTO, 0))
-                            );
+                            .switchIfEmpty(Mono.fromRunnable(() -> sendNotificationService.sendNotify(messageDTO, tppDTO, 0).subscribe()));
                 })
                 .then();
-
 
     }
 
