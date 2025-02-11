@@ -76,16 +76,15 @@ public class MessageServiceImpl implements MessageService {
         return Flux.fromIterable(tppDTOList)
                 .flatMap(tppDTO -> {
                     log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", messageId, retry, tppDTO.getTppId());
-                    return messageRepository.findByMessageIdAndEntityIdAndRecipientId(messageId, tppDTO.getEntityId(), messageDTO.getRecipientId())
-                            .flatMap(message -> {
-                                if(message != null){
-                                    log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Message ID: {} already seeded to TPP: {}", messageId, tppDTO.getTppId());
-                                    return Mono.empty();
-                                }
-                                return sendNotificationService.sendNotify(messageDTO, tppDTO, 0);
-                            });
+                    return messageRepository.findByMessageIdAndEntityId(messageId, tppDTO.getEntityId())
+                            .doOnNext(message -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Message found for TPP: {} with message ID: {}", tppDTO.getTppId(), messageId))
+                            .switchIfEmpty(Mono.fromRunnable(() ->
+                                    sendNotificationService.sendNotify(messageDTO, tppDTO, 0))
+                            );
                 })
                 .then();
+
+
     }
 
     private Mono<Void> handleError(Throwable e, MessageDTO messageDTO, long retry) {
