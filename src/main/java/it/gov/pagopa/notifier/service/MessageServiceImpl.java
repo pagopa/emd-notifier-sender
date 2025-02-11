@@ -76,13 +76,12 @@ public class MessageServiceImpl implements MessageService {
         return Flux.fromIterable(tppDTOList)
                 .flatMap(tppDTO -> {
                     log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", messageId, retry, tppDTO.getTppId());
-                    return messageRepository.findByMessageIdAndEntityId(messageId, tppDTO.getEntityId())
-                            .collectList()
-                            .map(messages -> {
+                    return messageRepository.findByMessageIdAndEntityIdAndRecipientId(messageId, tppDTO.getEntityId(), messageDTO.getRecipentId())
+                            .flatMap(messages -> {
                                 if(messages.isEmpty()){
                                     return sendNotificationService.sendNotify(messageDTO, tppDTO, 0);
                                 }
-                                return null;
+                                return Mono.empty();
                             });
                 })
                 .then();
