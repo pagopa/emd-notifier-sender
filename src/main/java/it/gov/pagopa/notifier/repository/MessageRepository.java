@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono;
 public interface MessageRepository extends ReactiveMongoRepository<Message,String> {
     Flux<Message> findByRecipientIdAndEntityId(String recipientId, String entityId);
 
-    Mono<Message> findByMessageIdAndEntityIdrAndRecipientId(String messageId, String entityId, String recipientId);
+    Mono<Message> findByMessageIdAndEntityIdAndRecipientId(String messageId, String entityId, String recipientId);
+
 
 }
