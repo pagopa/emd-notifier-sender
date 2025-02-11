@@ -12,4 +12,5 @@ public interface MessageRepository extends ReactiveMongoRepository<Message,Strin
 
     Mono<Message> findByMessageIdAndEntityIdAndRecipientId(String messageId, String entityId, String recipientId);
 
+
 }
