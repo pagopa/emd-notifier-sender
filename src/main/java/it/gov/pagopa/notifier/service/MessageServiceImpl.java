@@ -77,11 +77,12 @@ public class MessageServiceImpl implements MessageService {
                 .flatMap(tppDTO -> {
                     log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", messageId, retry, tppDTO.getTppId());
                     return messageRepository.findByMessageIdAndEntityIdrAndRecipientId(messageId, tppDTO.getEntityId(), messageDTO.getRecipientId())
-                            .flatMap(messages -> {
-                                if(messages.isEmpty()){
-                                    return sendNotificationService.sendNotify(messageDTO, tppDTO, 0);
+                            .flatMap(message -> {
+                                if(message != null){
+                                    log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Message ID: {} already seeded to TPP: {}", messageId, tppDTO.getTppId());
+                                    return Mono.empty();
                                 }
-                                return Mono.empty();
+                                return sendNotificationService.sendNotify(messageDTO, tppDTO, 0);
                             });
                 })
                 .then();
