@@ -83,7 +83,7 @@ public class MessageServiceImpl implements MessageService {
                                     return Mono.empty();
                                 } else {
                                     log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] No message found for ID: {} at TPP: {}. Proceeding with send.", messageId, tppDTO.getTppId());
-                                    return sendNotificationService.sendNotify(messageDTO, tppDTO, 0);
+                                    return sendNotificationService.sendNotify(messageDTO, tppDTO, 0).subscribe();
                                 }
                             });
                 })
