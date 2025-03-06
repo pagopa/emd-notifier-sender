@@ -166,6 +166,3 @@ rest-client:
     baseUrl: ${EMD_CITIZEN:http://emd-citizen}
   tpp:
     baseUrl: ${EMD_TPP:http://emd-tpp}
-web:
-  resources:
-    static-locations: classpath:/static/media/
