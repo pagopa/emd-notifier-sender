@@ -45,7 +45,8 @@ class NotifyServiceImplTest {
         sendNotificationService = new NotifyServiceImpl(
                 errorProducerService,
                 messageRepository,
-                mapperDTOToObject);
+                mapperDTOToObject,
+                "");
         TPP_DTO.setAuthenticationUrl(mockWebServer.url(TPP_DTO.getAuthenticationUrl()).toString());
         TPP_DTO.setMessageUrl(mockWebServer.url(TPP_DTO.getMessageUrl()).toString());
     }

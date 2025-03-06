@@ -7,6 +7,7 @@ import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -29,17 +30,20 @@ public class NotifyServiceImpl implements NotifyService {
     private final MessageRepository messageRepository;
 
     private final MessageMapperDTOToObject mapperDTOToObject;
+    private final String note;
 
 
 
 
     public NotifyServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
                              MessageRepository messageRepository,
-                             MessageMapperDTOToObject mapperDTOToObject) {
+                             MessageMapperDTOToObject mapperDTOToObject,
+                             @Value("${message-notes}") String note) {
         this.webClient = WebClient.builder().build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
         this.mapperDTOToObject = mapperDTOToObject;
+        this.note = note;
     }
 
 
@@ -90,7 +94,7 @@ public class NotifyServiceImpl implements NotifyService {
                 .uri(tppDTO.getMessageUrl())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(extractBaseFields(messageDTO))
+                .bodyValue(extractBaseFields(messageDTO, note))
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnSuccess(response -> {

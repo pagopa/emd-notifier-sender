@@ -23,10 +23,7 @@ public class BaseMessage {
     private Boolean associatedPayment;
     private String idPsp;
 
-    @Value("${message-notes}")
-    private static String messageNotes;
-
-    public static BaseMessage extractBaseFields(MessageDTO messageDTO) {
+    public static BaseMessage extractBaseFields(MessageDTO messageDTO, String note) {
         return BaseMessage.builder()
                 .messageId(messageDTO.getMessageId())
                 .recipientId(messageDTO.getRecipientId())
@@ -37,7 +34,7 @@ public class BaseMessage {
                 .content(messageDTO.getContent())
                 .associatedPayment(messageDTO.getAssociatedPayment())
                 .idPsp(messageDTO.getIdPsp())
-                .notes(StringUtils.isNotEmpty(messageDTO.getNotes()) ? messageDTO.getNotes() : messageNotes)
+                .notes(StringUtils.isNotEmpty(messageDTO.getNotes()) ? messageDTO.getNotes() : note)
                 .build();
     }
 
