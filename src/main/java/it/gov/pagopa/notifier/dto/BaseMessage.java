@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 
 @AllArgsConstructor
 @Data
@@ -17,8 +19,12 @@ public class BaseMessage {
     private String messageUrl;
     private String originId;
     private String content;
+    private String notes;
     private Boolean associatedPayment;
     private String idPsp;
+
+    @Value("${message-notes}")
+    private static String messageNotes;
 
     public static BaseMessage extractBaseFields(MessageDTO messageDTO) {
         return BaseMessage.builder()
@@ -31,6 +37,7 @@ public class BaseMessage {
                 .content(messageDTO.getContent())
                 .associatedPayment(messageDTO.getAssociatedPayment())
                 .idPsp(messageDTO.getIdPsp())
+                .notes(StringUtils.isNotEmpty(messageDTO.getNotes()) ? messageDTO.getNotes() : messageNotes)
                 .build();
     }
 
