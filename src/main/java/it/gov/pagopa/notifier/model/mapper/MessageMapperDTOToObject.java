@@ -13,6 +13,7 @@ public class MessageMapperDTOToObject {
         return Message.builder()
                 .associatedPayment(messageDTO.getAssociatedPayment())
                 .content(messageDTO.getContent())
+                .notes(messageDTO.getNotes())
                 .entityId(entityId)
                 .idPsp(messageDTO.getIdPsp())
                 .messageId(messageDTO.getMessageId())
