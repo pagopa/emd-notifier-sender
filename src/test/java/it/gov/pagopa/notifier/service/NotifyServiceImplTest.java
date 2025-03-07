@@ -66,7 +66,7 @@ class NotifyServiceImplTest {
                 .setBody("Message sent successfully")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE));
 
-        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
+        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class), any())).thenReturn(MESSAGE);
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
         sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
