@@ -7,6 +7,7 @@ import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -29,17 +30,20 @@ public class NotifyServiceImpl implements NotifyService {
     private final MessageRepository messageRepository;
 
     private final MessageMapperDTOToObject mapperDTOToObject;
+    private final String note;
 
 
 
 
     public NotifyServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
                              MessageRepository messageRepository,
-                             MessageMapperDTOToObject mapperDTOToObject) {
+                             MessageMapperDTOToObject mapperDTOToObject,
+                             @Value("${message-notes}") String note) {
         this.webClient = WebClient.builder().build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
         this.mapperDTOToObject = mapperDTOToObject;
+        this.note = note;
     }
 
 
@@ -82,7 +86,6 @@ public class NotifyServiceImpl implements NotifyService {
                 .bodyToMono(TokenDTO.class)
                 .doOnSuccess(token -> log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} at retry: {}",messageId,tppDTO.getTppId(),retry))
                 .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getAuthenticationUrl(), error.getMessage()));
-
     }
 
     private Mono<String> toUrl(MessageDTO messageDTO, TppDTO tppDTO, TokenDTO token, long retry) {
@@ -91,12 +94,12 @@ public class NotifyServiceImpl implements NotifyService {
                 .uri(tppDTO.getMessageUrl())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(extractBaseFields(messageDTO))
+                .bodyValue(extractBaseFields(messageDTO, note))
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnSuccess(response -> {
                     log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent successfully to TPP {} at try {}. Response: {}", messageDTO.getMessageId(), tppDTO.getEntityId(), retry, response);
-                    Message message = mapperDTOToObject.map(messageDTO,tppDTO.getEntityId());
+                    Message message = mapperDTOToObject.map(messageDTO,tppDTO.getEntityId(), note);
 
                     messageRepository.save(message)
                             .doOnSuccess(savedMessage -> log.info("[NOTIFY-SERVICE][TO-URL] Saved message ID: {} for entityId: {}", savedMessage.getMessageId(), tppDTO.getEntityId()))

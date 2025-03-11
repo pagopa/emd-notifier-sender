@@ -11,6 +11,7 @@ public class Message {
 
     private Boolean associatedPayment;
     private String content;
+    private String notes;
     private String entityId;
     private String idPsp;
     private String messageId;

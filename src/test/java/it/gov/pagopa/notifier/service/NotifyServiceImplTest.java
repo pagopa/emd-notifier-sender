@@ -45,7 +45,8 @@ class NotifyServiceImplTest {
         sendNotificationService = new NotifyServiceImpl(
                 errorProducerService,
                 messageRepository,
-                mapperDTOToObject);
+                mapperDTOToObject,
+                "");
         TPP_DTO.setAuthenticationUrl(mockWebServer.url(TPP_DTO.getAuthenticationUrl()).toString());
         TPP_DTO.setMessageUrl(mockWebServer.url(TPP_DTO.getMessageUrl()).toString());
     }
@@ -65,7 +66,7 @@ class NotifyServiceImplTest {
                 .setBody("Message sent successfully")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE));
 
-        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class))).thenReturn(MESSAGE);
+        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class), any())).thenReturn(MESSAGE);
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
         sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
