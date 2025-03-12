@@ -2,6 +2,7 @@ package it.gov.pagopa.notifier.model.mapper;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.model.Message;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
