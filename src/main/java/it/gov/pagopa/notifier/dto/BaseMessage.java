@@ -34,7 +34,7 @@ public class BaseMessage {
                 .content(messageDTO.getContent())
                 .associatedPayment(messageDTO.getAssociatedPayment())
                 .idPsp(messageDTO.getIdPsp())
-                .notes(StringUtils.isNotEmpty(messageDTO.getNotes()) ? messageDTO.getNotes() : note)
+                .notes(messageDTO.getNotes() != null ? messageDTO.getNotes() : note)
                 .build();
     }
 
