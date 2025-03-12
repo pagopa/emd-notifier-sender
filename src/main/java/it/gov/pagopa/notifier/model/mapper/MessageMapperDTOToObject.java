@@ -2,7 +2,6 @@ package it.gov.pagopa.notifier.model.mapper;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.model.Message;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,7 +13,7 @@ public class MessageMapperDTOToObject {
         return Message.builder()
                 .associatedPayment(messageDTO.getAssociatedPayment())
                 .content(messageDTO.getContent())
-                .notes(StringUtils.isNotEmpty(messageDTO.getNotes()) ? messageDTO.getNotes() : notes)
+                .notes(messageDTO.getNotes() != null ? messageDTO.getNotes() : notes)
                 .entityId(entityId)
                 .idPsp(messageDTO.getIdPsp())
                 .messageId(messageDTO.getMessageId())
