@@ -100,5 +100,4 @@ public class MessageServiceImpl implements MessageService {
         messageCoreProducerService.enqueueMessage(messageDTO, retry + 1);
     }
 
-
 }
