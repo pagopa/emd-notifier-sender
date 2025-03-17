@@ -38,7 +38,8 @@ import static org.mockito.Mockito.when;
         "app.retry.max-retry=5",
         "spring.application.name=test",
         "spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime=500",
-        "app.message-core.build-delay-duration=PT1S"
+        "app.message-core.build-delay-duration=PT1S",
+        "app.message-core.max-messages=10"
 })
 class NotifyErrorConsumerServiceImplTest {
 
@@ -85,9 +86,12 @@ class NotifyErrorConsumerServiceImplTest {
     }
 
     @Test
-    void givenMessagesWhenAfterCommitsThenSuccessfully() {
+    void givenMessagesWhenAfterCommitsThenSuccessfully() throws InterruptedException {
         Flux<List<String>> afterCommits2Subscribe = Flux.just(List.of("TEXT1","TEXT2","TEXT3"));
         notifyErrorConsumerService.subscribeAfterCommits(afterCommits2Subscribe);
+        // Wait for the subscription to complete
+        Thread.sleep(2000); // Adjust the sleep duration as needed
+
         Assertions.assertEquals(
                 ("[NOTIFIER-ERROR-COMMANDS] Processed offsets committed successfully"),
                 memoryAppender.getLoggedEvents().get(0).getFormattedMessage()

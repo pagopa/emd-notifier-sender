@@ -26,21 +26,23 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,String> implements MessageCoreConsumerService {
 
     private final Duration commitDelay;
+
     private final Duration delayMinusCommit;
     private final ObjectReader objectReader;
     private final MessageServiceImpl messageCoreService;
+    private final int maxMessagesForBatch;
     public MessageCoreConsumerServiceImpl(ObjectMapper objectMapper,
                                           @Value("${spring.application.name}") String applicationName,
                                           @Value("${spring.cloud.stream.kafka.bindings.consumerMessage-in-0.consumer.ackTime}") long commitMillis,
                                           @Value("${app.message-core.build-delay-duration}") String delayMinusCommit,
-                                          MessageServiceImpl messageCoreService) {
+                                          MessageServiceImpl messageCoreService,
+                                          @Value("${app.message-core.max-messages}") int maxMessagesForBatch) {
         super(applicationName);
         this.commitDelay = Duration.ofMillis(commitMillis);
         this.messageCoreService = messageCoreService;
-        Duration buildDelayDuration = Duration.parse(delayMinusCommit).minusMillis(commitMillis);
-        Duration defaultDurationDelay = Duration.ofMillis(2L);
-        this.delayMinusCommit = defaultDurationDelay.compareTo(buildDelayDuration) >= 0 ? defaultDurationDelay : buildDelayDuration;
+        this.delayMinusCommit = Duration.parse(delayMinusCommit).minusMillis(commitMillis);
         this.objectReader = objectMapper.readerFor(MessageDTO.class);
+        this.maxMessagesForBatch = maxMessagesForBatch;
     }
     @Override
     protected Duration getCommitDelay() {
@@ -49,7 +51,8 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     @Override
     protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
         afterCommits2subscribe
-                .buffer(delayMinusCommit)
+                .buffer(maxMessagesForBatch)
+                .delayElements(delayMinusCommit)
                 .subscribe(r -> log.info("[MESSAGE-CORE-COMMANDS] Processed offsets committed successfully"));
     }
     @Override

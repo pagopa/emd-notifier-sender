@@ -27,19 +27,23 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErrorQueuePayload,String> implements NotifyErrorConsumerService {
 
     private final Duration commitDelay;
+
     private final Duration delayMinusCommit;
     private final ObjectReader objectReader;
     private final NotifyServiceImpl sendMessageService;
+
+
+    private final int maxMessagesForBatch;
     public NotifyErrorConsumerServiceImpl(ObjectMapper objectMapper,
-                                              NotifyServiceImpl sendMessageService,
-                                              @Value("${spring.application.name}") String applicationName,
-                                              @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitMillis,
-                                              @Value("${app.message-core.build-delay-duration}") String delayMinusCommit) {
+                                          NotifyServiceImpl sendMessageService,
+                                          @Value("${spring.application.name}") String applicationName,
+                                          @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitMillis,
+                                          @Value("${app.message-core.build-delay-duration}") String delayMinusCommit,
+                                          @Value("${app.message-core.max-messages}") int maxMessagesForBatch) {
         super(applicationName);
         this.commitDelay = Duration.ofMillis(commitMillis);
-        Duration buildDelayDuration = Duration.parse(delayMinusCommit).minusMillis(commitMillis);
-        Duration defaultDurationDelay = Duration.ofMillis(2L);
-        this.delayMinusCommit = defaultDurationDelay.compareTo(buildDelayDuration) >= 0 ? defaultDurationDelay : buildDelayDuration;
+        this.delayMinusCommit = Duration.parse(delayMinusCommit).minusMillis(commitMillis);
+        this.maxMessagesForBatch = maxMessagesForBatch;
         this.objectReader = objectMapper.readerFor(NotifyErrorQueuePayload.class);
         this.sendMessageService = sendMessageService;
     }
@@ -50,7 +54,8 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
     @Override
     protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
         afterCommits2subscribe
-                .buffer(delayMinusCommit)
+                .buffer(maxMessagesForBatch)
+                .delayElements(delayMinusCommit)
                 .subscribe(r -> log.info("[NOTIFIER-ERROR-COMMANDS] Processed offsets committed successfully"));
     }
     @Override

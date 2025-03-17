@@ -37,7 +37,8 @@ import static org.mockito.Mockito.when;
 @TestPropertySource(properties = {
         "spring.application.name=test",
         "spring.cloud.stream.kafka.bindings.consumerMessage-in-0.consumer.ackTime=500",
-        "app.message-core.build-delay-duration=PT1S"
+        "app.message-core.build-delay-duration=PT1S",
+        "app.message-core.max-messages=10"
 })
 class MessageCoreConsumerServiceImplTest {
 
@@ -84,15 +85,6 @@ class MessageCoreConsumerServiceImplTest {
         Assertions.assertEquals(expected,commitDelay);
     }
 
-    @Test
-    void givenMessagesWhenAfterCommitsThenSuccessfully() {
-        Flux<List<String>> afterCommits2Subscribe = Flux.just(List.of("TEXT1","TEXT2","TEXT3"));
-        messageConsumerServiceImpl.subscribeAfterCommits(afterCommits2Subscribe);
-        Assertions.assertEquals(
-                ("[MESSAGE-CORE-COMMANDS] Processed offsets committed successfully"),
-                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
-        );
-    }
 
     @Test
     void onDeserializationError(){
@@ -100,6 +92,21 @@ class MessageCoreConsumerServiceImplTest {
         Assertions.assertNotNull(result);
     }
 
+    @Test
+    void givenMessagesWhenAfterCommitsThenSuccessfully() throws InterruptedException {
 
+
+        Flux<List<String>> afterCommits2Subscribe = Flux.just(List.of("TEXT1", "TEXT2", "TEXT3"));
+        messageConsumerServiceImpl.subscribeAfterCommits(afterCommits2Subscribe);
+
+        // Wait for the subscription to complete
+        Thread.sleep(2000); // Adjust the sleep duration as needed
+
+        Assertions.assertEquals(
+                "[MESSAGE-CORE-COMMANDS] Processed offsets committed successfully",
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+
+    }
 
 }
