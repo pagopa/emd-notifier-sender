@@ -34,12 +34,10 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
                                               NotifyServiceImpl sendMessageService,
                                               @Value("${spring.application.name}") String applicationName,
                                               @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitMillis,
-                                              @Value("${app.message-core.build-delay-duration}") String delayMinusCommit) {
+                                              @Value("${app.message-core.build-delay-duration}") long delayMinusCommit) {
         super(applicationName);
         this.commitDelay = Duration.ofMillis(commitMillis);
-        Duration buildDelayDuration = Duration.parse(delayMinusCommit).minusMillis(commitMillis);
-        Duration defaultDurationDelay = Duration.ofMillis(2L);
-        this.delayMinusCommit = defaultDurationDelay.compareTo(buildDelayDuration) >= 0 ? defaultDurationDelay : buildDelayDuration;
+        this.delayMinusCommit =Duration.ofMillis(delayMinusCommit);
         this.objectReader = objectMapper.readerFor(NotifyErrorQueuePayload.class);
         this.sendMessageService = sendMessageService;
     }
@@ -47,10 +45,14 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
     protected Duration getCommitDelay() {
         return commitDelay;
     }
+
+    @Override
+    protected Duration getDelayMinusCommit() {
+        return delayMinusCommit;
+    }
     @Override
     protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
         afterCommits2subscribe
-                .buffer(delayMinusCommit)
                 .subscribe(r -> log.info("[NOTIFIER-ERROR-COMMANDS] Processed offsets committed successfully"));
     }
     @Override

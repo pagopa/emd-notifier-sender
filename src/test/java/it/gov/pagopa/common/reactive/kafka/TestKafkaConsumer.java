@@ -25,6 +25,12 @@ class TestKafkaConsumer extends BaseKafkaConsumer<String, String> {
     protected Duration getCommitDelay() {
         return Duration.ofMillis(500);
     }
+
+    @Override
+    protected Duration getDelayMinusCommit() {
+        return Duration.ofMillis(500);
+    }
+
     @Override
     protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
         afterCommits2subscribe
