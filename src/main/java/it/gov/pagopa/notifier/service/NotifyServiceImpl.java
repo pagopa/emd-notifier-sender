@@ -1,11 +1,10 @@
 package it.gov.pagopa.notifier.service;
 
-import it.gov.pagopa.notifier.dto.MessageDTO;
+
 import it.gov.pagopa.notifier.dto.TokenDTO;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.model.Message;
-import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,31 +29,28 @@ public class NotifyServiceImpl implements NotifyService {
 
     private final MessageRepository messageRepository;
 
-    private final MessageMapperDTOToObject mapperDTOToObject;
     private final String note;
 
 
 
     public NotifyServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
                              MessageRepository messageRepository,
-                             MessageMapperDTOToObject mapperDTOToObject,
                              @Value("${message-notes}") String note) {
         this.webClient = WebClient.builder().build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
-        this.mapperDTOToObject = mapperDTOToObject;
         this.note = note;
     }
 
 
 
-    public Mono<Void> sendNotify(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
+    public Mono<Void> sendNotify(Message message, TppDTO tppDTO, long retry) {
         log.info("[NOTIFY-SERVICE][SEND-NOTIFY] Starting notification process for message ID: {} to TPP: {} at retry: {}",
-                messageDTO.getMessageId(), tppDTO, retry);
+                message.getMessageId(), tppDTO, retry);
 
-        return getToken(tppDTO, messageDTO.getMessageId(), retry)
-                .flatMap(token -> toUrl(messageDTO, tppDTO, token, retry))
-                .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(messageDTO,tppDTO,retry + 1))
+        return getToken(tppDTO, message.getMessageId(), retry)
+                .flatMap(token -> toUrl(message, tppDTO, token, retry))
+                .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(message,tppDTO,retry + 1))
                 .then();
     }
 
@@ -88,28 +84,27 @@ public class NotifyServiceImpl implements NotifyService {
                 .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getAuthenticationUrl(), error.getMessage()));
     }
 
-    private Mono<String> toUrl(MessageDTO messageDTO, TppDTO tppDTO, TokenDTO token, long retry) {
-        log.info("[NOTIFY-SERVICE][TO-URL] Sending message {} to URL: {} for TPP: {} at try {}", messageDTO.getMessageId(), tppDTO.getMessageUrl(), tppDTO.getEntityId(), retry);
+    private Mono<String> toUrl(Message message, TppDTO tppDTO, TokenDTO token, long retry) {
+        log.info("[NOTIFY-SERVICE][TO-URL] Sending message {} to URL: {} for TPP: {} at try {}", message.getMessageId(), tppDTO.getMessageUrl(), tppDTO.getEntityId(), retry);
         return webClient.post()
                 .uri(tppDTO.getMessageUrl())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(extractBaseFields(messageDTO, note))
+                .bodyValue(extractBaseFields(message, note))
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnSuccess(response -> {
-                    log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent successfully to TPP {} at try {}. Response: {}", messageDTO.getMessageId(), tppDTO.getEntityId(), retry, response);
-                    Message message = mapperDTOToObject.map(messageDTO,tppDTO.getEntityId(), note, MessageState.SENT);
-
+                    log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent successfully to TPP {} at try {}. Response: {}", message.getMessageId(), tppDTO.getEntityId(), retry, response);
+                    message.setMessageState(MessageState.SENT);
                     messageRepository.save(message)
                             .doOnSuccess(savedMessage -> log.info("[NOTIFY-SERVICE][TO-URL] Saved message ID: {} for entityId: {}", savedMessage.getMessageId(), tppDTO.getEntityId()))
                             .onErrorResume(error -> {
-                                log.error("[NOTIFY-SERVICE][TO-URL] Error saving message ID: {} for entityId: {}", messageDTO.getMessageId(), tppDTO.getEntityId());
+                                log.error("[NOTIFY-SERVICE][TO-URL] Error saving message ID: {} for entityId: {}", message.getMessageId(), tppDTO.getEntityId());
                                 return Mono.empty();
                             })
                             .subscribe();
                 })
-                .doOnError(error -> log.error("[NOTIFY-SERVICE][TO-URL] Error sending message {} at try {} to URL: {}. Error: {}", messageDTO.getMessageId(), retry, tppDTO.getMessageUrl(), error.getMessage()));
+                .doOnError(error -> log.error("[NOTIFY-SERVICE][TO-URL] Error sending message {} at try {} to URL: {}. Error: {}", message.getMessageId(), retry, tppDTO.getMessageUrl(), error.getMessage()));
     }
 
 }

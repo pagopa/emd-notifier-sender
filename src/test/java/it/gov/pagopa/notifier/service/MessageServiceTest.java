@@ -56,7 +56,7 @@ class MessageServiceTest {
         Mockito.when(tppService.getTppsEnabled(any()))
                 .thenReturn(Mono.just(TPP_DTO_LIST));
 
-        Mockito.when(sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,0))
+        Mockito.when(sendNotificationService.sendNotify(MESSAGE,TPP_DTO,0))
                 .thenReturn(Mono.empty());
 
         Mockito.when(messageRepository.save(any()))
@@ -64,7 +64,7 @@ class MessageServiceTest {
 
        messageService.processMessage(MESSAGE_DTO,0).block();
        verify(messageCoreProducerService,times(0)).enqueueMessage(MESSAGE_DTO,0);
-       verify(sendNotificationService,times(0)).sendNotify(MESSAGE_DTO,TPP_DTO,0);
+       verify(sendNotificationService,times(0)).sendNotify(MESSAGE,TPP_DTO,0);
 
     }
 
@@ -76,7 +76,7 @@ class MessageServiceTest {
         Mockito.when(tppService.getTppsEnabled(any()))
                 .thenReturn(Mono.just(TPP_DTO_LIST));
 
-        Mockito.when(sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,0))
+        Mockito.when(sendNotificationService.sendNotify(MESSAGE,TPP_DTO,0))
                 .thenReturn(Mono.empty());
 
         Mockito.when(messageRepository.save(any()))
@@ -84,7 +84,7 @@ class MessageServiceTest {
 
         messageService.processMessage(MESSAGE_DTO,0).block();
         verify(messageCoreProducerService,times(0)).enqueueMessage(MESSAGE_DTO,0);
-        verify(sendNotificationService,times(1)).sendNotify(MESSAGE_DTO,TPP_DTO,0);
+        verify(sendNotificationService,times(1)).sendNotify(MESSAGE,TPP_DTO,0);
     }
 
     @Test

@@ -1,11 +1,11 @@
 package it.gov.pagopa.notifier.dto;
 
+import it.gov.pagopa.notifier.model.Message;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
+
 
 @AllArgsConstructor
 @Data
@@ -23,7 +23,7 @@ public class BaseMessage {
     private Boolean associatedPayment;
     private String idPsp;
 
-    public static BaseMessage extractBaseFields(MessageDTO messageDTO, String note) {
+    public static BaseMessage extractBaseFields(Message messageDTO, String note) {
         return BaseMessage.builder()
                 .messageId(messageDTO.getMessageId())
                 .recipientId(messageDTO.getRecipientId())
@@ -37,5 +37,6 @@ public class BaseMessage {
                 .notes(messageDTO.getNotes() != null ? messageDTO.getNotes() : note)
                 .build();
     }
+
 
 }

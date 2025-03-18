@@ -61,14 +61,14 @@ class NotifyErrorConsumerServiceImplTest {
     void processCommand_Ok(){
         when(notificationService.sendNotify(any(),any(),anyLong())).thenReturn(Mono.empty());
         notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_STRING_ERROR,null).block();
-        Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
+        Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE, TPP_DTO, RETRY);
     }
 
     @Test
     void processCommand_Ko(){
         when(notificationService.sendNotify(any(), any(),anyLong())).thenReturn(Mono.empty());
         notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block();
-        Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
+        Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE, TPP_DTO, RETRY);
     }
 
     @Test

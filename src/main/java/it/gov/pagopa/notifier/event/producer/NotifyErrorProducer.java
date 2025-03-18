@@ -1,12 +1,11 @@
 package it.gov.pagopa.notifier.event.producer;
 
 
-import it.gov.pagopa.notifier.dto.MessageDTO;
+
 import it.gov.pagopa.notifier.dto.NotifyErrorQueuePayload;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.stream.function.StreamBridge;
-import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,8 +28,8 @@ public class NotifyErrorProducer {
     this.scheduler = scheduler;
   }
 
-  public void scheduleMessage(Message<NotifyErrorQueuePayload> message) {
-    String messageId = message.getPayload().getMessageDTO().getMessageId();
+  public void scheduleMessage(org.springframework.messaging.Message<NotifyErrorQueuePayload> message) {
+    String messageId = message.getPayload().getMessage().getMessageId();
     String entityId = message.getPayload().getTppDTO().getEntityId();
     log.info("[NOTIFY-ERROR-PRODUCER][SCHEDULE-MESSAGE] Scheduling message ID: {} for entityId: {} to notifyErrorQueue with a delay of 5 seconds.", messageId,entityId);
 

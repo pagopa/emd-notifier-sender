@@ -1,27 +1,24 @@
 package it.gov.pagopa.notifier.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import it.gov.pagopa.notifier.dto.BaseMessage;
 import it.gov.pagopa.notifier.enums.Channel;
 import it.gov.pagopa.notifier.enums.MessageState;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
 
+
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
 @Data
-@Builder
-public class Message {
+public class Message extends BaseMessage {
 
-    private Boolean associatedPayment;
-    private String content;
-    private String notes;
+    @JsonAlias("_id")
+    private String id;
     private String entityId;
-    private String idPsp;
-    private String messageId;
-    private String messageUrl;
-    private String originId;
-    private String recipientId;
-    private String senderDescription;
     private Channel channel;
-    private String triggerDateTime;
     private String messageRegistrationDate;
     private MessageState messageState;
 
