@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 @TestPropertySource(properties = {
         "spring.application.name=test",
         "spring.cloud.stream.kafka.bindings.consumerMessage-in-0.consumer.ackTime=500",
-        "app.message-core.build-delay-duration=PT1S"
+        "app.message-core.build-delay-duration=500"
 })
 class MessageCoreConsumerServiceImplTest {
 

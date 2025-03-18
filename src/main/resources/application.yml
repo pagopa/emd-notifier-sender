@@ -136,7 +136,7 @@ spring:
 
 app:
   message-core:
-    build-delay-duration: ${BENEFICIARY_RULE_BUILD_DELAY_DURATION:PT1S}
+    build-delay-duration: ${BENEFICIARY_RULE_BUILD_DELAY_DURATION:500}
   retry:
     max-retry: ${ERROR_MESSAGE_MAX_RETRY:3}
   token:

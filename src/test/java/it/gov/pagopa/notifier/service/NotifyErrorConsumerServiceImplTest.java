@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
         "app.retry.max-retry=5",
         "spring.application.name=test",
         "spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime=500",
-        "app.message-core.build-delay-duration=PT1S"
+        "app.message-core.build-delay-duration=500"
 })
 class NotifyErrorConsumerServiceImplTest {
 
@@ -61,14 +61,14 @@ class NotifyErrorConsumerServiceImplTest {
     void processCommand_Ok(){
         when(notificationService.sendNotify(any(),any(),anyLong())).thenReturn(Mono.empty());
         notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_STRING_ERROR,null).block();
-        Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
+        Mockito.verify(notificationService,times(1)).sendNotify(MESSAGE, TPP_DTO, RETRY);
     }
 
     @Test
     void processCommand_Ko(){
         when(notificationService.sendNotify(any(), any(),anyLong())).thenReturn(Mono.empty());
         notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block();
-        Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE_DTO, TPP_DTO, RETRY);
+        Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE, TPP_DTO, RETRY);
     }
 
     @Test

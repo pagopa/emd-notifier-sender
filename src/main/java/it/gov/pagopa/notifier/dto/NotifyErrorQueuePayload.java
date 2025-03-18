@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.dto;
 
 
+import it.gov.pagopa.notifier.model.Message;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +15,5 @@ import lombok.NoArgsConstructor;
 public class NotifyErrorQueuePayload {
 
     private TppDTO tppDTO;
-    private MessageDTO messageDTO;
+    private Message message;
 }

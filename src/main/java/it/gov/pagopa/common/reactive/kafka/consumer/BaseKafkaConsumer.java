@@ -79,8 +79,8 @@ public abstract class BaseKafkaConsumer<T, R> {
     public final void execute(Flux<Message<String>> messagesFlux) {
         Flux<List<R>> processUntilCommits =
                 messagesFlux
+                        .delayElements(getDelayMinusCommit())
                         .flatMapSequential(this::executeAcknowledgeAware, getConcurrency())
-
                         .buffer(getCommitDelay())
                         .map(p -> {
                                     Map<Integer, Pair<Long, KafkaAcknowledgeResult<?>>> partition2Offsets = p.stream()
@@ -110,6 +110,9 @@ public abstract class BaseKafkaConsumer<T, R> {
 
     /** The {@link Duration} to wait before to commit processed messages */
     protected abstract Duration getCommitDelay();
+
+    /** The {@link Duration} to wait before to process the next  messages */
+    protected abstract Duration getDelayMinusCommit();
 
     /** {@link Flux} to which subscribe in order to start its execution and eventually perform some logic on results */
     protected abstract void subscribeAfterCommits(Flux<List<R>> afterCommits2subscribe);

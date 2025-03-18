@@ -1,14 +1,13 @@
 package it.gov.pagopa.notifier.service;
 
 
-import it.gov.pagopa.notifier.dto.MessageDTO;
+import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.dto.NotifyErrorQueuePayload;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.event.producer.NotifyErrorProducer;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -31,8 +30,8 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
 
 
     @Override
-    public Mono<String> enqueueNotify(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
-        String messageId = messageDTO.getMessageId();
+    public Mono<String> enqueueNotify(Message message, TppDTO tppDTO, long retry) {
+        String messageId = message.getMessageId();
         String entityId = tppDTO.getEntityId();
 
         if (retry > maxTry) {
@@ -44,17 +43,17 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
 
         return Mono.fromRunnable(() -> {
             log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageId, entityId, retry);
-            notifyErrorProducer.scheduleMessage(createMessage(messageDTO, tppDTO, retry));
+            notifyErrorProducer.scheduleMessage(createMessage(message, tppDTO, retry));
         });
     }
 
     @NotNull
-    private static Message<NotifyErrorQueuePayload> createMessage(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
+    private static org.springframework.messaging.Message<NotifyErrorQueuePayload> createMessage(Message message, TppDTO tppDTO, long retry) {
         log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][CREATE-MESSAGE] Creating message for ID: {} with retry: {}, entityId: {}",
-                messageDTO.getMessageId(), retry, tppDTO.getEntityId());
+                message.getMessageId(), retry, tppDTO.getEntityId());
 
         return MessageBuilder
-                .withPayload(new NotifyErrorQueuePayload(tppDTO,messageDTO))
+                .withPayload(new NotifyErrorQueuePayload(tppDTO,message))
                 .setHeader(ERROR_MSG_HEADER_RETRY, retry)
                 .build();
     }

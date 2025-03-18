@@ -32,24 +32,27 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     public MessageCoreConsumerServiceImpl(ObjectMapper objectMapper,
                                           @Value("${spring.application.name}") String applicationName,
                                           @Value("${spring.cloud.stream.kafka.bindings.consumerMessage-in-0.consumer.ackTime}") long commitMillis,
-                                          @Value("${app.message-core.build-delay-duration}") String delayMinusCommit,
+                                          @Value("${app.message-core.build-delay-duration}") long delayMinusCommit,
                                           MessageServiceImpl messageCoreService) {
         super(applicationName);
         this.commitDelay = Duration.ofMillis(commitMillis);
         this.messageCoreService = messageCoreService;
-        Duration buildDelayDuration = Duration.parse(delayMinusCommit).minusMillis(commitMillis);
-        Duration defaultDurationDelay = Duration.ofMillis(2L);
-        this.delayMinusCommit = defaultDurationDelay.compareTo(buildDelayDuration) >= 0 ? defaultDurationDelay : buildDelayDuration;
+        this.delayMinusCommit =Duration.ofMillis(delayMinusCommit);
         this.objectReader = objectMapper.readerFor(MessageDTO.class);
     }
     @Override
     protected Duration getCommitDelay() {
         return commitDelay;
     }
+
+    @Override
+    protected Duration getDelayMinusCommit() {
+        return delayMinusCommit;
+    }
+
     @Override
     protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
         afterCommits2subscribe
-                .buffer(delayMinusCommit)
                 .subscribe(r -> log.info("[MESSAGE-CORE-COMMANDS] Processed offsets committed successfully"));
     }
     @Override
