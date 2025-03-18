@@ -73,13 +73,16 @@ public class MessageServiceImpl implements MessageService {
 
         log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending notifications for message ID: {} at retry attempt {} to channels: {}", messageId, retry, tppDTOList);
 
-        Flux<TppDTO> tppDTOFlux = Flux.fromIterable(tppDTOList)
+        return Flux.fromIterable(tppDTOList)
                 .filterWhen(tppDTO -> messageRepository.findByMessageIdAndEntityId(messageId, tppDTO.getEntityId())
                         .hasElement()
+                        .doOnNext(exists -> {
+                            if (Boolean.TRUE.equals(exists)) {
+                                log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Found existing message ID: {} for entity ID: {}", messageId, tppDTO.getEntityId());
+                            }
+                        })
                         .map(exists -> !exists)
-                );
-
-        return tppDTOFlux
+                )
                 .flatMap(tppDTO -> {
                     log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", messageId, retry, tppDTO.getTppId());
                     return sendNotificationService.sendNotify(messageDTO, tppDTO, 0);

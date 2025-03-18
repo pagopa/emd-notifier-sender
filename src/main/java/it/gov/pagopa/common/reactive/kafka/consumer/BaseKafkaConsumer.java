@@ -79,6 +79,7 @@ public abstract class BaseKafkaConsumer<T, R> {
     public final void execute(Flux<Message<String>> messagesFlux) {
         Flux<List<R>> processUntilCommits =
                 messagesFlux
+                        .delayElements(getDelayMinusCommit())
                         .flatMapSequential(this::executeAcknowledgeAware, getConcurrency())
                         .buffer(getCommitDelay())
                         .map(p -> {
