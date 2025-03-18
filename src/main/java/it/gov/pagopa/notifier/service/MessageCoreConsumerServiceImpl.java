@@ -53,6 +53,7 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     @Override
     protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
         afterCommits2subscribe
+                .buffer(delayMinusCommit)
                 .subscribe(r -> log.info("[MESSAGE-CORE-COMMANDS] Processed offsets committed successfully"));
     }
     @Override

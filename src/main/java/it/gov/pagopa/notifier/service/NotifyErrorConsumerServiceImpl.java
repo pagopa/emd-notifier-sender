@@ -53,6 +53,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
     @Override
     protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
         afterCommits2subscribe
+                .buffer(delayMinusCommit)
                 .subscribe(r -> log.info("[NOTIFIER-ERROR-COMMANDS] Processed offsets committed successfully"));
     }
     @Override
