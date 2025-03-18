@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -66,8 +67,28 @@ class NotifyServiceImplTest {
                 .setBody("Message sent successfully")
                 .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE));
 
-        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class), any())).thenReturn(MESSAGE);
+        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class), any(),any())).thenReturn(MESSAGE);
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
+
+        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
+
+        verifyRequests();
+        verify(messageRepository, times(1)).save(any());
+    }
+
+    @Test
+    void testSendMessage_SaveFail() throws InterruptedException {
+        mockWebServer.enqueue(new MockResponse()
+                .setBody("{\"access_token\":\"accessToken\"}")
+                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
+
+        mockWebServer.enqueue(new MockResponse()
+                .setBody("Message sent successfully")
+                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE));
+
+        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class), any(),any())).thenReturn(MESSAGE);
+        Mockito.when(messageRepository.save(any()))
+                .thenReturn(Mono.error(new RuntimeException("Mocked save error")));
 
         sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
 

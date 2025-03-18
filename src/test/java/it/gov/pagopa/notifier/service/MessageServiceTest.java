@@ -4,6 +4,7 @@ import it.gov.pagopa.notifier.connector.citizen.CitizenConnectorImpl;
 import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.custom.CitizenInvocationException;
 import it.gov.pagopa.notifier.custom.TppInvocationException;
+import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 
@@ -19,12 +21,14 @@ import java.util.Collections;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = MessageServiceImpl.class)
+@TestPropertySource(properties = {
+        "message-notes=500"
+})
 class MessageServiceTest {
 
     @MockBean
@@ -37,6 +41,9 @@ class MessageServiceTest {
     NotifyServiceImpl sendNotificationService;
     @MockBean
     MessageRepository messageRepository;
+
+    @MockBean
+    MessageMapperDTOToObject messageMapperDTOToObject;
 
     @Autowired
     MessageServiceImpl messageService;
@@ -52,13 +59,13 @@ class MessageServiceTest {
         Mockito.when(sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,0))
                 .thenReturn(Mono.empty());
 
-        Mockito.when(messageRepository.findByMessageIdAndEntityId(anyString(),anyString()))
-                .thenReturn(Mono.just(MESSAGE));
+        Mockito.when(messageRepository.save(any()))
+                .thenReturn(Mono.error(new RuntimeException("Mocked save error")));
 
        messageService.processMessage(MESSAGE_DTO,0).block();
        verify(messageCoreProducerService,times(0)).enqueueMessage(MESSAGE_DTO,0);
-       verify(messageRepository,times(1)).findByMessageIdAndEntityId(any(),any());
        verify(sendNotificationService,times(0)).sendNotify(MESSAGE_DTO,TPP_DTO,0);
+
     }
 
     @Test
@@ -72,12 +79,11 @@ class MessageServiceTest {
         Mockito.when(sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,0))
                 .thenReturn(Mono.empty());
 
-        Mockito.when(messageRepository.findByMessageIdAndEntityId(anyString(),anyString()))
-                .thenReturn(Mono.empty());
+        Mockito.when(messageRepository.save(any()))
+                .thenReturn(Mono.just(MESSAGE));
 
         messageService.processMessage(MESSAGE_DTO,0).block();
         verify(messageCoreProducerService,times(0)).enqueueMessage(MESSAGE_DTO,0);
-        verify(messageRepository,times(1)).findByMessageIdAndEntityId(any(),any());
         verify(sendNotificationService,times(1)).sendNotify(MESSAGE_DTO,TPP_DTO,0);
     }
 

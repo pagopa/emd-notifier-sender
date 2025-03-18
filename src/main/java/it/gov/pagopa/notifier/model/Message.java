@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.model;
 
 import it.gov.pagopa.notifier.enums.Channel;
+import it.gov.pagopa.notifier.enums.MessageState;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,4 +23,6 @@ public class Message {
     private Channel channel;
     private String triggerDateTime;
     private String messageRegistrationDate;
+    private MessageState messageState;
+
 }

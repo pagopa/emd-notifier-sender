@@ -3,6 +3,7 @@ package it.gov.pagopa.notifier.service;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.TokenDTO;
 import it.gov.pagopa.notifier.dto.TppDTO;
+import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
@@ -31,7 +32,6 @@ public class NotifyServiceImpl implements NotifyService {
 
     private final MessageMapperDTOToObject mapperDTOToObject;
     private final String note;
-
 
 
 
@@ -99,7 +99,7 @@ public class NotifyServiceImpl implements NotifyService {
                 .bodyToMono(String.class)
                 .doOnSuccess(response -> {
                     log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent successfully to TPP {} at try {}. Response: {}", messageDTO.getMessageId(), tppDTO.getEntityId(), retry, response);
-                    Message message = mapperDTOToObject.map(messageDTO,tppDTO.getEntityId(), note);
+                    Message message = mapperDTOToObject.map(messageDTO,tppDTO.getEntityId(), note, MessageState.SENT);
 
                     messageRepository.save(message)
                             .doOnSuccess(savedMessage -> log.info("[NOTIFY-SERVICE][TO-URL] Saved message ID: {} for entityId: {}", savedMessage.getMessageId(), tppDTO.getEntityId()))
