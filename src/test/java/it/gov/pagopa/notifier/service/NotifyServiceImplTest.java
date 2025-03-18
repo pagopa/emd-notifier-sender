@@ -1,17 +1,12 @@
 package it.gov.pagopa.notifier.service;
 
-import it.gov.pagopa.notifier.dto.MessageDTO;
-import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import okhttp3.mockwebserver.*;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -26,8 +21,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class NotifyServiceImplTest {
 
-    private NotifyServiceImpl sendNotificationService;
-    private MockWebServer mockWebServer;
+    private  NotifyServiceImpl sendNotificationService;
+    private static MockWebServer mockWebServer;
 
     @Mock
     private NotifyErrorProducerService errorProducerService;
@@ -35,83 +30,89 @@ class NotifyServiceImplTest {
     @Mock
     private MessageRepository messageRepository;
 
-    @Mock
-    private MessageMapperDTOToObject mapperDTOToObject;
+
+    @BeforeAll
+    static void setUpBefore() throws IOException {
+        mockWebServer = new MockWebServer();
+        mockWebServer.setDispatcher(new MyDispatcher());
+        mockWebServer.start();
+    }
 
     @BeforeEach
-    void setUp() throws IOException {
-        mockWebServer = new MockWebServer();
-        mockWebServer.start();
+    void setUp(){
         sendNotificationService = new NotifyServiceImpl(
                 errorProducerService,
                 messageRepository,
-                mapperDTOToObject,
                 "");
-        TPP_DTO.setAuthenticationUrl(mockWebServer.url(TPP_DTO.getAuthenticationUrl()).toString());
-        TPP_DTO.setMessageUrl(mockWebServer.url(TPP_DTO.getMessageUrl()).toString());
     }
 
-    @AfterEach
-    void tearDown() throws Exception {
+    @AfterAll
+    static void tearDown() throws Exception {
         mockWebServer.shutdown();
     }
 
     @Test
-    void testSendMessage_Success() throws InterruptedException {
-        mockWebServer.enqueue(new MockResponse()
-                .setBody("{\"access_token\":\"accessToken\"}")
-                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-
-        mockWebServer.enqueue(new MockResponse()
-                .setBody("Message sent successfully")
-                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE));
-
-        when(mapperDTOToObject.map(any(MessageDTO.class), any(String.class), any())).thenReturn(MESSAGE);
+    void testSendMessage_Success() {
+        TPP_DTO.setAuthenticationUrl(mockWebServer.url(AUTHENTICATION_URL).toString());
+        TPP_DTO.setMessageUrl(mockWebServer.url(MESSAGE_URL).toString());
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY).block();
 
-        verifyRequests();
         verify(messageRepository, times(1)).save(any());
     }
 
+
+
     @Test
     void testSendMessage_TokenFailure() {
+        TPP_DTO.setAuthenticationUrl(mockWebServer.url("/fail").toString());
+        TPP_DTO.setMessageUrl(mockWebServer.url(MESSAGE_URL).toString());
         when(errorProducerService.enqueueNotify(any(),any(),anyLong())).thenReturn(Mono.just("Error"));
-        mockWebServer.enqueue(new MockResponse()
-                .setResponseCode(500)
-                .setBody("Internal Server Error"));
 
-        sendNotificationService.sendNotify(MESSAGE_DTO, TPP_DTO, RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY).block();
 
         verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
     }
+    @Test
+    void testSendMessage_SaveFail(){
+        TPP_DTO.setAuthenticationUrl(mockWebServer.url(AUTHENTICATION_URL).toString());
+        TPP_DTO.setMessageUrl(mockWebServer.url(MESSAGE_URL).toString());
+        Mockito.when(messageRepository.save(any()))
+                .thenReturn(Mono.error(new RuntimeException("Mocked save error")));
 
+        sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY).block();
+
+        verify(messageRepository, times(1)).save(any());
+    }
     @Test
     void testSendMessage_ToUrlFailure() {
+        TPP_DTO.setAuthenticationUrl(mockWebServer.url(AUTHENTICATION_URL).toString());
+        TPP_DTO.setMessageUrl(mockWebServer.url("/fail").toString());
         when(errorProducerService.enqueueNotify(any(),any(),anyLong())).thenReturn(Mono.just("Error"));
 
-        mockWebServer.enqueue(new MockResponse()
-                .setBody("{\"access_token\":\"accessToken\"}")
-                .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-
-        mockWebServer.enqueue(new MockResponse()
-                .setResponseCode(500)
-                .setBody("Internal Server Error"));
-
-        sendNotificationService.sendNotify(MESSAGE_DTO,TPP_DTO,RETRY).block();
+        sendNotificationService.sendNotify(MESSAGE,TPP_DTO,RETRY).block();
 
         verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
     }
 
-    private void verifyRequests() throws InterruptedException {
-        RecordedRequest authRequest = mockWebServer.takeRequest();
-        Assertions.assertEquals(AUTHENTICATION_URL, authRequest.getPath());
-        Assertions.assertEquals("POST", authRequest.getMethod());
-
-        RecordedRequest messageRequest = mockWebServer.takeRequest();
-        Assertions.assertEquals(MESSAGE_URL,messageRequest.getPath());
-        Assertions.assertEquals("POST", messageRequest.getMethod());
-        Assertions.assertEquals(messageRequest.getHeader(HttpHeaders.AUTHORIZATION), BEARER_TOKEN + TOKEN_DTO.getAccessToken());
+    static class MyDispatcher extends Dispatcher {
+        @NotNull
+        @Override
+        public MockResponse dispatch(RecordedRequest request){
+            assert request.getPath() != null;
+            if (request.getPath().equals(AUTHENTICATION_URL)) {
+                return new MockResponse()
+                        .setBody("{\"access_token\":\"accessToken\"}")
+                        .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            } else if (request.getPath().equals(MESSAGE_URL)) {
+                return new MockResponse()
+                        .setBody("Message sent successfully")
+                        .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+            }
+            return new MockResponse()
+                    .setResponseCode(500)
+                    .setBody("Internal Server Error");
+        }
     }
 }

@@ -18,6 +18,7 @@ public class MessageFaker {
                 .associatedPayment(true)
                 .messageRegistrationDate("messageRegistrationDate")
                 .channel(Channel.valueOf("SEND"))
+                .id("id")
                 .build();
 
     }
