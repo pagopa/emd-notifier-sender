@@ -121,6 +121,9 @@ public abstract class BaseKafkaConsumer<T, R> {
         return delayMinusCommit;
     }
 
+    /** The {@link Duration} to wait before to process the next  messages */
+    protected abstract Duration getDelayMinusCommit();
+
     /** {@link Flux} to which subscribe in order to start its execution and eventually perform some logic on results */
     protected abstract void subscribeAfterCommits(Flux<List<R>> afterCommits2subscribe);
 
