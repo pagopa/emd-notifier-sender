@@ -3,14 +3,18 @@ package it.gov.pagopa.notifier.model;
 import it.gov.pagopa.notifier.dto.BaseMessage;
 import it.gov.pagopa.notifier.enums.Channel;
 import it.gov.pagopa.notifier.enums.MessageState;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 public class Message extends BaseMessage {
 
