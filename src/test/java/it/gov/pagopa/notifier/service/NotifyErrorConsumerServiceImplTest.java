@@ -19,7 +19,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -75,13 +74,6 @@ class NotifyErrorConsumerServiceImplTest {
     void getObjectReader() {
         ObjectReader objectReader = notifyErrorConsumerService.getObjectReader();
         Assertions.assertNotNull(objectReader);
-    }
-
-    @Test
-    void getCommitDelay() {
-        Duration expected = Duration.ofMillis(500L);
-        Duration commitDelay = notifyErrorConsumerService.getCommitDelay();
-        Assertions.assertEquals(expected,commitDelay);
     }
 
     @Test

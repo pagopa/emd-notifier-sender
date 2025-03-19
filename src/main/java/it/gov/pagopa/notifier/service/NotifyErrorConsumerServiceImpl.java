@@ -25,29 +25,16 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 @Slf4j
 public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErrorQueuePayload,String> implements NotifyErrorConsumerService {
 
-    private final Duration commitDelay;
-    private final Duration delayMinusCommit;
     private final ObjectReader objectReader;
     private final NotifyServiceImpl sendMessageService;
     public NotifyErrorConsumerServiceImpl(ObjectMapper objectMapper,
                                               NotifyServiceImpl sendMessageService,
                                               @Value("${spring.application.name}") String applicationName,
-                                              @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitMillis,
+                                              @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitDelay,
                                               @Value("${app.message-core.build-delay-duration}") long delayMinusCommit) {
-        super(applicationName);
-        this.commitDelay = Duration.ofMillis(commitMillis);
-        this.delayMinusCommit =Duration.ofMillis(delayMinusCommit);
+        super(applicationName, Duration.ofMillis(commitDelay),Duration.ofMillis(delayMinusCommit));
         this.objectReader = objectMapper.readerFor(NotifyErrorQueuePayload.class);
         this.sendMessageService = sendMessageService;
-    }
-    @Override
-    protected Duration getCommitDelay() {
-        return commitDelay;
-    }
-
-    @Override
-    protected Duration getDelayMinusCommit() {
-        return delayMinusCommit;
     }
     @Override
     protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
