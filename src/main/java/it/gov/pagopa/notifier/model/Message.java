@@ -7,12 +7,13 @@ import it.gov.pagopa.notifier.enums.MessageState;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
-
+import org.springframework.data.mongodb.core.mapping.Document;
 
 
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @Data
+@Document(collection = "message")
 public class Message extends BaseMessage {
 
     @JsonAlias("_id")
