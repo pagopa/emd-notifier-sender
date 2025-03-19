@@ -14,21 +14,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 @Slf4j
-
 class TestKafkaConsumer extends BaseKafkaConsumer<String, String> {
 
     protected TestKafkaConsumer(String applicationName) {
-        super(applicationName);
-    }
-
-    @Override
-    protected Duration getCommitDelay() {
-        return Duration.ofMillis(500);
-    }
-
-    @Override
-    protected Duration getDelayMinusCommit() {
-        return Duration.ofMillis(500);
+        super(applicationName,Duration.ofMillis(500),Duration.ofMillis(500));
     }
 
     @Override
