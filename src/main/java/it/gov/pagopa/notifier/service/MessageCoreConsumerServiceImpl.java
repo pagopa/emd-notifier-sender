@@ -25,29 +25,17 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 @Slf4j
 public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,String> implements MessageCoreConsumerService {
 
-    private final Duration commitDelay;
-    private final Duration delayMinusCommit;
+
     private final ObjectReader objectReader;
     private final MessageServiceImpl messageCoreService;
     public MessageCoreConsumerServiceImpl(ObjectMapper objectMapper,
                                           @Value("${spring.application.name}") String applicationName,
-                                          @Value("${spring.cloud.stream.kafka.bindings.consumerMessage-in-0.consumer.ackTime}") long commitMillis,
+                                          @Value("${spring.cloud.stream.kafka.bindings.consumerMessage-in-0.consumer.ackTime}") long commitDelay,
                                           @Value("${app.message-core.build-delay-duration}") long delayMinusCommit,
                                           MessageServiceImpl messageCoreService) {
-        super(applicationName);
-        this.commitDelay = Duration.ofMillis(commitMillis);
+        super(applicationName, Duration.ofMillis(commitDelay),Duration.ofMillis(delayMinusCommit));
         this.messageCoreService = messageCoreService;
-        this.delayMinusCommit =Duration.ofMillis(delayMinusCommit);
         this.objectReader = objectMapper.readerFor(MessageDTO.class);
-    }
-    @Override
-    protected Duration getCommitDelay() {
-        return commitDelay;
-    }
-
-    @Override
-    protected Duration getDelayMinusCommit() {
-        return delayMinusCommit;
     }
 
     @Override

@@ -19,7 +19,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -76,12 +75,6 @@ class MessageCoreConsumerServiceImplTest {
     void getObjectReader() {
         ObjectReader objectReader = messageConsumerServiceImpl.getObjectReader();
         Assertions.assertNotNull(objectReader);
-    }
-    @Test
-    void getCommitDelay() {
-        Duration expected = Duration.ofMillis(500L);
-        Duration commitDelay = messageConsumerServiceImpl.getCommitDelay();
-        Assertions.assertEquals(expected,commitDelay);
     }
 
     @Test

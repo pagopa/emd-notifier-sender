@@ -41,6 +41,8 @@ public abstract class BaseKafkaConsumer<T, R> {
     protected static final String CONTEXT_KEY_MSG_ID = "MSG_ID";
 
     private final String applicationName;
+    private final Duration commitDelay;
+    private final Duration delayMinusCommit;
 
     private static final Collector<KafkaAcknowledgeResult<?>, ?, Map<Integer, Pair<Long, KafkaAcknowledgeResult<?>>>> kafkaAcknowledgeResultMapCollector =
             Collectors.groupingBy(KafkaAcknowledgeResult::partition
@@ -52,8 +54,10 @@ public abstract class BaseKafkaConsumer<T, R> {
                                     max.orElse(null))
                     ));
 
-    protected BaseKafkaConsumer(String applicationName) {
+    protected BaseKafkaConsumer(String applicationName,Duration commitDelay, Duration delayMinusCommit ) {
         this.applicationName = applicationName;
+        this.commitDelay = commitDelay;
+        this.delayMinusCommit = delayMinusCommit;
     }
 
     record KafkaAcknowledgeResult<T> (Acknowledgment ack, Integer partition, Long offset, T result){
@@ -109,10 +113,13 @@ public abstract class BaseKafkaConsumer<T, R> {
     }
 
     /** The {@link Duration} to wait before to commit processed messages */
-    protected abstract Duration getCommitDelay();
-
+    protected Duration getCommitDelay() {
+        return commitDelay;
+    }
     /** The {@link Duration} to wait before to process the next  messages */
-    protected abstract Duration getDelayMinusCommit();
+    protected Duration getDelayMinusCommit() {
+        return delayMinusCommit;
+    }
 
     /** {@link Flux} to which subscribe in order to start its execution and eventually perform some logic on results */
     protected abstract void subscribeAfterCommits(Flux<List<R>> afterCommits2subscribe);
