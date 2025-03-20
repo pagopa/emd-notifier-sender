@@ -1,0 +1,1341 @@
+{
+  "dependencies": [
+    {
+      "id": "org.springframework.boot:spring-boot-starter:jar:3.3.3",
+      "artifactId": "spring-boot-starter",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "ipNJmoxD_qwTEjX9S4hSB3jR2IngEiQknjOq5bkAod8="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot:jar:3.3.3",
+      "artifactId": "spring-boot",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "Zfnp-qEw6u-3i2X-TYk4NIZLqRF8_0v-IjnuExyjs6o="
+    },
+    {
+      "id": "org.springframework:spring-context:jar:6.1.14",
+      "artifactId": "spring-context",
+      "groupId": "org.springframework",
+      "version": "6.1.14",
+      "sha256": "2na1P2og8Js4BSowBDXzJFeA0w3rRuxd11MUzaBv02U="
+    },
+    {
+      "id": "org.springframework:spring-aop:jar:6.1.12",
+      "artifactId": "spring-aop",
+      "groupId": "org.springframework",
+      "version": "6.1.12",
+      "sha256": "fBLmk3hEpCgC1o7WmrMcnTNnXgxLLx7BL_t5U4vx8P4="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-autoconfigure:jar:3.3.3",
+      "artifactId": "spring-boot-autoconfigure",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "VFThf-bmkoU86euEK9ZMbHq9kIvNgUEVOSXk4M_V1vU="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-starter-logging:jar:3.3.3",
+      "artifactId": "spring-boot-starter-logging",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "G9bCZUeDegCf1QMokW9lKLcyiHWyZZ9DrzW5gWkwWjI="
+    },
+    {
+      "id": "ch.qos.logback:logback-classic:jar:1.5.7",
+      "artifactId": "logback-classic",
+      "groupId": "ch.qos.logback",
+      "version": "1.5.7",
+      "sha256": "fLF_axL9pO5pGRYEjKeprk0bDNvmgSWs-dbi2v2ywX0="
+    },
+    {
+      "id": "ch.qos.logback:logback-core:jar:1.5.7",
+      "artifactId": "logback-core",
+      "groupId": "ch.qos.logback",
+      "version": "1.5.7",
+      "sha256": "wyspr2nCAe_eaGIl-LQ5-QU-iOyqrBEMAvy-G0cj-tw="
+    },
+    {
+      "id": "org.apache.logging.log4j:log4j-to-slf4j:jar:2.23.1",
+      "artifactId": "log4j-to-slf4j",
+      "groupId": "org.apache.logging.log4j",
+      "version": "2.23.1",
+      "sha256": "eTeoQFUVaRAjTjtCho9V5o_0t77Ltv_RAUb3L1v1TdU="
+    },
+    {
+      "id": "org.apache.logging.log4j:log4j-api:jar:2.23.1",
+      "artifactId": "log4j-api",
+      "groupId": "org.apache.logging.log4j",
+      "version": "2.23.1",
+      "sha256": "kuwf02qzvAneYZjS18CRRoXA9xJ-qTGswy_S7N2C6ok="
+    },
+    {
+      "id": "org.slf4j:jul-to-slf4j:jar:2.0.16",
+      "artifactId": "jul-to-slf4j",
+      "groupId": "org.slf4j",
+      "version": "2.0.16",
+      "sha256": "Dy7DluopyaRAiQ0fCf24L91XS0eymENXZCNUUcGThh0="
+    },
+    {
+      "id": "jakarta.annotation:jakarta.annotation-api:jar:2.1.1",
+      "artifactId": "jakarta.annotation-api",
+      "groupId": "jakarta.annotation",
+      "version": "2.1.1",
+      "sha256": "X2X9r0JO7itV4diCupuzdr6T-wmze4CL5uIuiFHJCf4="
+    },
+    {
+      "id": "org.springframework:spring-core:jar:6.1.12",
+      "artifactId": "spring-core",
+      "groupId": "org.springframework",
+      "version": "6.1.12",
+      "sha256": "AQ1jmMf2W8LaPDi81sDrt5b0_jJVgAvAXnEvQ9T8p_s="
+    },
+    {
+      "id": "org.springframework:spring-jcl:jar:6.1.12",
+      "artifactId": "spring-jcl",
+      "groupId": "org.springframework",
+      "version": "6.1.12",
+      "sha256": "6JgP3HCrRL6yAZOVcSMt_EDtgE1UtxVU_I_Ihu1de_k="
+    },
+    {
+      "id": "org.yaml:snakeyaml:jar:2.2",
+      "artifactId": "snakeyaml",
+      "groupId": "org.yaml",
+      "version": "2.2",
+      "sha256": "FGeTFEiggXaWrigFt7iyC_sIJlK_nE767VKJMNxJOJs="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-starter-webflux:jar:3.3.3",
+      "artifactId": "spring-boot-starter-webflux",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "LUoidy4-njx0AuU7OyNfWlWVGX2uISAux1bGr8z0doA="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-starter-json:jar:3.3.3",
+      "artifactId": "spring-boot-starter-json",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "X6ME0eqc1ZdVwP1x4QyzqXWd0YLOvlB0dE4sXXjZBTQ="
+    },
+    {
+      "id": "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.17.2",
+      "artifactId": "jackson-datatype-jdk8",
+      "groupId": "com.fasterxml.jackson.datatype",
+      "version": "2.17.2",
+      "sha256": "qqmNPtq_UEJr2CL60UQvva2m5HCWkybLyrXCeY8XONk="
+    },
+    {
+      "id": "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.17.2",
+      "artifactId": "jackson-datatype-jsr310",
+      "groupId": "com.fasterxml.jackson.datatype",
+      "version": "2.17.2",
+      "sha256": "m4ACSpgi5wsH9rsTgkx2wTfBBkobXrUYN0qxQYcP28w="
+    },
+    {
+      "id": "com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.17.2",
+      "artifactId": "jackson-module-parameter-names",
+      "groupId": "com.fasterxml.jackson.module",
+      "version": "2.17.2",
+      "sha256": "HuXi81k9RHJrkAhoxvZNGlBjalaD1tQEJ_WYSmHeU8A="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-starter-reactor-netty:jar:3.3.3",
+      "artifactId": "spring-boot-starter-reactor-netty",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "-5rCqgNXKwuy1ymm9YSAoxHDqfrSHnNz0iZWNm1MikM="
+    },
+    {
+      "id": "io.projectreactor.netty:reactor-netty-http:jar:1.1.22",
+      "artifactId": "reactor-netty-http",
+      "groupId": "io.projectreactor.netty",
+      "version": "1.1.22",
+      "sha256": "Va6vxJe1qI7tPGyIJlwte493_AXV2ljaSFekNXKsHa4="
+    },
+    {
+      "id": "io.netty:netty-codec-http:jar:4.1.112.Final",
+      "artifactId": "netty-codec-http",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "IbUC0TdNaZJyjQBODByVVE1G2XH1XqeNy4VM4awMg7w="
+    },
+    {
+      "id": "io.netty:netty-common:jar:4.1.112.Final",
+      "artifactId": "netty-common",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "sDln8yxl3l7TObl3KRcOAomyL_pXKef0X2i_a0MftWc="
+    },
+    {
+      "id": "io.netty:netty-buffer:jar:4.1.112.Final",
+      "artifactId": "netty-buffer",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "vBgsSPU2nUjNg3DSqwxbjZndj_pKD4rHAWUtV704Dv8="
+    },
+    {
+      "id": "io.netty:netty-transport:jar:4.1.112.Final",
+      "artifactId": "netty-transport",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "044xYk0lynkO5BPVKcFSFwIX6-283PYRZPpikfOlbJI="
+    },
+    {
+      "id": "io.netty:netty-codec:jar:4.1.112.Final",
+      "artifactId": "netty-codec",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "cttPk2KffqUg0pmMCOKx1p-cakeStT2l6aAB0kx4sVE="
+    },
+    {
+      "id": "io.netty:netty-handler:jar:4.1.112.Final",
+      "artifactId": "netty-handler",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "6k1gYqX7EKbiNk2LvevBz6gU8fyfkQ71flyvAvsVxYg="
+    },
+    {
+      "id": "io.netty:netty-codec-http2:jar:4.1.112.Final",
+      "artifactId": "netty-codec-http2",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "f3PvyEXogY1x2iOyHcZdaRMt0OEu0OgMyTe9eat9V0k="
+    },
+    {
+      "id": "io.netty:netty-resolver-dns:jar:4.1.112.Final",
+      "artifactId": "netty-resolver-dns",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "rZGN8CC6bhCu7MC0cTN1TQwmFqpE1BS8uHbWG9cE5W0="
+    },
+    {
+      "id": "io.netty:netty-resolver:jar:4.1.112.Final",
+      "artifactId": "netty-resolver",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "a0rJ87Z_Vi8HcNV8OJJ5_5xwjrQB4aNjX1Ipfw-Jftw="
+    },
+    {
+      "id": "io.netty:netty-codec-dns:jar:4.1.112.Final",
+      "artifactId": "netty-codec-dns",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "iTnlmJDborcvcggRwVA0F4RJ8s4P89r3lC8PtIjX7ms="
+    },
+    {
+      "id": "io.netty:netty-resolver-dns-native-macos:jar:osx-x86_64:4.1.112.Final",
+      "artifactId": "netty-resolver-dns-native-macos",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "-ADd0u0SG2EBCissfz_Gl-4CB6msXx9xmngBLEt0SaY="
+    },
+    {
+      "id": "io.netty:netty-resolver-dns-classes-macos:jar:4.1.112.Final",
+      "artifactId": "netty-resolver-dns-classes-macos",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "EtQxKGqxQuW7OV8VWctF9wPWXvjXzh2V_UAe97nVRgU="
+    },
+    {
+      "id": "io.netty:netty-transport-native-epoll:jar:linux-x86_64:4.1.112.Final",
+      "artifactId": "netty-transport-native-epoll",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "TmvJ_scGqpis1pZedwfjhces_fUjb5VhwFUfIdGkD4s="
+    },
+    {
+      "id": "io.netty:netty-transport-native-unix-common:jar:4.1.112.Final",
+      "artifactId": "netty-transport-native-unix-common",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "55zOobh6Y0jU69Pfs3oszNm3y2XDN19szawIbHtc5Ic="
+    },
+    {
+      "id": "io.netty:netty-transport-classes-epoll:jar:4.1.112.Final",
+      "artifactId": "netty-transport-classes-epoll",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "ls8uZiLqcOK8Z67Tc2B98yhj-GPQ17jJyU1Gjv0dBjg="
+    },
+    {
+      "id": "io.projectreactor.netty:reactor-netty-core:jar:1.1.22",
+      "artifactId": "reactor-netty-core",
+      "groupId": "io.projectreactor.netty",
+      "version": "1.1.22",
+      "sha256": "ndDFrIIWWGo8xBp8T_axSC4_Xt5heYwtm2oTw0wZmZQ="
+    },
+    {
+      "id": "io.netty:netty-handler-proxy:jar:4.1.112.Final",
+      "artifactId": "netty-handler-proxy",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "kffJPf5LehMZjUCvOe2sCtsMM_CNl1kkKZe4kXYTDIw="
+    },
+    {
+      "id": "io.netty:netty-codec-socks:jar:4.1.112.Final",
+      "artifactId": "netty-codec-socks",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "Bp8UUHZ2KCqMS4cbJzMqpEkcFjOewOhvTYbUWpU7UfU="
+    },
+    {
+      "id": "org.springframework:spring-web:jar:6.1.12",
+      "artifactId": "spring-web",
+      "groupId": "org.springframework",
+      "version": "6.1.12",
+      "sha256": "qeExXvr90qLygLd4Gc_P0JcOg8dopKyS1UvkSOgYl2Q="
+    },
+    {
+      "id": "org.springframework:spring-beans:jar:6.1.12",
+      "artifactId": "spring-beans",
+      "groupId": "org.springframework",
+      "version": "6.1.12",
+      "sha256": "UDXoYsT6o0NJ-Z7vKDgN7fmUCjACIYw-UB1gqMyJPj8="
+    },
+    {
+      "id": "org.springframework:spring-webflux:jar:6.1.12",
+      "artifactId": "spring-webflux",
+      "groupId": "org.springframework",
+      "version": "6.1.12",
+      "sha256": "DKLDR89oW_XRVDjj3-glvI0yhvZ6wIYuSBv7pyW971E="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-starter-data-mongodb-reactive:jar:3.3.3",
+      "artifactId": "spring-boot-starter-data-mongodb-reactive",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "629io8zviTBzrChz05Vxy99c3YiGp1HVTEbECNsgSYc="
+    },
+    {
+      "id": "io.projectreactor:reactor-core:jar:3.6.9",
+      "artifactId": "reactor-core",
+      "groupId": "io.projectreactor",
+      "version": "3.6.9",
+      "sha256": "JUlwvTKR_hp-s5qzizQpSQUuA8VdTk0F32iXHB2sWoc="
+    },
+    {
+      "id": "org.reactivestreams:reactive-streams:jar:1.0.4",
+      "artifactId": "reactive-streams",
+      "groupId": "org.reactivestreams",
+      "version": "1.0.4",
+      "sha256": "91yll3ibPaxY9hhXuawuEDSmj6Zy2zUFWo-0UJ4yXyg="
+    },
+    {
+      "id": "org.mongodb:mongodb-driver-reactivestreams:jar:5.0.1",
+      "artifactId": "mongodb-driver-reactivestreams",
+      "groupId": "org.mongodb",
+      "version": "5.0.1",
+      "sha256": "NciJP7ukv9hsxUw0oLvCQuCJMw5FZ4X1gRJc7N-jO6o="
+    },
+    {
+      "id": "org.mongodb:bson:jar:5.0.1",
+      "artifactId": "bson",
+      "groupId": "org.mongodb",
+      "version": "5.0.1",
+      "sha256": "diMba5Vy9tMrElyokcz9-e5vDrvJbU_x1vDquEEGOtY="
+    },
+    {
+      "id": "org.mongodb:mongodb-driver-core:jar:5.0.1",
+      "artifactId": "mongodb-driver-core",
+      "groupId": "org.mongodb",
+      "version": "5.0.1",
+      "sha256": "KKARJNfq4o3rcSzddndY7xKRpy_rSj3f8gZtQHW79qY="
+    },
+    {
+      "id": "org.mongodb:bson-record-codec:jar:5.0.1",
+      "artifactId": "bson-record-codec",
+      "groupId": "org.mongodb",
+      "version": "5.0.1",
+      "sha256": "0oRFBudElu9g55Qfguu3KYzp_ff14bed-ZXit3Nt044="
+    },
+    {
+      "id": "org.springframework.data:spring-data-mongodb:jar:4.3.3",
+      "artifactId": "spring-data-mongodb",
+      "groupId": "org.springframework.data",
+      "version": "4.3.3",
+      "sha256": "wBDs1yU5GR1A8i1MR8kq3hEK9ciGctAvJ9PbMjucCNg="
+    },
+    {
+      "id": "org.springframework:spring-tx:jar:6.1.12",
+      "artifactId": "spring-tx",
+      "groupId": "org.springframework",
+      "version": "6.1.12",
+      "sha256": "cpbRDoc2KBFHOf5-o3wRYmc6m_9cvLCpUTkfq49ufGs="
+    },
+    {
+      "id": "org.springframework:spring-expression:jar:6.1.12",
+      "artifactId": "spring-expression",
+      "groupId": "org.springframework",
+      "version": "6.1.12",
+      "sha256": "x4y58ZojPqg3uYV-w8hMImM71jN-s5rnPxayrfPWyiU="
+    },
+    {
+      "id": "org.springframework.data:spring-data-commons:jar:3.3.3",
+      "artifactId": "spring-data-commons",
+      "groupId": "org.springframework.data",
+      "version": "3.3.3",
+      "sha256": "GDklxh_hxcbcpSP_BDINB0wAaSttlCIkFfB8MdD003g="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-starter-actuator:jar:3.3.3",
+      "artifactId": "spring-boot-starter-actuator",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "ZyKv-UNdrdw6aZfqxctXQq3c9rwSGOVvrFYlioP2VyI="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-actuator-autoconfigure:jar:3.3.3",
+      "artifactId": "spring-boot-actuator-autoconfigure",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "y0kydzDBH_mKJpDYnyLtCNpYmXohKDuEzVCHEGzC-mE="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-actuator:jar:3.3.3",
+      "artifactId": "spring-boot-actuator",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "YZbfrxKpRC0XKLq3pCVI89Ib5FtRBhASbyCANEw7Aww="
+    },
+    {
+      "id": "io.micrometer:micrometer-observation:jar:1.13.3",
+      "artifactId": "micrometer-observation",
+      "groupId": "io.micrometer",
+      "version": "1.13.3",
+      "sha256": "KEQJqlIbvZTQ7kTtXNzYQa6SWVtOCX8cXtmRFLPXfq0="
+    },
+    {
+      "id": "io.micrometer:micrometer-commons:jar:1.13.3",
+      "artifactId": "micrometer-commons",
+      "groupId": "io.micrometer",
+      "version": "1.13.3",
+      "sha256": "H8SQ4yL89PO7dTknt3bQVlKTRWwy_jCkWPDockT0LJA="
+    },
+    {
+      "id": "io.micrometer:micrometer-jakarta9:jar:1.13.3",
+      "artifactId": "micrometer-jakarta9",
+      "groupId": "io.micrometer",
+      "version": "1.13.3",
+      "sha256": "2_-Z75paecE-fMOcbCpOBiU9GsHZct7mxZEa3eawXOI="
+    },
+    {
+      "id": "io.micrometer:micrometer-core:jar:1.13.3",
+      "artifactId": "micrometer-core",
+      "groupId": "io.micrometer",
+      "version": "1.13.3",
+      "sha256": "Rr7DcsfOF45esPJSlVFpng1CGpFggea9ixn9BNNMJLM="
+    },
+    {
+      "id": "org.hdrhistogram:HdrHistogram:jar:2.2.2",
+      "artifactId": "HdrHistogram",
+      "groupId": "org.hdrhistogram",
+      "version": "2.2.2",
+      "sha256": "ItHUMWxOwTpotVnpjIJW1pBxWTcx2pYTZkD4ZPoU-tg="
+    },
+    {
+      "id": "org.latencyutils:LatencyUtils:jar:2.0.3",
+      "artifactId": "LatencyUtils",
+      "groupId": "org.latencyutils",
+      "version": "2.0.3",
+      "sha256": "oyqf-gay9OAcU2D4-d97xdlFSl03PNjzYTR_paVxZew="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-starter-validation:jar:3.3.3",
+      "artifactId": "spring-boot-starter-validation",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "kS90D26DbYfnyum0m_pvl0DIfERP2HLsyNYSGGfqVvI="
+    },
+    {
+      "id": "org.apache.tomcat.embed:tomcat-embed-el:jar:10.1.28",
+      "artifactId": "tomcat-embed-el",
+      "groupId": "org.apache.tomcat.embed",
+      "version": "10.1.28",
+      "sha256": "VR21zzai-YP-XyZstVwRVU8BJtBVjnXSM8KblFUuRpM="
+    },
+    {
+      "id": "org.hibernate.validator:hibernate-validator:jar:8.0.1.Final",
+      "artifactId": "hibernate-validator",
+      "groupId": "org.hibernate.validator",
+      "version": "8.0.1.Final",
+      "sha256": "jBJEpJgjEJH-cj2WZqk0RO6fk2ByRcaymCncX-V6M1w="
+    },
+    {
+      "id": "jakarta.validation:jakarta.validation-api:jar:3.0.2",
+      "artifactId": "jakarta.validation-api",
+      "groupId": "jakarta.validation",
+      "version": "3.0.2",
+      "sha256": "KRwl5pEMxqfr2W1Ma66_bXw3Z2xUgsLZYUbpAbYsH8k="
+    },
+    {
+      "id": "org.jboss.logging:jboss-logging:jar:3.5.3.Final",
+      "artifactId": "jboss-logging",
+      "groupId": "org.jboss.logging",
+      "version": "3.5.3.Final",
+      "sha256": "exGUYN4XQZWspBLf7VLKC77w7OJsLXQwG2Fyz630_1k="
+    },
+    {
+      "id": "com.fasterxml:classmate:jar:1.7.0",
+      "artifactId": "classmate",
+      "groupId": "com.fasterxml",
+      "version": "1.7.0",
+      "sha256": "y4aPIxxczrideV6gDm4bepO49Kwc4di-dt3jIt_0oEY="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-starter-stream-kafka:jar:4.1.2",
+      "artifactId": "spring-cloud-starter-stream-kafka",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.2",
+      "sha256": "_argNuVBmgH4d3PSynJJ7aEicfqWTYEABMhEmxnCblQ="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-stream-binder-kafka:jar:4.1.2",
+      "artifactId": "spring-cloud-stream-binder-kafka",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.2",
+      "sha256": "lCAI0RsPgcMhQTWSQYZgKsVZmS-rwR0USgupgkFlh-I="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-stream-binder-kafka-core:jar:4.1.2",
+      "artifactId": "spring-cloud-stream-binder-kafka-core",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.2",
+      "sha256": "dzlS32ESIuXeM7XWJtcqb2GJd7uJe_HmJ8_VpGkPQck="
+    },
+    {
+      "id": "org.springframework.integration:spring-integration-kafka:jar:6.3.3",
+      "artifactId": "spring-integration-kafka",
+      "groupId": "org.springframework.integration",
+      "version": "6.3.3",
+      "sha256": "mlCxX4zWddurFbomelA50mVg4zkLfOi1dlBRY5ywidk="
+    },
+    {
+      "id": "org.springframework.kafka:spring-kafka:jar:3.2.3",
+      "artifactId": "spring-kafka",
+      "groupId": "org.springframework.kafka",
+      "version": "3.2.3",
+      "sha256": "f7X3HzxMJxtgPBMrBikE2w2UkUJw9aauktQxbA3l9_A="
+    },
+    {
+      "id": "org.apache.kafka:kafka-clients:jar:3.7.1",
+      "artifactId": "kafka-clients",
+      "groupId": "org.apache.kafka",
+      "version": "3.7.1",
+      "sha256": "4SjMyw78_FJVbY3XPYBOeN56IlQ-dHiA9h4boYYT3bs="
+    },
+    {
+      "id": "com.github.luben:zstd-jni:jar:1.5.6-3",
+      "artifactId": "zstd-jni",
+      "groupId": "com.github.luben",
+      "version": "1.5.6-3",
+      "sha256": "9y7eGzklj6-BJ33FjeMMccuuQlNzJVjSzhC1PYtXY9U="
+    },
+    {
+      "id": "org.lz4:lz4-java:jar:1.8.0",
+      "artifactId": "lz4-java",
+      "groupId": "org.lz4",
+      "version": "1.8.0",
+      "sha256": "10ozNPs1GVAJszipUfkYID1rvKPR01kDPcM-3Rytye8="
+    },
+    {
+      "id": "org.xerial.snappy:snappy-java:jar:1.1.10.5",
+      "artifactId": "snappy-java",
+      "groupId": "org.xerial.snappy",
+      "version": "1.1.10.5",
+      "sha256": "Dz8YV-0zEWWD9IC031wCGINsR7-8nGIhwNc_NW3s83s="
+    },
+    {
+      "id": "com.azure.spring:spring-cloud-azure-starter-data-cosmos:jar:5.16.0",
+      "artifactId": "spring-cloud-azure-starter-data-cosmos",
+      "groupId": "com.azure.spring",
+      "version": "5.16.0",
+      "sha256": "mxMJQQ1p3o61ffEm3Eww8dqQlTAP2UabTBjeq0Gvnm4="
+    },
+    {
+      "id": "com.azure.spring:spring-cloud-azure-starter:jar:5.16.0",
+      "artifactId": "spring-cloud-azure-starter",
+      "groupId": "com.azure.spring",
+      "version": "5.16.0",
+      "sha256": "JMEEcj2hU-BlyHmKVYrhaXDv1klgtT0gkhRuMQKzIAs="
+    },
+    {
+      "id": "com.azure.spring:spring-cloud-azure-autoconfigure:jar:5.16.0",
+      "artifactId": "spring-cloud-azure-autoconfigure",
+      "groupId": "com.azure.spring",
+      "version": "5.16.0",
+      "sha256": "XEyQW5Q4Ptg2dw5JCtXVoytnCBHrQXL0DsI5j2ylzK4="
+    },
+    {
+      "id": "com.azure.spring:spring-cloud-azure-service:jar:5.16.0",
+      "artifactId": "spring-cloud-azure-service",
+      "groupId": "com.azure.spring",
+      "version": "5.16.0",
+      "sha256": "eekOG3mrsYC17kp-u3FfFObbQW92tEX0GINlk02eE9Q="
+    },
+    {
+      "id": "com.azure.spring:spring-cloud-azure-core:jar:5.16.0",
+      "artifactId": "spring-cloud-azure-core",
+      "groupId": "com.azure.spring",
+      "version": "5.16.0",
+      "sha256": "6RUGPRBqN_6fkpon931FH49q14-yoaf51wXtjd7Nloc="
+    },
+    {
+      "id": "com.azure:azure-identity:jar:1.13.2",
+      "artifactId": "azure-identity",
+      "groupId": "com.azure",
+      "version": "1.13.2",
+      "sha256": "8A68OLHc91o1EpuLCtQ0UUyE_TEMevrxKCS9BOWQ8kM="
+    },
+    {
+      "id": "com.microsoft.azure:msal4j:jar:1.16.2",
+      "artifactId": "msal4j",
+      "groupId": "com.microsoft.azure",
+      "version": "1.16.2",
+      "sha256": "I0eOo3JTBFxYuLgDZ6ibSMvyvT4-9Dwt3T59lrhT70M="
+    },
+    {
+      "id": "com.nimbusds:oauth2-oidc-sdk:jar:11.9.1",
+      "artifactId": "oauth2-oidc-sdk",
+      "groupId": "com.nimbusds",
+      "version": "11.9.1",
+      "sha256": "CCDJaQlmME0HU0e4joGuSQITRA_E0shPPTcNQZQbK5w="
+    },
+    {
+      "id": "com.github.stephenc.jcip:jcip-annotations:jar:1.0-1",
+      "artifactId": "jcip-annotations",
+      "groupId": "com.github.stephenc.jcip",
+      "version": "1.0-1",
+      "sha256": "T8z_g4Kq_FiZYsTtsmL2qlleNPHhHmEFfRxqluj8cyM="
+    },
+    {
+      "id": "com.nimbusds:content-type:jar:2.3",
+      "artifactId": "content-type",
+      "groupId": "com.nimbusds",
+      "version": "2.3",
+      "sha256": "YDSXk-AG-6lrUyywwh4Q6Wn-DbjYf5HDuer4K6KZiJU="
+    },
+    {
+      "id": "com.nimbusds:lang-tag:jar:1.7",
+      "artifactId": "lang-tag",
+      "groupId": "com.nimbusds",
+      "version": "1.7",
+      "sha256": "6MHFlOJCW9vqLYYN5Vxptp_F1ZRURSRJoPCRPCpbijE="
+    },
+    {
+      "id": "com.nimbusds:nimbus-jose-jwt:jar:9.37.3",
+      "artifactId": "nimbus-jose-jwt",
+      "groupId": "com.nimbusds",
+      "version": "9.37.3",
+      "sha256": "Eq5KOiYAldeuuirep645bouVcNuLe0CeCagkwhnMBEQ="
+    },
+    {
+      "id": "com.microsoft.azure:msal4j-persistence-extension:jar:1.3.0",
+      "artifactId": "msal4j-persistence-extension",
+      "groupId": "com.microsoft.azure",
+      "version": "1.3.0",
+      "sha256": "38QcgX-_p2BXr2_-Q3nbympeFrjoffi92iPzcXVsLQk="
+    },
+    {
+      "id": "net.java.dev.jna:jna:jar:5.13.0",
+      "artifactId": "jna",
+      "groupId": "net.java.dev.jna",
+      "version": "5.13.0",
+      "sha256": "ZtT4GaBipRodVie__CP6xV0Wd_Dgof66FEqr3WcKZLs="
+    },
+    {
+      "id": "net.java.dev.jna:jna-platform:jar:5.6.0",
+      "artifactId": "jna-platform",
+      "groupId": "net.java.dev.jna",
+      "version": "5.6.0",
+      "sha256": "ns6ovysbOZY5OdGLcEZO72DFCP7Ygg-dyroMNVGOq_c="
+    },
+    {
+      "id": "com.azure:azure-core-amqp:jar:2.9.8",
+      "artifactId": "azure-core-amqp",
+      "groupId": "com.azure",
+      "version": "2.9.8",
+      "sha256": "JJKuXvwG3neHq9ebN6AClgAy4rkq3q8WjIBpzsIgsBA="
+    },
+    {
+      "id": "com.microsoft.azure:qpid-proton-j-extensions:jar:1.2.5",
+      "artifactId": "qpid-proton-j-extensions",
+      "groupId": "com.microsoft.azure",
+      "version": "1.2.5",
+      "sha256": "j9MUtNcPmmFprKUToHvYLKdETOsegOYTmkkkDEsrCM0="
+    },
+    {
+      "id": "org.apache.qpid:proton-j:jar:0.34.1",
+      "artifactId": "proton-j",
+      "groupId": "org.apache.qpid",
+      "version": "0.34.1",
+      "sha256": "4bU9yaHlSyOv9uzmk7vzsqslAEVCAx7EkBgymwOIiOo="
+    },
+    {
+      "id": "com.azure:azure-core-management:jar:1.15.2",
+      "artifactId": "azure-core-management",
+      "groupId": "com.azure",
+      "version": "1.15.2",
+      "sha256": "qn-_jSfJQcd29O6_nEk1kGSHBPR7LsFSdq8pJFBHSqI="
+    },
+    {
+      "id": "com.azure:azure-spring-data-cosmos:jar:5.16.0",
+      "artifactId": "azure-spring-data-cosmos",
+      "groupId": "com.azure",
+      "version": "5.16.0",
+      "sha256": "er5x-BGe9pn2fLG-M8bmYmdHoGAOfSgpYqUvXS2T94Y="
+    },
+    {
+      "id": "com.azure:azure-cosmos:jar:4.63.2",
+      "artifactId": "azure-cosmos",
+      "groupId": "com.azure",
+      "version": "4.63.2",
+      "sha256": "Wn8iFGeBDs0aNBc5ncG1rUcHPQSXjKwgOCJm__Cqsf0="
+    },
+    {
+      "id": "com.azure:azure-core:jar:1.51.0",
+      "artifactId": "azure-core",
+      "groupId": "com.azure",
+      "version": "1.51.0",
+      "sha256": "nzkkTTzCAab9aetYANmVFiS8rFSK7jtR79ZC5Ky_RXw="
+    },
+    {
+      "id": "com.azure:azure-json:jar:1.2.0",
+      "artifactId": "azure-json",
+      "groupId": "com.azure",
+      "version": "1.2.0",
+      "sha256": "x0Ga4E9mjrTcOGTNZKa3cger2Tue54TwQt6ny0UoQN4="
+    },
+    {
+      "id": "com.azure:azure-xml:jar:1.1.0",
+      "artifactId": "azure-xml",
+      "groupId": "com.azure",
+      "version": "1.1.0",
+      "sha256": "EAYggySgja3VRjrS7fowV6HsOt7p15w8oAsU7y9my84="
+    },
+    {
+      "id": "com.azure:azure-core-http-netty:jar:1.15.3",
+      "artifactId": "azure-core-http-netty",
+      "groupId": "com.azure",
+      "version": "1.15.3",
+      "sha256": "GOmTLAqj9CzugPzO4ZB4Sfqdtb5AuM_6IdGn_B10V-U="
+    },
+    {
+      "id": "io.netty:netty-transport-native-kqueue:jar:osx-x86_64:4.1.112.Final",
+      "artifactId": "netty-transport-native-kqueue",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "plZoq1npEITzzrOpE0S6JakN827vXGEGBwqpJkm2aKg="
+    },
+    {
+      "id": "io.netty:netty-transport-classes-kqueue:jar:4.1.112.Final",
+      "artifactId": "netty-transport-classes-kqueue",
+      "groupId": "io.netty",
+      "version": "4.1.112.Final",
+      "sha256": "BtPpVzJZOIVbMZ7zJ9TE7vd3UiwsubYEniSc7UUzliQ="
+    },
+    {
+      "id": "io.netty:netty-tcnative-boringssl-static:jar:2.0.65.Final",
+      "artifactId": "netty-tcnative-boringssl-static",
+      "groupId": "io.netty",
+      "version": "2.0.65.Final",
+      "sha256": "u4NJvaO6BDwJ9ccyxbLUfxisTa_OJIy4UM-9BZnlugE="
+    },
+    {
+      "id": "io.netty:netty-tcnative-classes:jar:2.0.65.Final",
+      "artifactId": "netty-tcnative-classes",
+      "groupId": "io.netty",
+      "version": "2.0.65.Final",
+      "sha256": "hO8CQa2htO2SeF4QwW7b6wYzSJWaOw73QHErrdCfoSg="
+    },
+    {
+      "id": "io.netty:netty-tcnative-boringssl-static:jar:linux-x86_64:2.0.65.Final",
+      "artifactId": "netty-tcnative-boringssl-static",
+      "groupId": "io.netty",
+      "version": "2.0.65.Final",
+      "sha256": "Rc5VtJ9MFt5lJ42fRgip8GRg8pDx47T8PyRShmUZ1hg="
+    },
+    {
+      "id": "io.netty:netty-tcnative-boringssl-static:jar:linux-aarch_64:2.0.65.Final",
+      "artifactId": "netty-tcnative-boringssl-static",
+      "groupId": "io.netty",
+      "version": "2.0.65.Final",
+      "sha256": "n9b5BbzoRyyp4k-HKJYrkbkxnIT8u2GKuH9rl3TAY-0="
+    },
+    {
+      "id": "io.netty:netty-tcnative-boringssl-static:jar:osx-x86_64:2.0.65.Final",
+      "artifactId": "netty-tcnative-boringssl-static",
+      "groupId": "io.netty",
+      "version": "2.0.65.Final",
+      "sha256": "Oha3yk6JH5rVHprp6xZ8XoHX9VoAAe3yRxtpP0-MEuE="
+    },
+    {
+      "id": "io.netty:netty-tcnative-boringssl-static:jar:osx-aarch_64:2.0.65.Final",
+      "artifactId": "netty-tcnative-boringssl-static",
+      "groupId": "io.netty",
+      "version": "2.0.65.Final",
+      "sha256": "g0098vnrOqCNSTJkCcRU4vnHWknD8EVLfKtkYZsWFNw="
+    },
+    {
+      "id": "io.netty:netty-tcnative-boringssl-static:jar:windows-x86_64:2.0.65.Final",
+      "artifactId": "netty-tcnative-boringssl-static",
+      "groupId": "io.netty",
+      "version": "2.0.65.Final",
+      "sha256": "hV2TA2b66b7DhyVpl1lZ4eMd11Lf_J-SXq6ENvkz4Ro="
+    },
+    {
+      "id": "io.dropwizard.metrics:metrics-core:jar:4.1.0",
+      "artifactId": "metrics-core",
+      "groupId": "io.dropwizard.metrics",
+      "version": "4.1.0",
+      "sha256": "O-ok1piSgiedrdxnf4Lq4nd5djx4NIp6sXc0VZIWWSU="
+    },
+    {
+      "id": "com.fasterxml.jackson.core:jackson-annotations:jar:2.17.2",
+      "artifactId": "jackson-annotations",
+      "groupId": "com.fasterxml.jackson.core",
+      "version": "2.17.2",
+      "sha256": "hzpgbiNQeWn5u76pOdXhknSoh3XqWhabp-LXlapRVuE="
+    },
+    {
+      "id": "org.javatuples:javatuples:jar:1.2",
+      "artifactId": "javatuples",
+      "groupId": "org.javatuples",
+      "version": "1.2",
+      "sha256": "LtpbGdmCDhzC9p_NAWOacVpnPBH4UH49HtWTz3ZdXgo="
+    },
+    {
+      "id": "javax.annotation:javax.annotation-api:jar:1.3.2",
+      "artifactId": "javax.annotation-api",
+      "groupId": "javax.annotation",
+      "version": "1.3.2",
+      "sha256": "4EulGVvNVV3JVlD3zGFNFR5LzVLSmhC4qiGX86uJq5s="
+    },
+    {
+      "id": "org.apache.commons:commons-lang3:jar:3.14.0",
+      "artifactId": "commons-lang3",
+      "groupId": "org.apache.commons",
+      "version": "3.14.0",
+      "sha256": "e5a_PuaJSau1vEZVWawnDgVRWW-jRSP934kOxBjd4Tw="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-stream-test-support:jar:4.1.2",
+      "artifactId": "spring-cloud-stream-test-support",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.2",
+      "sha256": "XEYXFrHSKxWX7E3QY6K-luZkP5_ifQMZbb4Qo8-LEdw="
+    },
+    {
+      "id": "org.springframework.integration:spring-integration-test:jar:6.3.3",
+      "artifactId": "spring-integration-test",
+      "groupId": "org.springframework.integration",
+      "version": "6.3.3",
+      "sha256": "AaM9P7jA7GBDNzjwWYCmTE7LBMY_OYd3spQbNigc9IA="
+    },
+    {
+      "id": "org.springframework.integration:spring-integration-core:jar:6.3.3",
+      "artifactId": "spring-integration-core",
+      "groupId": "org.springframework.integration",
+      "version": "6.3.3",
+      "sha256": "R6993fbBp2X4CqRNRv4kD8TaCh9f3cfSU85wRby5Aks="
+    },
+    {
+      "id": "org.springframework.integration:spring-integration-test-support:jar:6.3.3",
+      "artifactId": "spring-integration-test-support",
+      "groupId": "org.springframework.integration",
+      "version": "6.3.3",
+      "sha256": "Ld-J-H9yUJAbwnfsNg4B79JJYW6bPaQEtCQ-mHdCZEE="
+    },
+    {
+      "id": "org.hamcrest:hamcrest-library:jar:2.2",
+      "artifactId": "hamcrest-library",
+      "groupId": "org.hamcrest",
+      "version": "2.2",
+      "sha256": "OFFSOiAaDUglwlphpu3FBxKCWjm9PQM5G5jEjKPLOWw="
+    },
+    {
+      "id": "com.fasterxml.jackson.core:jackson-databind:jar:2.17.2",
+      "artifactId": "jackson-databind",
+      "groupId": "com.fasterxml.jackson.core",
+      "version": "2.17.2",
+      "sha256": "wEmT8zwPhFNCZTeE8U84Nz0AUoDmNZ21-AhwHPrnPAw="
+    },
+    {
+      "id": "com.fasterxml.jackson.core:jackson-core:jar:2.17.2",
+      "artifactId": "jackson-core",
+      "groupId": "com.fasterxml.jackson.core",
+      "version": "2.17.2",
+      "sha256": "choYkkHasFJdnoWOXLYE0-zA7eCB4t531vNPpXeaW0Y="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-stream:jar:4.1.2",
+      "artifactId": "spring-cloud-stream",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.2",
+      "sha256": "bvIXmjiRHAvg-is0Th7Is4P7znk4y1dIfgTsO1aLu7M="
+    },
+    {
+      "id": "org.springframework:spring-messaging:jar:6.1.12",
+      "artifactId": "spring-messaging",
+      "groupId": "org.springframework",
+      "version": "6.1.12",
+      "sha256": "T-GxtDlGekTPhhgRUpcdBRUFw7NlG0WTh3xKhZV2FGs="
+    },
+    {
+      "id": "org.springframework.integration:spring-integration-jmx:jar:6.3.3",
+      "artifactId": "spring-integration-jmx",
+      "groupId": "org.springframework.integration",
+      "version": "6.3.3",
+      "sha256": "DwA5GqZKFtA8ifNmqlR2TBivo-VEITiwdq147cz9C8o="
+    },
+    {
+      "id": "org.springframework.retry:spring-retry:jar:2.0.8",
+      "artifactId": "spring-retry",
+      "groupId": "org.springframework.retry",
+      "version": "2.0.8",
+      "sha256": "bOnsdjH39xsfCLYGRbIamL-5P0AiLR927Xmv8ioOuOI="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-function-context:jar:4.1.2",
+      "artifactId": "spring-cloud-function-context",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.2",
+      "sha256": "QizpLjZSSNY77XBzLJa45U4W9veOnBxivQx0jLR3ODE="
+    },
+    {
+      "id": "net.jodah:typetools:jar:0.6.2",
+      "artifactId": "typetools",
+      "groupId": "net.jodah",
+      "version": "0.6.2",
+      "sha256": "ZFglOhbU3O9HSYYOYbopWQFOOdWvnTKGvJuDGNK6QEc="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-function-core:jar:4.1.2",
+      "artifactId": "spring-cloud-function-core",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.2",
+      "sha256": "nnzek3_L7bjkXCZM9fWM690HprlNUlw4KO-sbZqL-KM="
+    },
+    {
+      "id": "org.json:json:jar:20240303",
+      "artifactId": "json",
+      "groupId": "org.json",
+      "version": "20240303",
+      "sha256": "PPbNaJLjLitMHDng9S9SSKL1s3ZG_fu3mma0a2GEFO0="
+    },
+    {
+      "id": "org.projectlombok:lombok:jar:1.18.30",
+      "artifactId": "lombok",
+      "groupId": "org.projectlombok",
+      "version": "1.18.30",
+      "sha256": "FBUbR1gtVwtN4WoUfs4729GazkruW946VXjIfbnsuZg="
+    },
+    {
+      "id": "org.apache.httpcomponents.client5:httpclient5:jar:5.3.1",
+      "artifactId": "httpclient5",
+      "groupId": "org.apache.httpcomponents.client5",
+      "version": "5.3.1",
+      "sha256": "CDRqdXxhf27MZq-fCZJgrd4fOhNR-oHLIvwXSCsx-CM="
+    },
+    {
+      "id": "org.apache.httpcomponents.core5:httpcore5:jar:5.2.5",
+      "artifactId": "httpcore5",
+      "groupId": "org.apache.httpcomponents.core5",
+      "version": "5.2.5",
+      "sha256": "lVK54GzvMXDjcEYJLeEVwzp8tI7n7w2H8dVlDe5-Gw0="
+    },
+    {
+      "id": "org.apache.httpcomponents.core5:httpcore5-h2:jar:5.2.5",
+      "artifactId": "httpcore5-h2",
+      "groupId": "org.apache.httpcomponents.core5",
+      "version": "5.2.5",
+      "sha256": "i54t1tXPF0IghjR18MZIFSxTE3DUq0GrtgNcQf0zb5I="
+    },
+    {
+      "id": "org.slf4j:slf4j-api:jar:2.0.16",
+      "artifactId": "slf4j-api",
+      "groupId": "org.slf4j",
+      "version": "2.0.16",
+      "sha256": "oSV43eG6AL2bgW04iguHmSjQC6s8g8JA9wE79BlsV5o="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-starter-test:jar:3.3.3",
+      "artifactId": "spring-boot-starter-test",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "AI4ei5CNbpXTYRN14o7kafJvS6dqfzxCNPwy4AP605s="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-test:jar:3.3.3",
+      "artifactId": "spring-boot-test",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "S9qi4BovimkdlOf2TDrKZuzG52nSDH0x1kEzzLccIlg="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-test-autoconfigure:jar:3.3.3",
+      "artifactId": "spring-boot-test-autoconfigure",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "P7TbxV_b78P6fwUY7owIOfWCC59Cxh-9tvLDkJQL7H8="
+    },
+    {
+      "id": "com.jayway.jsonpath:json-path:jar:2.9.0",
+      "artifactId": "json-path",
+      "groupId": "com.jayway.jsonpath",
+      "version": "2.9.0",
+      "sha256": "Eanub4i7MfFFAQjRz2RBN33shKygdetrsjQ74VdXW-o="
+    },
+    {
+      "id": "jakarta.xml.bind:jakarta.xml.bind-api:jar:4.0.2",
+      "artifactId": "jakarta.xml.bind-api",
+      "groupId": "jakarta.xml.bind",
+      "version": "4.0.2",
+      "sha256": "DWvP5Hdj6FBHrPfDmDNtyE_4XrytCny287nT6YEkVAY="
+    },
+    {
+      "id": "jakarta.activation:jakarta.activation-api:jar:2.1.3",
+      "artifactId": "jakarta.activation-api",
+      "groupId": "jakarta.activation",
+      "version": "2.1.3",
+      "sha256": "AbF21xihaSY-eCkGkfxHmXcYa8xrMzSHMlCE1lhvRic="
+    },
+    {
+      "id": "net.minidev:json-smart:jar:2.5.1",
+      "artifactId": "json-smart",
+      "groupId": "net.minidev",
+      "version": "2.5.1",
+      "sha256": "hsDBiVgbebV7Bxn0Q6ck6fYo_7ue72Rc95GU9Zc6EAE="
+    },
+    {
+      "id": "net.minidev:accessors-smart:jar:2.5.1",
+      "artifactId": "accessors-smart",
+      "groupId": "net.minidev",
+      "version": "2.5.1",
+      "sha256": "J5auhX0Me-S8NYDapNOCjVVSEjVfTIPTjdCvB0KzyBI="
+    },
+    {
+      "id": "org.ow2.asm:asm:jar:9.6",
+      "artifactId": "asm",
+      "groupId": "org.ow2.asm",
+      "version": "9.6",
+      "sha256": "PG-sJCTbPUqFO2afTj0dnDxVIjXhmjGWc_iHCDwjA6E="
+    },
+    {
+      "id": "org.assertj:assertj-core:jar:3.25.3",
+      "artifactId": "assertj-core",
+      "groupId": "org.assertj",
+      "version": "3.25.3",
+      "sha256": "f73_oZltQ8wI4lduAQCLB-V7utK0dBqmw6tzzoUREw4="
+    },
+    {
+      "id": "net.bytebuddy:byte-buddy:jar:1.14.19",
+      "artifactId": "byte-buddy",
+      "groupId": "net.bytebuddy",
+      "version": "1.14.19",
+      "sha256": "hBWkTYQbLN7N9dc6BcKajPktwrYPyn_3s_Ic1DG1pOw="
+    },
+    {
+      "id": "org.awaitility:awaitility:jar:4.2.2",
+      "artifactId": "awaitility",
+      "groupId": "org.awaitility",
+      "version": "4.2.2",
+      "sha256": "6DH-4w7UAeIgjxvVoO-a3VONnLEQPA5DIWaRtke96cY="
+    },
+    {
+      "id": "org.hamcrest:hamcrest:jar:2.2",
+      "artifactId": "hamcrest",
+      "groupId": "org.hamcrest",
+      "version": "2.2",
+      "sha256": "XmKEaonwXNeM2cGlU_NA0AJFg4DDIEVd0fj8VJeoocE="
+    },
+    {
+      "id": "org.junit.jupiter:junit-jupiter:jar:5.10.3",
+      "artifactId": "junit-jupiter",
+      "groupId": "org.junit.jupiter",
+      "version": "5.10.3",
+      "sha256": "5vwJ-IHrqLjYp2YKbH9NWC-niB8wYTav4tgpZKLnwi8="
+    },
+    {
+      "id": "org.junit.jupiter:junit-jupiter-api:jar:5.10.3",
+      "artifactId": "junit-jupiter-api",
+      "groupId": "org.junit.jupiter",
+      "version": "5.10.3",
+      "sha256": "bv5uAcof95t79Mbx7tCykpLhZsJ-r3sArJgaFNTeYao="
+    },
+    {
+      "id": "org.opentest4j:opentest4j:jar:1.3.0",
+      "artifactId": "opentest4j",
+      "groupId": "org.opentest4j",
+      "version": "1.3.0",
+      "sha256": "SOLfY2yrZWPO1k3N_4q7I1VifLI27wvzdZhoLd90Lxs="
+    },
+    {
+      "id": "org.junit.platform:junit-platform-commons:jar:1.10.3",
+      "artifactId": "junit-platform-commons",
+      "groupId": "org.junit.platform",
+      "version": "1.10.3",
+      "sha256": "l4fwTUnbWTl83XVV1CGlvS0URWZpl9MnuU-F44vtV_E="
+    },
+    {
+      "id": "org.apiguardian:apiguardian-api:jar:1.1.2",
+      "artifactId": "apiguardian-api",
+      "groupId": "org.apiguardian",
+      "version": "1.1.2",
+      "sha256": "tQlEisUG1gcxnxglN_CzXXEAdYLsdBgyofER5bW3Czg="
+    },
+    {
+      "id": "org.junit.jupiter:junit-jupiter-params:jar:5.10.3",
+      "artifactId": "junit-jupiter-params",
+      "groupId": "org.junit.jupiter",
+      "version": "5.10.3",
+      "sha256": "fD7YzvsSSWt2xTw9qYbqjwvz9CZ4GGlHVVGuOlBsGtg="
+    },
+    {
+      "id": "org.junit.jupiter:junit-jupiter-engine:jar:5.10.3",
+      "artifactId": "junit-jupiter-engine",
+      "groupId": "org.junit.jupiter",
+      "version": "5.10.3",
+      "sha256": "u9POjcEemSUHHvlpHWivGrbnEvqmhR98UnW8iq_IhnM="
+    },
+    {
+      "id": "org.junit.platform:junit-platform-engine:jar:1.10.3",
+      "artifactId": "junit-platform-engine",
+      "groupId": "org.junit.platform",
+      "version": "1.10.3",
+      "sha256": "33wyv3XPR8TI3dGUIJECeUen12XTC3Mf4AgwEV-voTM="
+    },
+    {
+      "id": "org.mockito:mockito-core:jar:5.11.0",
+      "artifactId": "mockito-core",
+      "groupId": "org.mockito",
+      "version": "5.11.0",
+      "sha256": "8HbJax9JuNm8QuRrCWmq9WhMQMi1tnnUAOXYgAc6DgA="
+    },
+    {
+      "id": "net.bytebuddy:byte-buddy-agent:jar:1.14.19",
+      "artifactId": "byte-buddy-agent",
+      "groupId": "net.bytebuddy",
+      "version": "1.14.19",
+      "sha256": "nzOGemHnJhrw_kt46NhDQoS1dylZeFJNFoHlv7z96E0="
+    },
+    {
+      "id": "org.objenesis:objenesis:jar:3.3",
+      "artifactId": "objenesis",
+      "groupId": "org.objenesis",
+      "version": "3.3",
+      "sha256": "At_QsEOaVZHjW3CO0vVHTrCUj1Or90Y36Vm45O9pv-s="
+    },
+    {
+      "id": "org.mockito:mockito-junit-jupiter:jar:5.11.0",
+      "artifactId": "mockito-junit-jupiter",
+      "groupId": "org.mockito",
+      "version": "5.11.0",
+      "sha256": "ow6k_gSE5U9kzcFSaabG_xvYm8JqDUHkwny5HLeNxUg="
+    },
+    {
+      "id": "org.skyscreamer:jsonassert:jar:1.5.3",
+      "artifactId": "jsonassert",
+      "groupId": "org.skyscreamer",
+      "version": "1.5.3",
+      "sha256": "cZCVwH1CA5YTINpZNEHYs7ZDwY6x2Bqpjqkzu36zUbo="
+    },
+    {
+      "id": "org.springframework:spring-test:jar:6.1.12",
+      "artifactId": "spring-test",
+      "groupId": "org.springframework",
+      "version": "6.1.12",
+      "sha256": "BqWoDpNTOTwiuyscRHT-iAHYW42BcQU9XbkItudXmgE="
+    },
+    {
+      "id": "org.xmlunit:xmlunit-core:jar:2.10.0",
+      "artifactId": "xmlunit-core",
+      "groupId": "org.xmlunit",
+      "version": "2.10.0",
+      "sha256": "P4mwpinT2cymbhX43eXglHhS-kQXK8d-om7fluPk_Pg="
+    },
+    {
+      "id": "io.projectreactor:reactor-test:jar:3.6.9",
+      "artifactId": "reactor-test",
+      "groupId": "io.projectreactor",
+      "version": "3.6.9",
+      "sha256": "zgCJ806ubgjRSC6aMF-KMxs-tTkhh3KcpHyD7e_P66o="
+    },
+    {
+      "id": "com.squareup.okhttp3:okhttp:jar:4.12.0",
+      "artifactId": "okhttp",
+      "groupId": "com.squareup.okhttp3",
+      "version": "4.12.0",
+      "sha256": "sQUAgbFLt6On5VpNPvAbXc-rxFO0VzpPwBl2cZHV9OA="
+    },
+    {
+      "id": "com.squareup.okio:okio:jar:3.6.0",
+      "artifactId": "okio",
+      "groupId": "com.squareup.okio",
+      "version": "3.6.0",
+      "sha256": "jmMpLlxTu5PEprDCE-efFZkP7SUME0Dxw0OIDhycObU="
+    },
+    {
+      "id": "com.squareup.okio:okio-jvm:jar:3.6.0",
+      "artifactId": "okio-jvm",
+      "groupId": "com.squareup.okio",
+      "version": "3.6.0",
+      "sha256": "Z1Q_Bzb8QirpJ-0OUEuYvF4mn9oNNQBXkzfLcT2ihBI="
+    },
+    {
+      "id": "org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.9.25",
+      "artifactId": "kotlin-stdlib-common",
+      "groupId": "org.jetbrains.kotlin",
+      "version": "1.9.25",
+      "sha256": "ggLn8DLI3GaY0AxihncBVGp8EsRzHr3fuO7AeI4u7uQ="
+    },
+    {
+      "id": "org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:1.9.25",
+      "artifactId": "kotlin-stdlib-jdk8",
+      "groupId": "org.jetbrains.kotlin",
+      "version": "1.9.25",
+      "sha256": "-U_feDkM6b4wODvwOcWpNcrqM7EfA3_H-Gu87hkoflo="
+    },
+    {
+      "id": "org.jetbrains.kotlin:kotlin-stdlib:jar:1.9.25",
+      "artifactId": "kotlin-stdlib",
+      "groupId": "org.jetbrains.kotlin",
+      "version": "1.9.25",
+      "sha256": "-c3Nv_H13oU4CuUml35oNybCqkLbHtbm5Qronklulf0="
+    },
+    {
+      "id": "org.jetbrains:annotations:jar:13.0",
+      "artifactId": "annotations",
+      "groupId": "org.jetbrains",
+      "version": "13.0",
+      "sha256": "rOKhDcji1f00kl7KwD5JiLLA-FFlDJS4zvSbob0RFHg="
+    },
+    {
+      "id": "org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:1.9.25",
+      "artifactId": "kotlin-stdlib-jdk7",
+      "groupId": "org.jetbrains.kotlin",
+      "version": "1.9.25",
+      "sha256": "-1Nz3XYbTpPj9TjF6FO7o4pxFDoYFTbo8ZPtbk7ds7g="
+    },
+    {
+      "id": "com.squareup.okhttp3:mockwebserver:jar:4.12.0",
+      "artifactId": "mockwebserver",
+      "groupId": "com.squareup.okhttp3",
+      "version": "4.12.0",
+      "sha256": "Z4RnNof0rI8hZ5udS8fNtG4aHOG-nTEzs2vt5Zp0FWE="
+    },
+    {
+      "id": "junit:junit:jar:4.13.2",
+      "artifactId": "junit",
+      "groupId": "junit",
+      "version": "4.13.2",
+      "sha256": "jklbY0Rp1k-4rPo0laBly6zIoP_1XOHjEAe-TBbcV9M="
+    },
+    {
+      "id": "org.hamcrest:hamcrest-core:jar:2.2",
+      "artifactId": "hamcrest-core",
+      "groupId": "org.hamcrest",
+      "version": "2.2",
+      "sha256": "CU9dkrS32ciiv1PMadNWJDronDSZRXvLS5L37Tv5WHk="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-starter-openfeign:jar:4.1.2",
+      "artifactId": "spring-cloud-starter-openfeign",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.2",
+      "sha256": "lM2bNVF5b5sGu28Twyc1uwyf7y_yVTpKl3JImZxutYA="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-starter:jar:4.1.3",
+      "artifactId": "spring-cloud-starter",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.3",
+      "sha256": "uLUaPbo2zV61u-PxXwRdkfavCu27SbgGq6wvMramTwU="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-context:jar:4.1.3",
+      "artifactId": "spring-cloud-context",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.3",
+      "sha256": "pPLjCsEN3MD3FqV_aH2oMDzzAycU-CWvc3k6Y9MTm5M="
+    },
+    {
+      "id": "org.springframework.security:spring-security-rsa:jar:1.1.3",
+      "artifactId": "spring-security-rsa",
+      "groupId": "org.springframework.security",
+      "version": "1.1.3",
+      "sha256": "06Iwg7mXQ4sB1AgBHEsnEXM5wzVe8WhCLMwZ5YcsdGk="
+    },
+    {
+      "id": "org.bouncycastle:bcprov-jdk18on:jar:1.78",
+      "artifactId": "bcprov-jdk18on",
+      "groupId": "org.bouncycastle",
+      "version": "1.78",
+      "sha256": "G_chsJdYs_VfKlyHW2F47GxB3drYVLDerUsnojbxlDo="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-openfeign-core:jar:4.1.2",
+      "artifactId": "spring-cloud-openfeign-core",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.2",
+      "sha256": "7rxmqIMu_tSyq6SIeoxuu3RdKb6w_aRatTyfT46BMGU="
+    },
+    {
+      "id": "io.github.openfeign.form:feign-form-spring:jar:3.8.0",
+      "artifactId": "feign-form-spring",
+      "groupId": "io.github.openfeign.form",
+      "version": "3.8.0",
+      "sha256": "OC-oppr-pBZTxrEHd3PF6AgC12F81e4xuT7xUWbcjkY="
+    },
+    {
+      "id": "io.github.openfeign.form:feign-form:jar:3.8.0",
+      "artifactId": "feign-form",
+      "groupId": "io.github.openfeign.form",
+      "version": "3.8.0",
+      "sha256": "sh03Mhs5CZXJC127T_DDPwnRzHdoIHzA2pEK0gv1iWE="
+    },
+    {
+      "id": "commons-fileupload:commons-fileupload:jar:1.5",
+      "artifactId": "commons-fileupload",
+      "groupId": "commons-fileupload",
+      "version": "1.5",
+      "sha256": "Ufez3LTlDHZimU2i9HIxUZ_5lwelx_t7BfTE06FyjBQ="
+    },
+    {
+      "id": "commons-io:commons-io:jar:2.11.0",
+      "artifactId": "commons-io",
+      "groupId": "commons-io",
+      "version": "2.11.0",
+      "sha256": "lhsvbYfbrMXVSr9Fq3puJJX4m3VZiWLYxyPOqbwhCQg="
+    },
+    {
+      "id": "org.springframework.cloud:spring-cloud-commons:jar:4.1.3",
+      "artifactId": "spring-cloud-commons",
+      "groupId": "org.springframework.cloud",
+      "version": "4.1.3",
+      "sha256": "z1Klt4orH8RwT0ZbnbCvJetJAdKC-twUcDBFTH4hKN8="
+    },
+    {
+      "id": "org.springframework.security:spring-security-crypto:jar:6.3.3",
+      "artifactId": "spring-security-crypto",
+      "groupId": "org.springframework.security",
+      "version": "6.3.3",
+      "sha256": "xiH5rLR7Q15qgqzaAjh1zftCFuhlKzd2QqXq-zESQe0="
+    },
+    {
+      "id": "io.github.openfeign:feign-core:jar:13.2.1",
+      "artifactId": "feign-core",
+      "groupId": "io.github.openfeign",
+      "version": "13.2.1",
+      "sha256": "BPlVjGDcFl0y785osUS5GdI8DKE8AiVR2lCXiF-HzTQ="
+    },
+    {
+      "id": "io.github.openfeign:feign-slf4j:jar:13.2.1",
+      "artifactId": "feign-slf4j",
+      "groupId": "io.github.openfeign",
+      "version": "13.2.1",
+      "sha256": "0EaW5-tUFZc7kYmKoaateHf2SK8Qj0h_6XldfDT5rRM="
+    }
+  ]
+}

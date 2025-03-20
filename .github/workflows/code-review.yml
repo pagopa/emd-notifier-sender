@@ -22,11 +22,11 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for all branches and tags
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4.2.1
         with:
           distribution: 'adopt'
-          java-version: '17'
+          java-version: '21'
 
       - name: Cache Maven packages
         uses: actions/cache@v3
@@ -36,11 +36,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Setup Maven Settings
+        run: |
+          mkdir -p ~/.m2
+          echo '<settings><servers><server><id>github</id><username></username><password>${{ secrets.GITHUB_TOKEN }}</password></server></servers></settings>' > ~/.m2/settings.xml            
+
       - name: Build and test with Maven
-        run: mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent verify org.jacoco:jacoco-maven-plugin:0.8.8:report org.jacoco:jacoco-maven-plugin:0.8.8:report-aggregate -B
+        run: mvn clean org.jacoco:jacoco-maven-plugin:0.8.11:prepare-agent verify org.jacoco:jacoco-maven-plugin:0.8.11:report org.jacoco:jacoco-maven-plugin:0.8.11:report-aggregate -B
 
       - name: Generate JaCoCo XML Report
-        run: mvn org.jacoco:jacoco-maven-plugin:0.8.8:report -Djacoco.reportFormat=xml -B
+        run: mvn org.jacoco:jacoco-maven-plugin:0.8.11:report -Djacoco.reportFormat=xml -B
 
       - name: SonarCloud Scan
         env:
