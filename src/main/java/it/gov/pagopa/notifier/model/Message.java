@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
 @NoArgsConstructor
