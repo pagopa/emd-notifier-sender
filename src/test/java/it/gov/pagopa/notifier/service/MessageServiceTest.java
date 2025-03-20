@@ -21,6 +21,7 @@ import java.util.Collections;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -116,6 +117,9 @@ class MessageServiceTest {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.error(new CitizenInvocationException()));
 
+        Mockito.when(messageCoreProducerService.enqueueMessage(any(),anyLong()))
+                .thenReturn(Mono.empty());
+
         messageService.processMessage(MESSAGE_DTO,0).block();
         verify(messageCoreProducerService,times(1)).enqueueMessage(MESSAGE_DTO,1);
 
@@ -129,6 +133,9 @@ class MessageServiceTest {
 
         Mockito.when(tppService.getTppsEnabled(any()))
                 .thenReturn(Mono.error(new TppInvocationException()));
+
+        Mockito.when(messageCoreProducerService.enqueueMessage(any(),anyLong()))
+                .thenReturn(Mono.empty());
 
         messageService.processMessage(MESSAGE_DTO,0).block();
         verify(messageCoreProducerService,times(1)).enqueueMessage(MESSAGE_DTO,1);
