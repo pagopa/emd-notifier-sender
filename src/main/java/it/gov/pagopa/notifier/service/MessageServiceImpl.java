@@ -108,14 +108,8 @@ public class MessageServiceImpl implements MessageService {
     private Mono<Void> handleError(Throwable e, MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
         log.error("[MESSAGE-SERVICE][HANDLE-ERROR] Error processing message ID: {} at retry attempt {}. Error: {}", messageId, retry, e.getMessage(), e);
-        enqueueWithRetry(messageDTO, retry);
-        return Mono.empty();
-    }
-
-    private void enqueueWithRetry(MessageDTO messageDTO, long retry) {
-        String messageId = messageDTO.getMessageId();
         log.info("[MESSAGE-SERVICE][ENQUEUE-WITH-RETRY] Re-enqueuing message ID: {} with increased retry count: {}", messageId, retry + 1);
-        messageCoreProducerService.enqueueMessage(messageDTO, retry + 1);
+        return messageCoreProducerService.enqueueMessage(messageDTO, retry + 1);
     }
 
 }
