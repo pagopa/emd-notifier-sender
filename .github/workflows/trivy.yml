@@ -10,7 +10,7 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ "main", "master" ]
+    branches: [ "main", "master","release-*" ]
   schedule:
     - cron: '00 07 * * *'
 
@@ -31,8 +31,12 @@ jobs:
         uses: actions/checkout@1f9a0c22da41e6ebfa534300ef656657ea2c6707
 
       - name: Build an image from Dockerfile
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: |
-          docker build -t docker.io/my-organization/my-app:${{ github.sha }} .
+          docker build \
+          --build-arg GITHUB_TOKEN=$GITHUB_TOKEN \
+          -t docker.io/my-organization/my-app:${{ github.sha }} .
 
       - name: Run Trivy vulnerability scanner
         # from https://github.com/aquasecurity/trivy-action/commits/master
