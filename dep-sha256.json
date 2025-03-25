@@ -15,11 +15,11 @@
       "sha256": "Zfnp-qEw6u-3i2X-TYk4NIZLqRF8_0v-IjnuExyjs6o="
     },
     {
-      "id": "org.springframework:spring-context:jar:6.1.14",
+      "id": "org.springframework:spring-context:jar:6.1.12",
       "artifactId": "spring-context",
       "groupId": "org.springframework",
-      "version": "6.1.14",
-      "sha256": "2na1P2og8Js4BSowBDXzJFeA0w3rRuxd11MUzaBv02U="
+      "version": "6.1.12",
+      "sha256": "V2NQ6DkMWQV-fTOUQeCujCvwjh8sjh1ZQVwh3H7SyfA="
     },
     {
       "id": "org.springframework:spring-aop:jar:6.1.12",
@@ -190,11 +190,11 @@
       "sha256": "cttPk2KffqUg0pmMCOKx1p-cakeStT2l6aAB0kx4sVE="
     },
     {
-      "id": "io.netty:netty-handler:jar:4.1.112.Final",
+      "id": "io.netty:netty-handler:jar:4.1.118.Final",
       "artifactId": "netty-handler",
       "groupId": "io.netty",
-      "version": "4.1.112.Final",
-      "sha256": "6k1gYqX7EKbiNk2LvevBz6gU8fyfkQ71flyvAvsVxYg="
+      "version": "4.1.118.Final",
+      "sha256": "JuP4pehZ_WLPPBPcbXXk4Yh58ACl0K1_WPhnlnXSPa4="
     },
     {
       "id": "io.netty:netty-codec-http2:jar:4.1.112.Final",
@@ -295,11 +295,11 @@
       "sha256": "UDXoYsT6o0NJ-Z7vKDgN7fmUCjACIYw-UB1gqMyJPj8="
     },
     {
-      "id": "org.springframework:spring-webflux:jar:6.1.12",
+      "id": "org.springframework:spring-webflux:jar:6.1.14",
       "artifactId": "spring-webflux",
       "groupId": "org.springframework",
-      "version": "6.1.12",
-      "sha256": "DKLDR89oW_XRVDjj3-glvI0yhvZ6wIYuSBv7pyW971E="
+      "version": "6.1.14",
+      "sha256": "avm_RqAjvT_9SNlVKG2ib5Aae6Vk1yCWRRfXRMJRylc="
     },
     {
       "id": "org.springframework.boot:spring-boot-starter-data-mongodb-reactive:jar:3.3.3",
@@ -1002,25 +1002,25 @@
       "sha256": "AbF21xihaSY-eCkGkfxHmXcYa8xrMzSHMlCE1lhvRic="
     },
     {
-      "id": "net.minidev:json-smart:jar:2.5.1",
+      "id": "net.minidev:json-smart:jar:2.5.2",
       "artifactId": "json-smart",
       "groupId": "net.minidev",
-      "version": "2.5.1",
-      "sha256": "hsDBiVgbebV7Bxn0Q6ck6fYo_7ue72Rc95GU9Zc6EAE="
+      "version": "2.5.2",
+      "sha256": "T73tsBBc7cf3ZrlcKX0uiPtqVg2kjzu6oMxTjqi3v3E="
     },
     {
-      "id": "net.minidev:accessors-smart:jar:2.5.1",
+      "id": "net.minidev:accessors-smart:jar:2.5.2",
       "artifactId": "accessors-smart",
       "groupId": "net.minidev",
-      "version": "2.5.1",
-      "sha256": "J5auhX0Me-S8NYDapNOCjVVSEjVfTIPTjdCvB0KzyBI="
+      "version": "2.5.2",
+      "sha256": "m4p7xDhh1hVsAhFm2UH7fd2-RGPi-l7ogHfksBRSqDY="
     },
     {
-      "id": "org.ow2.asm:asm:jar:9.6",
+      "id": "org.ow2.asm:asm:jar:9.7.1",
       "artifactId": "asm",
       "groupId": "org.ow2.asm",
-      "version": "9.6",
-      "sha256": "PG-sJCTbPUqFO2afTj0dnDxVIjXhmjGWc_iHCDwjA6E="
+      "version": "9.7.1",
+      "sha256": "jK3UOsXrbQneBfrsyji5F6BAu5E5x-3rTMgcdAtxMoE="
     },
     {
       "id": "org.assertj:assertj-core:jar:3.25.3",
