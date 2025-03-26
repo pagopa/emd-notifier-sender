@@ -98,11 +98,11 @@
 		</dependency>
 
 
-
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
+
 	</dependencies>
 
 	<dependencyManagement>
@@ -141,6 +141,16 @@
 				<groupId>io.netty</groupId>
 				<artifactId>netty-handler</artifactId>
 				<version>4.1.118.Final</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.security</groupId>
+				<artifactId>spring-security-crypto</artifactId>
+				<version>6.3.8</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>2.14.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
