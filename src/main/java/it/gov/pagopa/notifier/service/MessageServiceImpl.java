@@ -89,7 +89,7 @@ public class MessageServiceImpl implements MessageService {
                     return messageRepository.save(message)
                             .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
                             .map(savedMessage -> Tuples.of(savedMessage, tppDTO))
-                            .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Error saving message ID: {} for entity ID: {}. Error: {}", message.getMessageId(), tppDTO.getEntityId(), e.getMessage(), e))
+                            .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Error saving message ID: {} for entity ID: {}. Error: {}", message.getMessageId(), tppDTO.getEntityId(), e.getMessage()))
                             .onErrorReturn(Tuples.of(Message.builder().id("REFUSE").messageId(messageDTO.getMessageId()).build(), tppDTO));
                 })
                 .flatMap(tuple -> {
