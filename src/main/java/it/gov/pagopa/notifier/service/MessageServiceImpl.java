@@ -81,7 +81,7 @@ public class MessageServiceImpl implements MessageService {
             return Mono.empty();
         }
 
-        log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending notifications for message ID: {} at retry attempt {} to channels: {}", messageId, retry, tppDTOList);
+        log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending notifications for message ID: {} at retry attempt {}", messageId, retry);
 
         return Flux.fromIterable(tppDTOList)
                 .flatMap(tppDTO -> {
