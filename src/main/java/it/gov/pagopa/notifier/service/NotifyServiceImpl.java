@@ -81,11 +81,11 @@ public class NotifyServiceImpl implements NotifyService {
                 .retrieve()
                 .bodyToMono(TokenDTO.class)
                 .doOnSuccess(token -> log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} at retry: {}",messageId,tppDTO.getTppId(),retry))
-                .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getAuthenticationUrl(), error.getMessage()));
+                .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getEntityId(), error.getMessage()));
     }
 
     private Mono<String> toUrl(Message message, TppDTO tppDTO, TokenDTO token, long retry) {
-        log.info("[NOTIFY-SERVICE][TO-URL] Sending message {} to URL: {} for TPP: {} at try {}", message.getMessageId(), tppDTO.getMessageUrl(), tppDTO.getEntityId(), retry);
+        log.info("[NOTIFY-SERVICE][TO-URL] Sending message {} to TPP: {} at try {}", message.getMessageId(), tppDTO.getEntityId(), retry);
         return webClient.post()
                 .uri(tppDTO.getMessageUrl())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccessToken())
@@ -104,7 +104,7 @@ public class NotifyServiceImpl implements NotifyService {
                             })
                             .subscribe();
                 })
-                .doOnError(error -> log.error("[NOTIFY-SERVICE][TO-URL] Error sending message {} at try {} to URL: {}. Error: {}", message.getMessageId(), retry, tppDTO.getMessageUrl(), error.getMessage()));
+                .doOnError(error -> log.error("[NOTIFY-SERVICE][TO-URL] Error sending message {} at try {} to : {}. Error: {}", message.getMessageId(), retry, tppDTO.getEntityId(), error.getMessage()));
     }
 
 }

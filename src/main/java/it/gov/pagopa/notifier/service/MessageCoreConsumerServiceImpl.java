@@ -67,7 +67,6 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
 
         log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Processing attempt {} for message ID: {}", retry, messageId);
         messageCoreService.processMessage(messageDTO, retry)
-                .doOnError(e -> log.error("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Error processing message ID: {} on attempt {}. Error: {}", messageId, retry, e.getMessage()))
                 .subscribe();
 
         return Mono.just("[NOTIFIER-ERROR-CONSUMER][EXECUTE] Processing attempt %s for message %s in progress".formatted(retry, messageId));
