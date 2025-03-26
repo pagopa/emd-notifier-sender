@@ -57,21 +57,18 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
         Message notification = payload.getMessage();
         String notificationId = notification.getMessageId();
         String entityId = tppDTO.getEntityId();
-        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Queue message received with ID: {} and payload: {}", notificationId, notification);
+        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Queue message received with ID: {} and payload: {}", notificationId, notification);
 
         MessageHeaders headers = message.getHeaders();
         Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
 
         if (retry == null){
             log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", notificationId);
-            return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Message %s not processed due to missing headers".formatted(notificationId));
+            return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Message %s not processed due to missing headers".formatted(notificationId));
         }
 
-        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Attempting to send message ID: {} to TPP: {} at retry attempt: {}", notificationId, entityId, retry);
-
+        log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Attempting to send message ID: {} to TPP: {} at retry attempt: {}", notificationId, entityId, retry);
         sendMessageService.sendNotify(notification, tppDTO, retry)
-                .doOnSuccess(v -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Successfully sent message ID: {} to TPP: {}", notificationId, entityId))
-                .doOnError(e -> log.error("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Error sending message ID: {} to TPP: {}. Error: {}", notificationId, entityId, e.getMessage()))
                 .subscribe();
 
         return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Processing attempt for message %s to TPP %s in progress".formatted(notificationId, entityId));
