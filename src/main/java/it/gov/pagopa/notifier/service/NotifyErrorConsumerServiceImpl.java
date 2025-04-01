@@ -58,7 +58,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
         String notificationId = notification.getMessageId();
         String entityId = tppDTO.getEntityId();
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Queue message received with ID: {} and payload: {}", notificationId, notification);
-
+      
         MessageHeaders headers = message.getHeaders();
         Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
 
