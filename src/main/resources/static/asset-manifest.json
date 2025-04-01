@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/emdnotifiersender/static/css/main.f0558d64.css",
-    "main.js": "/emdnotifiersender/static/js/main.c820dfd3.js",
+    "main.js": "/emdnotifiersender/static/js/main.14f9631c.js",
     "static/js/453.ca96a25b.chunk.js": "/emdnotifiersender/static/js/453.ca96a25b.chunk.js",
     "static/media/titillium-web-all-300-normal.woff": "/emdnotifiersender/static/media/titillium-web-all-300-normal.842f12a53f36221aeb2e.woff",
     "static/media/titillium-web-all-400-normal.woff": "/emdnotifiersender/static/media/titillium-web-all-400-normal.1b8b406fb7c2e9939922.woff",
@@ -20,11 +20,11 @@
     "static/media/titillium-web-latin-ext-700-normal.woff2": "/emdnotifiersender/static/media/titillium-web-latin-ext-700-normal.9441ccbdd8453a79c7e8.woff2",
     "index.html": "/emdnotifiersender/index.html",
     "main.f0558d64.css.map": "/emdnotifiersender/static/css/main.f0558d64.css.map",
-    "main.c820dfd3.js.map": "/emdnotifiersender/static/js/main.c820dfd3.js.map",
+    "main.14f9631c.js.map": "/emdnotifiersender/static/js/main.14f9631c.js.map",
     "453.ca96a25b.chunk.js.map": "/emdnotifiersender/static/js/453.ca96a25b.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.f0558d64.css",
-    "static/js/main.c820dfd3.js"
+    "static/js/main.14f9631c.js"
   ]
 }
