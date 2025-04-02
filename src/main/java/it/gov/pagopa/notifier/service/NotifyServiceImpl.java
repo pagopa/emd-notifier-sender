@@ -3,10 +3,7 @@ package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
 import it.gov.pagopa.notifier.configuration.DeleteProperties;
-import it.gov.pagopa.notifier.dto.DeleteRequestDTO;
-import it.gov.pagopa.notifier.dto.DeleteResponseDTO;
-import it.gov.pagopa.notifier.dto.TokenDTO;
-import it.gov.pagopa.notifier.dto.TppDTO;
+import it.gov.pagopa.notifier.dto.*;
 import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.repository.MessageRepository;
@@ -15,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -51,13 +49,32 @@ public class NotifyServiceImpl implements NotifyService {
         this.note = note;
     }
 
+    @Scheduled(cron = "${delete.batchExecutionCron}")
+    public void scheduleDeletionTask(){
+        cleanupOldMessages()
+                .doOnSuccess(response -> log.info("Fine batch di eliminazione - Cancellati: {}, Rimasti: {}, Tempo: {}ms",
+                        response.getDeletedCount(), response.getRemainingCount(), response.getElapsedTime()))
+                .doOnError(error -> log.error("Errore nel batch di eliminazione: {}", error.getMessage()))
+                .subscribe();
+    }
+
+    public Mono<DeleteResponseDTO> cleanupOldMessages(){
+        String retentionDate = LocalDate.now().minusDays(deleteProperties.getRetentionPeriodDays()).toString();
+        DeleteRequestDTO deleteRequestDTO = new DeleteRequestDTO();
+        FilterDTO filterDTO = new FilterDTO();
+        filterDTO.setEndDate(retentionDate);
+        deleteRequestDTO.setFilterDTO(filterDTO);
+        return deleteMessages(deleteRequestDTO);
+    }
+
+
     public Mono<DeleteResponseDTO> deleteMessages(DeleteRequestDTO deleteRequestDTO) {
         int batchSize = (deleteRequestDTO.getBatchSize() != null) ? deleteRequestDTO.getBatchSize() : deleteProperties.getBatchSize();
         int intervalMS = (deleteRequestDTO.getIntervalMs() != null) ? deleteRequestDTO.getIntervalMs() : deleteProperties.getIntervalMs();
 
         Flux<Message> messagesToDelete;
 
-        String currentDate = LocalDate.now().toString();
+        String currentDate = LocalDate.now().plusDays(1).toString();
         String initialDate = LocalDate.MIN.toString();
 
         String startDate = deleteRequestDTO.getFilterDTO().getStartDate() == null ? initialDate : deleteRequestDTO.getFilterDTO().getStartDate();

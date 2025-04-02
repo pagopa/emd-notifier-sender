@@ -1,11 +1,16 @@
 package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.configuration.DeleteProperties;
-import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.repository.MessageRepository;
-import okhttp3.mockwebserver.*;
+import okhttp3.mockwebserver.Dispatcher;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -19,7 +24,6 @@ import reactor.test.StepVerifier;
 import java.io.IOException;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -62,13 +66,22 @@ class NotifyServiceImplTest {
 
     @Test
     void testDeleteMessages(){
-
         when(messageRepository.findAll()).thenReturn(Flux.just(MESSAGE));
         when(messageRepository.delete(any())).thenReturn(Mono.empty());
         when(messageRepository.count()).thenReturn(Mono.just(1L));
         StepVerifier.create(sendNotificationService.deleteMessages(DELETE_REQUEST_DTO))
                 .expectNextCount(1)
                 .verifyComplete();
+    }
+
+    @Test
+    void testDeleteMessagesBatch(){
+        when(messageRepository.findByMessageRegistrationDateBetween(any(),any())).thenReturn(Flux.just(MESSAGE));
+        when(messageRepository.delete(any())).thenReturn(Mono.empty());
+        when(messageRepository.count()).thenReturn(Mono.just(1L));
+        when(deleteProperties.getBatchSize()).thenReturn(10);
+        when(deleteProperties.getIntervalMs()).thenReturn(10);
+        StepVerifier.create(sendNotificationService.cleanupOldMessages()).expectNextCount(1L).verifyComplete();
     }
 
     @Test

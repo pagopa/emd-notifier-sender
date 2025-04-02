@@ -12,4 +12,6 @@ import org.springframework.stereotype.Component;
 public class DeleteProperties {
     private int batchSize;
     private int intervalMs;
+    private int retentionPeriodDays;
+    private String batchExecutionCron;
 }
