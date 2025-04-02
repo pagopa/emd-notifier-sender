@@ -9,11 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DeleteResponseDTO {
-
-    private int deletedCount;
-    private int remainingCount;
-    private long elapsedTime;
-
+public class FilterDTO {
+    private String startDate;
+    private String endDate;
 }
-

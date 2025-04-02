@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.configuration.DeleteProperties;
+import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import okhttp3.mockwebserver.*;
 import org.jetbrains.annotations.NotNull;
@@ -11,11 +12,14 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.io.IOException;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -54,6 +58,17 @@ class NotifyServiceImplTest {
     @AfterAll
     static void tearDown() throws Exception {
         mockWebServer.shutdown();
+    }
+
+    @Test
+    void testDeleteMessages(){
+
+        when(messageRepository.findAll()).thenReturn(Flux.just(MESSAGE));
+        when(messageRepository.delete(any())).thenReturn(Mono.empty());
+        when(messageRepository.count()).thenReturn(Mono.just(1L));
+        StepVerifier.create(sendNotificationService.deleteMessages(DELETE_REQUEST_DTO))
+                .expectNextCount(1)
+                .verifyComplete();
     }
 
     @Test
