@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
 
+import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
 import it.gov.pagopa.notifier.configuration.DeleteProperties;
 import it.gov.pagopa.notifier.dto.DeleteRequestDTO;
 import it.gov.pagopa.notifier.dto.DeleteResponseDTO;
@@ -12,6 +13,7 @@ import it.gov.pagopa.notifier.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -49,7 +51,7 @@ public class NotifyServiceImpl implements NotifyService {
         this.note = note;
     }
 
-    public Mono<DeleteResponseDTO> deleteMessages(DeleteRequestDTO deleteRequestDTO){
+    public Mono<DeleteResponseDTO> deleteMessages(DeleteRequestDTO deleteRequestDTO) {
         int batchSize = (deleteRequestDTO.getBatchSize() != null) ? deleteRequestDTO.getBatchSize() : deleteProperties.getBatchSize();
         int intervalMS = (deleteRequestDTO.getIntervalMs() != null) ? deleteRequestDTO.getIntervalMs() : deleteProperties.getIntervalMs();
 
@@ -61,31 +63,37 @@ public class NotifyServiceImpl implements NotifyService {
         String startDate = deleteRequestDTO.getFilterDTO().getStartDate() == null ? initialDate : deleteRequestDTO.getFilterDTO().getStartDate();
         String endDate = deleteRequestDTO.getFilterDTO().getEndDate() == null ? currentDate : deleteRequestDTO.getFilterDTO().getEndDate();
 
-        if(deleteRequestDTO.getFilterDTO().getStartDate() != null || deleteRequestDTO.getFilterDTO().getEndDate() != null){
+        if (deleteRequestDTO.getFilterDTO().getStartDate() != null || deleteRequestDTO.getFilterDTO().getEndDate() != null) {
             messagesToDelete = messageRepository.findByMessageRegistrationDateBetween(startDate, endDate);
-        }
-        else{
+        } else {
             messagesToDelete = messageRepository.findAll();
         }
 
         long startTime = System.nanoTime();
 
-        return messagesToDelete
-                .buffer(batchSize)
-                .concatMap(batch -> Flux.fromIterable(batch)
-                        .flatMap(messageRepository::delete)
-                        .then(Mono.just(batch.size()))
-                        .delayElement(Duration.ofMillis(intervalMS))
-                )
-                .reduce(Integer::sum)
-                .flatMap(deletedCount ->
-                    messageRepository.count()
-                            .map(remainingCount -> {
-                                long endTime = System.nanoTime();
-                                long elapsedTime = (endTime - startTime) / 1_000_000;
-                                return new DeleteResponseDTO(deletedCount, remainingCount.intValue(), elapsedTime);
-                            })
-                );
+        return messagesToDelete.hasElements()
+                .flatMap(messages -> {
+                    if (Boolean.FALSE.equals(messages)) {
+                        return Mono.error(new ClientExceptionWithBody(HttpStatus.NOT_FOUND, "MESSAGES_NOT_FOUND", "MESSAGES_NOT_FOUND"));
+                    }
+
+                    return messagesToDelete
+                            .buffer(batchSize)
+                            .concatMap(batch -> Flux.fromIterable(batch)
+                                    .flatMap(messageRepository::delete)
+                                    .then(Mono.just(batch.size()))
+                                    .delayElement(Duration.ofMillis(intervalMS))
+                            )
+                            .reduce(Integer::sum)
+                            .flatMap(deletedCount ->
+                                    messageRepository.count()
+                                            .map(remainingCount -> {
+                                                long endTime = System.nanoTime();
+                                                long elapsedTime = (endTime - startTime) / 1_000_000;
+                                                return new DeleteResponseDTO(deletedCount, remainingCount.intValue(), elapsedTime);
+                                            })
+                            );
+                });
     }
 
 
