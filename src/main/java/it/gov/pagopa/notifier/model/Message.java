@@ -25,5 +25,4 @@ public class Message extends BaseMessage {
     private String messageRegistrationDate;
     private MessageState messageState;
 
-
 }
