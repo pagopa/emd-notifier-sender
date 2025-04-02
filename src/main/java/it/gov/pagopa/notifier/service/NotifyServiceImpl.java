@@ -57,8 +57,8 @@ public class NotifyServiceImpl implements NotifyService {
 
         Flux<Message> messagesToDelete;
 
-        String currentDate = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
-        String endDate = (deleteRequestDTO.getFilterDTO().getEndDate() != null) ? deleteRequestDTO.getFilterDTO().getEndDate() : currentDate;
+        String currentDate = LocalDate.now().toString();
+        String initialDate = LocalDate.MIN.toString();
 
         String startDate = deleteRequestDTO.getFilterDTO().getStartDate() == null ? initialDate : deleteRequestDTO.getFilterDTO().getStartDate();
         String endDate = deleteRequestDTO.getFilterDTO().getEndDate() == null ? currentDate : deleteRequestDTO.getFilterDTO().getEndDate();
