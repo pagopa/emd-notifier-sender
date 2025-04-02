@@ -13,7 +13,6 @@ public interface MessageRepository extends ReactiveMongoRepository<Message,Strin
 
     Mono<Message> findByMessageIdAndEntityId(String messageId, String entityId);
 
-    @Query("{'messageRegistrationDate': { $gte: ?0, $lte: ?1 } }")
-    Flux<Message> findByMessageRegistrationDate(String startDate, String endDate);
+    Flux<Message> findByMessageRegistrationDateBetween(String startDate, String endDate);
 
 }

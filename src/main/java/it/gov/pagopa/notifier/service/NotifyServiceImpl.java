@@ -21,6 +21,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -56,12 +57,14 @@ public class NotifyServiceImpl implements NotifyService {
 
         Flux<Message> messagesToDelete;
 
-        String currentDate = String.valueOf(LocalDateTime.now());
-        String initialDate = String.valueOf(LocalDateTime.MIN);
-        String endDate = (deleteRequestDTO.getFilterDTO().getEndDate() != null) ? deleteRequestDTO.getFilterDTO().getEndDate() : currentDate;
-        String startDate = (deleteRequestDTO.getFilterDTO().getStartDate() != null) ? deleteRequestDTO.getFilterDTO().getStartDate() : initialDate;
+        String currentDate = LocalDate.now().toString();
+        String initialDate = LocalDate.MIN.toString();
+
+        String startDate = deleteRequestDTO.getFilterDTO().getStartDate() == null ? initialDate : deleteRequestDTO.getFilterDTO().getStartDate();
+        String endDate = deleteRequestDTO.getFilterDTO().getEndDate() == null ? currentDate : deleteRequestDTO.getFilterDTO().getEndDate();
+
         if(deleteRequestDTO.getFilterDTO().getStartDate() != null || deleteRequestDTO.getFilterDTO().getEndDate() != null){
-            messagesToDelete = messageRepository.findByMessageRegistrationDate(startDate, endDate);
+            messagesToDelete = messageRepository.findByMessageRegistrationDateBetween(startDate, endDate);
         }
         else{
             messagesToDelete = messageRepository.findAll();
