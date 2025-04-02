@@ -22,8 +22,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import static it.gov.pagopa.notifier.dto.BaseMessage.extractBaseFields;
