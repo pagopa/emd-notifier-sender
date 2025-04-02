@@ -1,5 +1,6 @@
 package it.gov.pagopa.notifier.service;
 
+import it.gov.pagopa.notifier.configuration.DeleteProperties;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import okhttp3.mockwebserver.*;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,9 @@ class NotifyServiceImplTest {
     @Mock
     private MessageRepository messageRepository;
 
+    @Mock
+    private DeleteProperties deleteProperties;
+
 
     @BeforeAll
     static void setUpBefore() throws IOException {
@@ -43,6 +47,7 @@ class NotifyServiceImplTest {
         sendNotificationService = new NotifyServiceImpl(
                 errorProducerService,
                 messageRepository,
+                deleteProperties,
                 "");
     }
 

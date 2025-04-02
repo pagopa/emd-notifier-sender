@@ -1,6 +1,9 @@
 package it.gov.pagopa.notifier.service;
 
 
+import it.gov.pagopa.notifier.configuration.DeleteProperties;
+import it.gov.pagopa.notifier.dto.DeleteRequestDTO;
+import it.gov.pagopa.notifier.dto.DeleteResponseDTO;
 import it.gov.pagopa.notifier.dto.TokenDTO;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.enums.MessageState;
@@ -14,8 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import static it.gov.pagopa.notifier.dto.BaseMessage.extractBaseFields;
@@ -26,20 +33,57 @@ public class NotifyServiceImpl implements NotifyService {
 
     private final WebClient webClient;
     private final NotifyErrorProducerService notifyErrorProducerService;
-
     private final MessageRepository messageRepository;
-
+    private final DeleteProperties deleteProperties;
     private final String note;
 
 
 
     public NotifyServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
                              MessageRepository messageRepository,
+                             DeleteProperties deleteProperties,
                              @Value("${message-notes}") String note) {
         this.webClient = WebClient.builder().build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
+        this.deleteProperties = deleteProperties;
         this.note = note;
+    }
+
+    public Mono<DeleteResponseDTO> deleteMessages(DeleteRequestDTO deleteRequestDTO){
+        int batchSize = (deleteRequestDTO.getBatchSize() != null) ? deleteRequestDTO.getBatchSize() : deleteProperties.getBatchSize();
+        int intervalMS = (deleteRequestDTO.getIntervalMs() != null) ? deleteRequestDTO.getIntervalMs() : deleteProperties.getIntervalMs();
+
+        Flux<Message> messagesToDelete;
+
+        String currentDate = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+        String endDate = (deleteRequestDTO.getEndDate() != null) ? deleteRequestDTO.getEndDate() : currentDate;
+
+        if(deleteRequestDTO.getStartDate() != null){
+            messagesToDelete = messageRepository.findByMessageRegistrationDate(deleteRequestDTO.getStartDate(), endDate);
+        }
+        else{
+            messagesToDelete = messageRepository.findAll();
+        }
+
+        long startTime = System.nanoTime();
+
+        return messagesToDelete
+                .buffer(batchSize)
+                .concatMap(batch -> Flux.fromIterable(batch)
+                        .flatMap(messageRepository::delete)
+                        .then(Mono.just(batch.size()))
+                        .delayElement(Duration.ofMillis(intervalMS))
+                )
+                .reduce(Integer::sum)
+                .flatMap(deletedCount ->
+                    messageRepository.count()
+                            .map(remainingCount -> {
+                                long endTime = System.nanoTime();
+                                long elapsedTime = (endTime - startTime) / 1_000_000;
+                                return new DeleteResponseDTO(deletedCount, remainingCount.intValue(), elapsedTime);
+                            })
+                );
     }
 
 

@@ -167,5 +167,8 @@ rest-client:
   tpp:
     baseUrl: ${EMD_TPP:http://emd-tpp}
 
+delete:
+  batchSize: 300
+  intervalMs: 500
 
 message-notes: "Ciao,  \nhai ricevuto una notifica SEND, cioè una comunicazione a valore legale emessa da un'amministrazione.  \n  \nPer leggerla e conoscere tutti i dettagli, accedi al sito web di SEND direttamente da questo messaggio."
