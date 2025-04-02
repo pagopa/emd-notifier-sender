@@ -24,6 +24,5 @@ public class Message extends BaseMessage {
     private Channel channel;
     private String messageRegistrationDate;
     private MessageState messageState;
-  
-  
+
 }
