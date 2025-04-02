@@ -58,8 +58,8 @@ public class NotifyServiceImpl implements NotifyService {
 
         String currentDate = String.valueOf(LocalDateTime.now());
         String initialDate = String.valueOf(LocalDateTime.MIN);
-        String endDate = (deleteRequestDTO.getFilterDTO().getEndDate() != null) ? String.valueOf(LocalDateTime.parse(deleteRequestDTO.getFilterDTO().getEndDate(),DateTimeFormatter.ISO_DATE)) : currentDate;
-        String startDate = (deleteRequestDTO.getFilterDTO().getStartDate() != null) ? String.valueOf(LocalDateTime.parse(deleteRequestDTO.getFilterDTO().getStartDate(),DateTimeFormatter.ISO_DATE)) : initialDate;
+        String endDate = (deleteRequestDTO.getFilterDTO().getEndDate() != null) ? deleteRequestDTO.getFilterDTO().getEndDate() : currentDate;
+        String startDate = (deleteRequestDTO.getFilterDTO().getStartDate() != null) ? deleteRequestDTO.getFilterDTO().getStartDate() : initialDate;
         if(deleteRequestDTO.getFilterDTO().getStartDate() != null || deleteRequestDTO.getFilterDTO().getEndDate() != null){
             messagesToDelete = messageRepository.findByMessageRegistrationDate(startDate, endDate);
         }
