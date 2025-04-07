@@ -1,16 +1,25 @@
 package it.gov.pagopa.notifier.service;
 
+import it.gov.pagopa.notifier.configuration.DeleteProperties;
 import it.gov.pagopa.notifier.repository.MessageRepository;
-import okhttp3.mockwebserver.*;
+import okhttp3.mockwebserver.Dispatcher;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.io.IOException;
 
@@ -30,6 +39,9 @@ class NotifyServiceImplTest {
     @Mock
     private MessageRepository messageRepository;
 
+    @Mock
+    private DeleteProperties deleteProperties;
+
 
     @BeforeAll
     static void setUpBefore() throws IOException {
@@ -43,12 +55,33 @@ class NotifyServiceImplTest {
         sendNotificationService = new NotifyServiceImpl(
                 errorProducerService,
                 messageRepository,
+                deleteProperties,
                 "");
     }
 
     @AfterAll
     static void tearDown() throws Exception {
         mockWebServer.shutdown();
+    }
+
+    @Test
+    void testDeleteMessages(){
+        when(messageRepository.findAll()).thenReturn(Flux.just(MESSAGE));
+        when(messageRepository.delete(any())).thenReturn(Mono.empty());
+        when(messageRepository.count()).thenReturn(Mono.just(1L));
+        StepVerifier.create(sendNotificationService.deleteMessages(DELETE_REQUEST_DTO))
+                .expectNextCount(1)
+                .verifyComplete();
+    }
+
+    @Test
+    void testDeleteMessagesBatch(){
+        when(messageRepository.findByMessageRegistrationDateBetween(any(),any())).thenReturn(Flux.just(MESSAGE));
+        when(messageRepository.delete(any())).thenReturn(Mono.empty());
+        when(messageRepository.count()).thenReturn(Mono.just(1L));
+        when(deleteProperties.getBatchSize()).thenReturn(10);
+        when(deleteProperties.getIntervalMs()).thenReturn(10);
+        StepVerifier.create(sendNotificationService.cleanupOldMessages()).expectNextCount(1L).verifyComplete();
     }
 
     @Test
