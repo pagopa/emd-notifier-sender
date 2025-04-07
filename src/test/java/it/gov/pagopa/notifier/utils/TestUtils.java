@@ -4,12 +4,12 @@ import it.gov.pagopa.notifier.dto.*;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.utils.faker.*;
 
-
-
 import java.util.List;
 
 public class TestUtils {
 
+    public static final DeleteRequestDTO DELETE_REQUEST_DTO = DeleteRequestDTOFaker.mockInstance();
+    public static final DeleteResponseDTO DELETE_RESPONSE_DTO = DeleteResponseDTOFaker.mockInstance();
     public static final TppDTO TPP_DTO = TppDTOFaker.mockInstance();
     public static final List<TppDTO> TPP_DTO_LIST = List.of(TPP_DTO);
     public static final String TPP_ID = TPP_DTO.getTppId();
