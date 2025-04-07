@@ -51,6 +51,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Scheduled(cron = "${delete.batchExecutionCron}")
     public void scheduleDeletionTask(){
+        log.info("Start batch");
         cleanupOldMessages()
                 .doOnSuccess(response -> log.info("Fine batch di eliminazione - Cancellati: {}, Rimasti: {}, Tempo: {}ms",
                         response.getDeletedCount(), response.getRemainingCount(), response.getElapsedTime()))
