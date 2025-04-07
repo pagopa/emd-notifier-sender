@@ -171,6 +171,6 @@ delete:
   batchSize: 300
   intervalMs: 500
   retentionPeriodDays: 120
-  batchExecutionCron: "0 * * * * *" #Lunedì a mezzanotte
+  batchExecutionCron: "0 0 0 * * MON" #Lunedì a mezzanotte
 
 message-notes: "Ciao,  \nhai ricevuto una notifica SEND, cioè una comunicazione a valore legale emessa da un'amministrazione.  \n  \nPer leggerla e conoscere tutti i dettagli, accedi al sito web di SEND direttamente da questo messaggio."
