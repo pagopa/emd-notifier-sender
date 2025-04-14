@@ -1,0 +1,49 @@
+name: "Send notification"
+
+on:
+  workflow_call:
+    inputs:
+      CVE_CRITICAL:
+        required: true
+        type: string
+      CVE_HIGH:
+        required: true
+        type: string
+      CVE_MEDIUM:
+        required: true
+        type: string
+    secrets:
+      SLACK_WEBHOOK_URL:
+        required: true
+
+jobs:
+  Notify:
+    name: Notify Slack
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send notification to Slack
+        id: slack
+        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 #v1.25.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "[ ${{ github.event.repository.name }} ]"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": " `CRITICAL` : *${{ inputs.CVE_CRITICAL }}*\n\n`HIGH` : *${{ inputs.CVE_HIGH }}*\n\n`MEDIUM` : *${{ inputs.CVE_MEDIUM }}*\n\n<https://github.com/${{ github.repository }}/security/code-scanning${{ github.event.pull_request.number != '' && format('?query=pr:{0}', github.event.pull_request.number) || '' }} | See details on GitHub>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
