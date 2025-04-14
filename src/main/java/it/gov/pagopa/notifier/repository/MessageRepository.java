@@ -1,7 +1,6 @@
 package it.gov.pagopa.notifier.repository;
 
 
-
 import it.gov.pagopa.notifier.model.Message;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import reactor.core.publisher.Flux;
@@ -12,5 +11,6 @@ public interface MessageRepository extends ReactiveMongoRepository<Message,Strin
 
     Mono<Message> findByMessageIdAndEntityId(String messageId, String entityId);
 
+    Flux<Message> findByMessageRegistrationDateBetween(String startDate, String endDate);
 
 }
