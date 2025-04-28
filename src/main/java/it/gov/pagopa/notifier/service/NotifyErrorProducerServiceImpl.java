@@ -1,10 +1,12 @@
 package it.gov.pagopa.notifier.service;
 
 
+import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.dto.NotifyErrorQueuePayload;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.event.producer.NotifyErrorProducer;
+import it.gov.pagopa.notifier.repository.MessageRepository;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,12 +21,15 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerService {
 
     private final NotifyErrorProducer notifyErrorProducer;
+    private final MessageRepository messageRepository;
 
     private final Long maxTry;
 
     public NotifyErrorProducerServiceImpl(NotifyErrorProducer notifyErrorProducer,
+                                          MessageRepository messageRepository,
                                           @Value("${app.retry.max-retry}") long maxRetry){
         this.notifyErrorProducer = notifyErrorProducer;
+        this.messageRepository = messageRepository;
         this.maxTry = maxRetry;
     }
 
@@ -36,7 +41,8 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
 
         if (retry > maxTry) {
             log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Message ID: {} for TPP: {} exceeds max retry attempts ({}). Not retryable.", messageId, entityId, maxTry);
-            return Mono.empty();
+            message.setMessageState(MessageState.ERROR);
+            return messageRepository.save(message).flatMap(messageWithError -> Mono.empty());
         }
 
         log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Enqueuing message ID: {} for TPP: {} with retry attempt: {}", messageId, entityId, retry);
