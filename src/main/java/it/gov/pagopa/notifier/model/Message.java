@@ -25,4 +25,16 @@ public class Message extends BaseMessage {
     private String messageRegistrationDate;
     private MessageState messageState;
 
+    @Override
+    public String toString() {
+        return "Message{" +
+                "id='" + id + '\'' +
+                ", entityId='" + entityId + '\'' +
+                ", channel=" + channel +
+                ", messageRegistrationDate='" + messageRegistrationDate + '\'' +
+                ", messageState=" + messageState +
+                ", url=" + getMessageUrl() +
+                "} " + super.toString();
+    }
+
 }
