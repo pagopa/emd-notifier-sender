@@ -11,6 +11,8 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+import static org.springframework.integration.graph.LinkNode.Type.input;
+
 
 @AllArgsConstructor
 @Data
@@ -42,19 +44,18 @@ public class BaseMessage {
                 .notes(messageDTO.getNotes() != null ? messageDTO.getNotes() : note)
                 .build();
     }
-    
+
     private static String normalizeToLocalDateTimeFormat(String inputDateTime) {
         try {
-            OffsetDateTime offsetDateTime = OffsetDateTime.parse(inputDateTime);
-            LocalDateTime localDateTime = offsetDateTime.toLocalDateTime();
-
-            return localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        } catch (DateTimeParseException e1) {
+            OffsetDateTime odt = OffsetDateTime.parse(inputDateTime);
+            LocalDateTime ldt = odt.toLocalDateTime();
+            return ldt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+        } catch (DateTimeParseException e) {
             try {
-                LocalDateTime localDateTime = LocalDateTime.parse(inputDateTime);
-                return localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (DateTimeParseException e2) {
-                throw new IllegalArgumentException("Formato data non riconosciuto: " + inputDateTime, e2);
+                LocalDateTime ldt = LocalDateTime.parse(inputDateTime);
+                return ldt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+            } catch (DateTimeParseException ex) {
+                throw new IllegalArgumentException("Formato data non valido: " + input, ex);
             }
         }
     }
