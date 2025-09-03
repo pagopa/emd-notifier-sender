@@ -85,7 +85,7 @@ public class MessageServiceImpl implements MessageService {
 
         return Flux.fromIterable(tppDTOList)
                 .flatMap(tppDTO -> {
-                    Message message = mapperDTOToObject.map(messageDTO, tppDTO.getEntityId(), note, MessageState.IN_PROCESS);
+                    Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), note, MessageState.IN_PROCESS);
                     return messageRepository.save(message)
                             .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
                             .map(savedMessage -> Tuples.of(savedMessage, tppDTO))
