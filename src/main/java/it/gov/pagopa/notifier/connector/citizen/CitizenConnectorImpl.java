@@ -18,6 +18,9 @@ public class CitizenConnectorImpl implements CitizenConnector {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public Mono<List<String>> getCitizenConsentsEnabled(String fiscalCode) {
         return webClient.get()
                 .uri("/emd/citizen/list/{fiscalCode}/enabled/tpp",fiscalCode)

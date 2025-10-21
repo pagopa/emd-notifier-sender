@@ -69,7 +69,10 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
 
-    public Mono<DeleteResponseDTO> deleteMessages(DeleteRequestDTO deleteRequestDTO) {
+  /**
+   * {@inheritDoc}
+   */
+  public Mono<DeleteResponseDTO> deleteMessages(DeleteRequestDTO deleteRequestDTO) {
         int batchSize = (deleteRequestDTO.getBatchSize() != null) ? deleteRequestDTO.getBatchSize() : deleteProperties.getBatchSize();
         int intervalMS = (deleteRequestDTO.getIntervalMs() != null) ? deleteRequestDTO.getIntervalMs() : deleteProperties.getIntervalMs();
 
@@ -115,7 +118,9 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
 
-
+  /**
+   * {@inheritDoc}
+   */
     public Mono<Void> sendNotify(Message message, TppDTO tppDTO, long retry) {
         log.info("[NOTIFY-SERVICE][SEND-NOTIFY] Starting notification process for message ID: {} to TPP: {} at retry: {}",
                 message.getMessageId(), tppDTO.getTppId(), retry);
@@ -126,6 +131,9 @@ public class NotifyServiceImpl implements NotifyService {
                 .then();
     }
 
+    /**
+     * Obtains an authentication token from calling the TPP's authentication URL.
+     */
     private Mono<TokenDTO> getToken(TppDTO tppDTO, String messageId, long retry) {
 
         log.info("[NOTIFY-SERVICE][GET-TOKEN] Requesting token for message ID: {} to TPP: {} at retry: {}", messageId, tppDTO.getTppId(), retry);
@@ -156,6 +164,9 @@ public class NotifyServiceImpl implements NotifyService {
                 .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getEntityId(), error.getMessage()));
     }
 
+    /**
+     * Sends the message to the TPP's URL using the provided token as authorizazion.
+     */
     private Mono<String> toUrl(Message message, TppDTO tppDTO, TokenDTO token, long retry) {
         log.info("[NOTIFY-SERVICE][TO-URL] Sending message {} to TPP: {} at try {}", message.getMessageId(), tppDTO.getEntityId(), retry);
         return webClient.post()

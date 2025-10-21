@@ -22,6 +22,9 @@ public class TppConnectorImpl implements  TppConnector {
         this.webClient = WebClient.builder().baseUrl(baseUrl).build();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public Mono<List<TppDTO>> getTppsEnabled(TppIdList tppIdList) {
         return webClient.post()
                 .uri("/emd/tpp/list")

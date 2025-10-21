@@ -15,6 +15,9 @@ public class NotifierSenderControllerImpl implements NotifierSenderController {
         this.notifyService = notifyService;
     }
 
+    /**
+     *{@inheritDoc}
+     */
     public Mono<ResponseEntity<DeleteResponseDTO>> deleteMessages(DeleteRequestDTO deleteRequestDTO) {
         return notifyService.deleteMessages(deleteRequestDTO)
                 .map(ResponseEntity::ok)

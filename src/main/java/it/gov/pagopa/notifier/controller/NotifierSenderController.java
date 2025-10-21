@@ -16,6 +16,13 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/emd/notifier-sender")
 public interface NotifierSenderController {
 
+    /**
+     * Deletes messages in bulk based on the provided criteria.
+     *
+     * @param deleteRequestDTO the criteria for selecting messages to delete
+     * @return a Mono emitting ResponseEntity with HTTP 200 and deletion details if successful, <br>
+     *         HTTP 404 if no messages match the criteria
+     */
     @DeleteMapping("/messages/bulk-delete")
     Mono<ResponseEntity<DeleteResponseDTO>> deleteMessages(@Valid @RequestBody DeleteRequestDTO deleteRequestDTO);
 

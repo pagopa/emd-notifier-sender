@@ -26,6 +26,15 @@ public class MessageCoreProducerServiceImpl implements MessageCoreProducerServic
         this.maxTry = maxRetry;
     }
 
+
+    /**
+     * Enqueues a message for delayed retry after a failed attempt to process and send it.
+     * If the retry count exceeds the maximum allowed attempts, the message is discarded.
+     *
+     * @param messageDTO the message to be enqueued
+     * @param retry the current retry attempt count (incremented after each failure)
+     * @return a Mono that completes when the message is enqueued, or an empty Mono if max retries are exceeded
+     */
     @Override
     public Mono<Void> enqueueMessage(MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();

@@ -52,6 +52,16 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
         return e -> log.info("[MESSAGE-CORE-CONSUMER-SERVICE][DESERIALIZATION-ERROR] Unexpected JSON : {}", e.getMessage());
     }
 
+
+    /**
+     * Processes a message by extracting the retry count from the headers and
+     * invoking the message core service to send the message.
+     *
+     * @param messageDTO the deserialized message payload
+     * @param message the original message with headers
+     * @param ctx the processing context
+     * @return a Mono containing a status message about the processing attempt
+     */
     @Override
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
         String messageId = messageDTO.getMessageId();

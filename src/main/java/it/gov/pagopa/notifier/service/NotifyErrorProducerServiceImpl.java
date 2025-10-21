@@ -29,6 +29,15 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
     }
 
 
+    /**
+     * Enqueues a notification for delayed retry after a failed attempt to notify the TPP.
+     * If the retry count exceeds the maximum allowed attempts, the notification is discarded.
+     *
+     * @param message the notification message to be sent
+     * @param tppDTO the TPP data transfer object containing TPP details
+     * @param retry the current retry attempt count (incremented after each failure)
+     * @return a Mono signaling completion, or an empty Mono if max retries are exceeded
+     */
     @Override
     public Mono<String> enqueueNotify(Message message, TppDTO tppDTO, long retry) {
         String messageId = message.getMessageId();

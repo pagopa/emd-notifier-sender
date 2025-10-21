@@ -48,6 +48,9 @@ public class MessageServiceImpl implements MessageService {
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Mono<Void> processMessage(MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
@@ -73,6 +76,15 @@ public class MessageServiceImpl implements MessageService {
 
     }
 
+
+    /**
+     * Sends notifications to each one of the TPP on the list.
+     *
+     * @param tppDTOList List of TPPs to send notifications to.
+     * @param messageDTO The message data transfer object.
+     * @param retry      The current retry attempt count.
+     * @return A Mono that completes when all notifications have been sent.
+     */
     private Mono<Void> sendNotifications(List<TppDTO> tppDTOList, MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
 

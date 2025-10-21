@@ -51,6 +51,14 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
         return e -> log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][DESERIALIZATION-ERROR] Unexpected JSON : {}", e.getMessage());
     }
 
+    /**
+     * Consume a notification message from the error queue and attempts to resend it to the TPP.
+     *
+     * @param payload the payload containing the notification message and TPP details
+     * @param message the original Spring message containing headers (including retry count)
+     * @param ctx the context map for additional information
+     * @return a Mono with a status message indicating the processing outcome
+     */
     @Override
     protected Mono<String> execute(NotifyErrorQueuePayload payload, org.springframework.messaging.Message<String> message, Map<String, Object> ctx) {
         TppDTO tppDTO = payload.getTppDTO();
