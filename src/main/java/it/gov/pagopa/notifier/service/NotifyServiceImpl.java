@@ -59,6 +59,9 @@ public class NotifyServiceImpl implements NotifyService {
                 .subscribe();
     }
 
+    /**
+     * cleans up old messages based on the retention period defined in the configuration.
+     */
     public Mono<DeleteResponseDTO> cleanupOldMessages(){
         String retentionDate = LocalDate.now().minusDays(deleteProperties.getRetentionPeriodDays()).toString();
         DeleteRequestDTO deleteRequestDTO = new DeleteRequestDTO();

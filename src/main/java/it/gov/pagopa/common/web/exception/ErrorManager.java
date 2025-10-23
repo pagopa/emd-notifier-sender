@@ -22,6 +22,26 @@ public class ErrorManager {
             .orElse(new ErrorDTO("Error", "Something gone wrong"));
   }
 
+  /**
+   * Handles RuntimeException and its subclasses thrown during request processing.
+   * <p>
+   * This method applies different handling strategies based on the exception type:
+   * <ul>
+   *   <li>{@link ClientExceptionNoBody}: Returns an empty response with the exception's HTTP status</li>
+   *   <li>{@link ClientExceptionWithBody}: Returns a JSON error response with custom code and message</li>
+   *   <li>Other RuntimeExceptions: Returns a 500 Internal Server Error with default error details</li>
+   * </ul>
+   * </p>
+   *
+   * @param error the RuntimeException to handle
+   * @param request the current HTTP request for context and logging purposes
+   * @return a ResponseEntity containing:
+   *         <ul>
+   *           <li>No body for {@link ClientExceptionNoBody}</li>
+   *           <li>An {@link ErrorDTO} with error code and message for {@link ClientExceptionWithBody}</li>
+   *           <li>A default {@link ErrorDTO} for other RuntimeExceptions (HTTP 500)</li>
+   *         </ul>
+   */
   @ExceptionHandler(RuntimeException.class)
   protected ResponseEntity<ErrorDTO> handleException(RuntimeException error, ServerHttpRequest request) {
 
@@ -46,6 +66,13 @@ public class ErrorManager {
               .body(errorDTO);
     }
   }
+
+  /**
+   * Logs client exceptions with appropriate detail based on their type and properties.
+   *
+   * @param error the RuntimeException to log
+   * @param request the current HTTP request
+   */
   public static void logClientException(RuntimeException error, ServerHttpRequest request) {
     Throwable unwrappedException = error.getCause() instanceof ServiceException
             ? error.getCause()

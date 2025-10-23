@@ -18,6 +18,10 @@ import org.springframework.web.server.MissingRequestValueException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
+/**
+ * Handles validation-related exceptions and maps them to appropriate HTTP responses.
+ */
 @RestControllerAdvice
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -30,6 +34,13 @@ public class ValidationExceptionHandler {
                 .orElse(new ErrorDTO("INVALID_REQUEST", "Invalid request"));
     }
 
+    /**
+     * Handles validation errors that occur during request binding.
+     *
+     * @param ex the WebExchangeBindException containing validation errors
+     * @param request the ServerHttpRequest being processed
+     * @return an ErrorDTO containing details about the validation errors
+     */
     @ExceptionHandler(WebExchangeBindException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorDTO handleWebExchangeBindException(
@@ -49,6 +60,13 @@ public class ValidationExceptionHandler {
         return new ErrorDTO(templateValidationErrorDTO.getCode(), message);
     }
 
+    /**
+     * Handles MissingRequestValueException that occur during request processing.
+     *
+     * @param e the MissingRequestValueException
+     * @param request the ServerHttpRequest being processed
+     * @return an ErrorDTO indicating a missing request value
+     */
     @ExceptionHandler(MissingRequestValueException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorDTO handleMissingRequestValueException(MissingRequestValueException e, ServerHttpRequest request) {
@@ -59,6 +77,14 @@ public class ValidationExceptionHandler {
 
         return new ErrorDTO(templateValidationErrorDTO.getCode(), templateValidationErrorDTO.getMessage());
     }
+
+    /**
+     * Handles NoResourceFoundException that occur during request processing.
+     *
+     * @param e the NoResourceFoundException
+     * @param request the ServerHttpRequest being processed
+     * @return an ErrorDTO indicating that no resource was found
+     */
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorDTO handleNoResourceFoundException(NoResourceFoundException e, ServerHttpRequest request) {
