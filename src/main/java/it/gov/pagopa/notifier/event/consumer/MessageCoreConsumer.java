@@ -2,7 +2,7 @@ package it.gov.pagopa.notifier.event.consumer;
 
 
 import it.gov.pagopa.notifier.service.MessageCoreConsumerService;
-import it.gov.pagopa.notifier.service.NotifyErrorConsumerService;
+import it.gov.pagopa.notifier.service.MessageCoreConsumerServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -20,7 +20,7 @@ public class MessageCoreConsumer {
     /**
      *
      * Bean definition for consuming messages. <br>
-     * Delegates message processing to {@link MessageCoreConsumerService#execute(Flux)}.
+     * Delegates message processing to execute of  {@link MessageCoreConsumerServiceImpl}.
      *
      * @param consumerService the service that processes the consumed messages
      * @return a Consumer that processes a Flux of Messages containing String payloads
