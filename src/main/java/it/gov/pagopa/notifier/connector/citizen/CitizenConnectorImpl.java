@@ -9,6 +9,11 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+/**
+ * <p>Implementation of {@link CitizenConnector}.</p>
+ *
+ * <p>Uses {@link WebClient} to perform HTTP calls to the emd-citizen service.</p>
+ */
 @Service
 public class CitizenConnectorImpl implements CitizenConnector {
 
@@ -20,6 +25,9 @@ public class CitizenConnectorImpl implements CitizenConnector {
 
     /**
      * {@inheritDoc}
+     *
+     * @param fiscalCode the citizen's fiscal code
+     * @return {@code Mono<List<String>>} list of enabled TPP IDs from emd-citizen service
      */
     public Mono<List<String>> getCitizenConsentsEnabled(String fiscalCode) {
         return webClient.get()

@@ -12,10 +12,11 @@ import java.util.List;
 public interface TppConnector {
 
     /**
-     * Get all the TPPs that are enabled from a list of TPP IDs.
+     * <p>Retrieves enabled TPPs from a list of TPP identifiers.</p>
+     * <p>Delegates to the emd-tpp service filtering endpoint.</p>
      *
      * @param tppIdList the list of TPP IDs to filter
-     * @return a Mono emitting the list of enabled TPPs matching the provided IDs
+     * @return {@code Mono<List<TppDTO>>} list of enabled TPPs matching the provided IDs
      */
     Mono<List<TppDTO>> getTppsEnabled(TppIdList tppIdList);
 }

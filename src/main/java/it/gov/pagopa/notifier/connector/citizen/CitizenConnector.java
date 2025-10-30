@@ -4,15 +4,18 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 /**
- *  Connector for interacting with the emd-citizen service.
+ * <p>Connector for interacting with the emd-citizen service.</p>
+ *
+ * <p>Provides remote operations to retrieve citizen consent information.</p>
  */
 public interface CitizenConnector {
 
   /**
-   * Retrieves the list of TPP IDs for which the citizen has given consent and has enabled.
+   * <p>Retrieves enabled TPP identifiers for a citizen.</p>
+   * <p>Delegates to the emd-citizen service enabled TPP list endpoint.</p>
    *
    * @param fiscalCode the citizen's fiscal code
-   * @return a Mono emitting the list of enabled TPP IDs for the citizen
+   * @return {@code Mono<List<String>>} list of enabled TPP IDs
    */
   Mono<List<String>> getCitizenConsentsEnabled(String fiscalCode);
 

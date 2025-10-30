@@ -20,7 +20,9 @@ import java.util.function.Consumer;
 
 import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
 
-
+/**
+ * <p>Implementation of {@link NotifyErrorConsumerService} extending {@link BaseKafkaConsumer}.</p>
+ */
 @Service
 @Slf4j
 public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErrorQueuePayload,String> implements NotifyErrorConsumerService {
@@ -52,12 +54,22 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
     }
 
     /**
-     * Consume a notification message from the error queue and attempts to resend it to the TPP.
+     * <p>Processes a single error queue message by attempting to resend the notification to TPP.</p>
      *
-     * @param payload the payload containing the notification message and TPP details
-     * @param message the original Spring message containing headers (including retry count)
-     * @param ctx the context map for additional information
-     * @return a Mono with a status message indicating the processing outcome
+     * <p>Flow:</p>
+     * <ol>
+     *   <li>Extracts {@code NotifyErrorQueuePayload} and retry count from headers</li>
+     *   <li>Validates presence of {@code ERROR_MSG_HEADER_RETRY} header</li>
+     *   <li>Delegates to {@link NotifyServiceImpl#sendNotify(Message, TppDTO, long)} asynchronously</li>
+     *   <li>Returns processing status message</li>
+     * </ol>
+     *
+     * <p>Messages without retry header are logged and marked as not processed.</p>
+     *
+     * @param payload the deserialized notification payload
+     * @param message the original Spring message with headers
+     * @param ctx context map for additional information
+     * @return {@code Mono<String>} with processing status message
      */
     @Override
     protected Mono<String> execute(NotifyErrorQueuePayload payload, org.springframework.messaging.Message<String> message, Map<String, Object> ctx) {

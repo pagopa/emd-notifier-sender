@@ -13,6 +13,11 @@ import reactor.core.publisher.Mono;
 
 import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
 
+/**
+ * <p>Implementation of {@link MessageCoreProducerService}.</p>
+ *
+ * <p>Validates retry limits and delegates message scheduling to {@link MessageCoreProducer}.</p>
+ */
 @Slf4j
 @Service
 public class MessageCoreProducerServiceImpl implements MessageCoreProducerService {
@@ -28,12 +33,20 @@ public class MessageCoreProducerServiceImpl implements MessageCoreProducerServic
 
 
     /**
-     * Enqueues a message for delayed retry after a failed attempt to process and send it.
-     * If the retry count exceeds the maximum allowed attempts, the message is discarded.
+     * <p>Enqueues a message for delayed retry if within retry limits.</p>
+     *
+     * <p>Flow:</p>
+     * <ol>
+     *   <li>Check if retry count exceeds maximum allowed attempts.</li>
+     *   <li>If exceeded, log and return empty Mono (message discarded).</li>
+     *   <li>Otherwise, create message with updated retry header.</li>
+     *   <li>Schedule message via {@link MessageCoreProducer#scheduleMessage(Message)}.</li>
+     * </ol>
+     *
      *
      * @param messageDTO the message to be enqueued
      * @param retry the current retry attempt count (incremented after each failure)
-     * @return a Mono that completes when the message is enqueued, or an empty Mono if max retries are exceeded
+     * @return {@code Mono<Void>} completes when the message is enqueued, or empty if max retries exceeded
      */
     @Override
     public Mono<Void> enqueueMessage(MessageDTO messageDTO, long retry) {

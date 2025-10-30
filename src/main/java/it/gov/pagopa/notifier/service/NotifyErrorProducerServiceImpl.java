@@ -14,6 +14,9 @@ import reactor.core.publisher.Mono;
 
 import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
 
+/**
+ * <p>Implementation of {@link NotifyErrorProducerService} for publishing failed notifications to error queue.</p>
+ */
 @Slf4j
 @Service
 public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerService {
@@ -30,13 +33,16 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
 
 
     /**
-     * Enqueues a notification for delayed retry after a failed attempt to notify the TPP.
-     * If the retry count exceeds the maximum allowed attempts, the notification is discarded.
+     * {@inheritDoc}
      *
-     * @param message the notification message to be sent
-     * @param tppDTO the TPP data transfer object containing TPP details
-     * @param retry the current retry attempt count (incremented after each failure)
-     * @return a Mono signaling completion, or an empty Mono if max retries are exceeded
+     * <p>Flow:</p>
+     * <ol>
+     *   <li>Checks if retry count exceeds {@code maxTry}; if so, returns empty</li>
+     *   <li>Constructs Kafka message via {@link #createMessage(Message, TppDTO, long)}</li>
+     *   <li>Publishes to error queue via {@link NotifyErrorProducer#scheduleMessage(org.springframework.messaging.Message)}</li>
+     * </ol>
+     *
+     * <p>Messages exceeding max retries are logged and discarded.</p>
      */
     @Override
     public Mono<String> enqueueNotify(Message message, TppDTO tppDTO, long retry) {
@@ -56,6 +62,17 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
         });
     }
 
+    /**
+     * <p>Creates a Spring Kafka message with payload and retry metadata.</p>
+     *
+     * <p>Constructs a {@link NotifyErrorQueuePayload} containing the notification and TPP details,
+     * and adds {@code ERROR_MSG_HEADER_RETRY} header with current retry count.</p>
+     *
+     * @param message the notification message
+     * @param tppDTO the TPP configuration
+     * @param retry current retry count
+     * @return Spring message ready for publishing
+     */
     @NotNull
     private static org.springframework.messaging.Message<NotifyErrorQueuePayload> createMessage(Message message, TppDTO tppDTO, long retry) {
         log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][CREATE-MESSAGE] Creating message for ID: {} with retry: {}, entityId: {}",
