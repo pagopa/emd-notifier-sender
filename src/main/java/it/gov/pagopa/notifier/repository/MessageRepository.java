@@ -41,14 +41,13 @@ public interface MessageRepository extends ReactiveMongoRepository<Message,Strin
     Mono<Message> findByMessageIdAndEntityId(String messageId, String entityId);
 
     /**
-     * <p>Finds messages with registration dates within the specified range (inclusive).</p>
+     * <p>Finds messages with registration dates within the specified range .</p>
      *
-     * <p>Used for batch deletion and retention policy enforcement.
-     * Date strings should be in ISO-8601 format (e.g., "2025-10-30").</p>
+     * <p>Used for batch deletion and retention policy enforcement.</p>
      *
-     * @param startDate the start date of the range (inclusive)
-     * @param endDate the end date of the range (inclusive)
-     * @return {@code Flux<Message>} emitting matching messages (empty if none found)
+     * @param startDate the start date of the range , in ISO-8601 format (e.g., "2025-10-30T00:00:00.000")
+     * @param endDate the end date of the range , in ISO-8601 format (e.g., "2025-10-31T00:00:00.000")
+     * @return {@code Flux<Message>} emitting matching messages (empty flux if none found)
      */
     Flux<Message> findByMessageRegistrationDateBetween(String startDate, String endDate);
 
