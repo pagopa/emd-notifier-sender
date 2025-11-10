@@ -40,9 +40,9 @@ import static org.mockserver.model.JsonBody.json;
 /**
  * Integration test for the complete message processing flow.
  */
-public class MessageCoreFlowIT extends BaseIT {
+public class MessageSenderFlowIT extends BaseIT {
 
-  private static final Logger log = LoggerFactory.getLogger(MessageCoreFlowIT.class);
+  private static final Logger log = LoggerFactory.getLogger(MessageSenderFlowIT.class);
 
   @Container
   static MockServerContainer mockServer = new MockServerContainer(
