@@ -117,3 +117,6 @@ Consumer component for processing failed TPP notification deliveries.
 
 - **Kafka Queues**: Used for asynchronous message processing and retry management
 - **TPP Integration**: External Third Party Providers for notification delivery
+## API Documentation
+
+API specification: [openapi.emd_sender.yml](https://github.com/pagopa/cstar-infrastructure/blob/main/src/domains/mil-app-poc/api/emd_message_sender/openapi.emd_sender.yml)
