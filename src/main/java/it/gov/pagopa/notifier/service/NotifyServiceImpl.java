@@ -26,6 +26,9 @@ import java.util.Map;
 
 import static it.gov.pagopa.notifier.dto.BaseMessage.extractBaseFields;
 
+/**
+ * <p>Implementation of {@link NotifyService} for TPP notification delivery and message cleanup.</p>
+ */
 @Service
 @Slf4j
 public class NotifyServiceImpl implements NotifyService {
@@ -49,6 +52,13 @@ public class NotifyServiceImpl implements NotifyService {
         this.note = note;
     }
 
+
+  /**
+   * <p>Scheduled task that triggers automatic cleanup of old messages.</p>
+   *
+   * <p>Executes according to the cron expression defined in {@code delete.batchExecutionCron}.
+   * Delegates to {@link #cleanupOldMessages()} and logs results.</p>
+   */
     @Scheduled(cron = "${delete.batchExecutionCron}")
     public void scheduleDeletionTask(){
         log.info("Start batch");
@@ -59,6 +69,14 @@ public class NotifyServiceImpl implements NotifyService {
                 .subscribe();
     }
 
+  /**
+   * <p>Cleans up old messages based on the retention period defined in configuration.</p>
+   *
+   * <p>Calculates the cutoff date as {@code now - retentionPeriodDays} and delegates
+   * to {@link #deleteMessages(DeleteRequestDTO)} with date filter.</p>
+   *
+   * @return {@code Mono<DeleteResponseDTO>} with deletion statistics
+   */
     public Mono<DeleteResponseDTO> cleanupOldMessages(){
         String retentionDate = LocalDate.now().minusDays(deleteProperties.getRetentionPeriodDays()).toString();
         DeleteRequestDTO deleteRequestDTO = new DeleteRequestDTO();
@@ -69,7 +87,22 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
 
-    public Mono<DeleteResponseDTO> deleteMessages(DeleteRequestDTO deleteRequestDTO) {
+  /**
+   * {@inheritDoc}
+   *
+   * <p>Flow:</p>
+   * <ol>
+   *   <li>Extracts or defaults batch size and interval from request/properties</li>
+   *   <li>Determines date range filter (defaults to all dates if not specified)</li>
+   *   <li>Queries messages via {@link MessageRepository#findByMessageRegistrationDateBetween(String, String)}</li>
+   *   <li>Processes deletions in batches with configured interval delays</li>
+   *   <li>Accumulates deleted count and calculates remaining count</li>
+   *   <li>Returns statistics with elapsed time</li>
+   * </ol>
+   *
+   * <p>Throws {@code ClientExceptionWithBody} with {@code MESSAGES_NOT_FOUND} if no messages match criteria.</p>
+   */
+  public Mono<DeleteResponseDTO> deleteMessages(DeleteRequestDTO deleteRequestDTO) {
         int batchSize = (deleteRequestDTO.getBatchSize() != null) ? deleteRequestDTO.getBatchSize() : deleteProperties.getBatchSize();
         int intervalMS = (deleteRequestDTO.getIntervalMs() != null) ? deleteRequestDTO.getIntervalMs() : deleteProperties.getIntervalMs();
 
@@ -115,7 +148,17 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
 
-
+  /**
+   * {@inheritDoc}
+   *
+   * <p>Flow:</p>
+   * <ol>
+   *   <li>Obtains OAuth2 token via {@link #getToken(TppDTO, String, long)}</li>
+   *   <li>Sends notification via {@link #toUrl(Message, TppDTO, TokenDTO, long)}</li>
+   *   <li>On success, updates message state to {@code SENT}</li>
+   *   <li>On failure, re-enqueues via {@link NotifyErrorProducerService#enqueueNotify(Message, TppDTO, long)} with {@code retry + 1}</li>
+   * </ol>
+   */
     public Mono<Void> sendNotify(Message message, TppDTO tppDTO, long retry) {
         log.info("[NOTIFY-SERVICE][SEND-NOTIFY] Starting notification process for message ID: {} to TPP: {} at retry: {}",
                 message.getMessageId(), tppDTO.getTppId(), retry);
@@ -126,6 +169,23 @@ public class NotifyServiceImpl implements NotifyService {
                 .then();
     }
 
+    /**
+     * <p>Obtains an OAuth2 authentication token from the TPP's authentication endpoint.</p>
+     *
+     * <p>Flow:</p>
+     * <ol>
+     *   <li>Constructs authentication URL by replacing path placeholders from {@code pathAdditionalProperties}</li>
+     *   <li>Builds form data from {@code bodyAdditionalProperties}</li>
+     *   <li>Posts to authentication endpoint with configured content type</li>
+     *   <li>Returns {@link TokenDTO} containing access token</li>
+     * </ol>
+     *
+     *
+     * @param tppDTO TPP configuration with authentication URL and token section
+     * @param messageId message identifier (for logging)
+     * @param retry current retry attempt (for logging)
+     * @return {@code Mono<TokenDTO>} containing access token
+     */
     private Mono<TokenDTO> getToken(TppDTO tppDTO, String messageId, long retry) {
 
         log.info("[NOTIFY-SERVICE][GET-TOKEN] Requesting token for message ID: {} to TPP: {} at retry: {}", messageId, tppDTO.getTppId(), retry);
@@ -156,6 +216,24 @@ public class NotifyServiceImpl implements NotifyService {
                 .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getEntityId(), error.getMessage()));
     }
 
+    /**
+     * <p>Sends the notification message to the TPP's message endpoint using Bearer token authorization.</p>
+     *
+     * <p>Flow:</p>
+     * <ol>
+     *   <li>Extracts base message fields via {@link BaseMessage#extractBaseFields(Message, String)}</li>
+     *   <li>Posts JSON payload to TPP's message URL with Bearer token</li>
+     *   <li>On success, updates message state to {@code SENT} and persists asynchronously</li>
+     *   <li>Logs response and any save errors</li>
+     * </ol>
+     *
+     *
+     * @param message the notification message to send
+     * @param tppDTO TPP configuration with message URL
+     * @param token OAuth2 token for authorization
+     * @param retry current retry attempt (for logging)
+     * @return {@code Mono<String>} with TPP response body
+     */
     private Mono<String> toUrl(Message message, TppDTO tppDTO, TokenDTO token, long retry) {
         log.info("[NOTIFY-SERVICE][TO-URL] Sending message {} to TPP: {} at try {}", message.getMessageId(), tppDTO.getEntityId(), retry);
         return webClient.post()

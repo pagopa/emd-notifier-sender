@@ -12,6 +12,11 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+/**
+ * <p>Implementation of {@link TppConnector}.</p>
+ *
+ * <p>Uses {@link WebClient} to perform HTTP calls to the emd-tpp service.</p>
+ */
 @Service
 @Slf4j
 public class TppConnectorImpl implements  TppConnector {
@@ -22,6 +27,13 @@ public class TppConnectorImpl implements  TppConnector {
         this.webClient = WebClient.builder().baseUrl(baseUrl).build();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param tppIdList the list of TPP IDs to filter
+     * @return {@code Mono<List<TppDTO>>} list of enabled TPPs from emd-tpp service
+     */
+    @Override
     public Mono<List<TppDTO>> getTppsEnabled(TppIdList tppIdList) {
         return webClient.post()
                 .uri("/emd/tpp/list")

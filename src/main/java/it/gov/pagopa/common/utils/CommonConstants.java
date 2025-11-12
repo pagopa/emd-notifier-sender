@@ -2,6 +2,9 @@ package it.gov.pagopa.common.utils;
 
 import java.time.ZoneId;
 
+/**
+ * Common constants used across the application
+ */
 public class CommonConstants {
 
 

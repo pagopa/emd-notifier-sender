@@ -2,6 +2,9 @@ package it.gov.pagopa.common.web.exception;
 
 import lombok.Getter;
 
+/**
+ * Base class for service exceptions
+ */
 @Getter
 public class ServiceException extends RuntimeException {
   private final String code;

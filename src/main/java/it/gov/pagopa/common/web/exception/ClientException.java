@@ -3,6 +3,9 @@ package it.gov.pagopa.common.web.exception;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+/**
+ * Exception representing client errors.
+ */
 @Getter
 public class ClientException extends RuntimeException {
   private final HttpStatus httpStatus;

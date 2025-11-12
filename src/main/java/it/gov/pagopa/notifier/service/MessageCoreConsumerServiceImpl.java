@@ -20,7 +20,11 @@ import java.util.function.Consumer;
 
 import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
 
-
+/**
+ * <p>Implementation of {@link MessageCoreConsumerService}.</p>
+ *
+ * <p>Extends {@link BaseKafkaConsumer} to provide Kafka-specific message consumption.</p>
+ */
 @Service
 @Slf4j
 public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO,String> implements MessageCoreConsumerService {
@@ -52,6 +56,23 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
         return e -> log.info("[MESSAGE-CORE-CONSUMER-SERVICE][DESERIALIZATION-ERROR] Unexpected JSON : {}", e.getMessage());
     }
 
+
+    /**
+     * <p>Processes a message by extracting retry metadata and delegating to message service.</p>
+     *
+     * <p>Flow:</p>
+     * <ol>
+     *   <li>Extract message ID and retry count from headers.</li>
+     *   <li>Validate presence of retry header; skip processing if missing.</li>
+     *   <li>Delegate to {@link MessageServiceImpl#processMessage(MessageDTO, long)} for domain logic.</li>
+     *   <li>Return processing status message.</li>
+     * </ol>
+     *
+     * @param messageDTO the deserialized message payload
+     * @param message the original message with headers
+     * @param ctx the processing context from base consumer
+     * @return {@code Mono<String>} status message about the processing attempt
+     */
     @Override
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
         String messageId = messageDTO.getMessageId();

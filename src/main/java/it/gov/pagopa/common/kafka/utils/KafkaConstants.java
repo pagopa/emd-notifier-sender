@@ -1,5 +1,8 @@
 package it.gov.pagopa.common.kafka.utils;
 
+/**
+ * Constants used for Kafka integration
+ */
 public class KafkaConstants {
     private KafkaConstants(){}
 

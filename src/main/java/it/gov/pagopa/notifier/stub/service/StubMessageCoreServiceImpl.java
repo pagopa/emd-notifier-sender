@@ -9,6 +9,9 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Stub service implementation for message management.
+ */
 @Service
 public class StubMessageCoreServiceImpl implements StubMessageCoreService {
 
@@ -20,6 +23,9 @@ public class StubMessageCoreServiceImpl implements StubMessageCoreService {
         this.mapperToDTO = mapperToDTO;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Mono<List<MessageDTO>> getMessages(String fiscalCode, String entityId) {
         return messageRepository.findByRecipientIdAndEntityId(fiscalCode,entityId)
