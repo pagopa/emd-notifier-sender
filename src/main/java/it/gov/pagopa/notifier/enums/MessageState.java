@@ -2,6 +2,9 @@ package it.gov.pagopa.notifier.enums;
 
 import lombok.Getter;
 
+/**
+ * Enum representing the states of a message in the notifier system.
+ */
 @Getter
 public enum MessageState {
 

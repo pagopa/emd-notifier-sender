@@ -8,6 +8,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+/**
+ * Standard error response DTO.
+ * <p>
+ * Used to return structured error information to clients when
+ * exceptions occur during request processing.
+ * </p>
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
 @NoArgsConstructor

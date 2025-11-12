@@ -18,8 +18,9 @@ import reactor.util.function.Tuples;
 
 import java.util.List;
 
-
-
+/**
+ * <p>Implementation of {@link MessageService} for processing and routing notification messages.</p>
+ */
 @Slf4j
 @Service
 public class MessageServiceImpl implements MessageService {
@@ -48,6 +49,20 @@ public class MessageServiceImpl implements MessageService {
     }
 
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Flow:</p>
+     * <ol>
+     *   <li>Queries citizen consents via {@link CitizenConnectorImpl#getCitizenConsentsEnabled(String)}</li>
+     *   <li>Delegates to {@link #processTppList(List, MessageDTO, long)} if consents found</li>
+     *   <li>On error, delegates to {@link #handleError(Throwable, MessageDTO, long)}</li>
+     * </ol>
+     *
+     * @param messageDTO the message containing recipient and notification details
+     * @param retry the current retry attempt count (provided by the consumer)
+     * @return {@code Mono<Void>} that completes when all notifications have been sent or processing fails
+     */
     @Override
     public Mono<Void> processMessage(MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
@@ -58,6 +73,21 @@ public class MessageServiceImpl implements MessageService {
                 .onErrorResume(e -> handleError(e, messageDTO, retry));
     }
 
+    /**
+     * <p>Processes the list of TPP identifiers by fetching configurations and sending notifications.</p>
+     *
+     * <p>Flow:</p>
+     * <ol>
+     *   <li>Returns empty if list is empty (no consents)</li>
+     *   <li>Fetches TPP configurations via {@link TppConnectorImpl#getTppsEnabled(TppIdList)}</li>
+     *   <li>Delegates to {@link #sendNotifications(List, MessageDTO, long)}</li>
+     * </ol>
+     *
+     * @param tppIdList list of TPP identifiers with enabled consents
+     * @param messageDTO the message DTO
+     * @param retry current retry attempt
+     * @return {@code Mono<Void>} completing after notifications sent
+     */
     private Mono<Void> processTppList(List<String> tppIdList, MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
 
@@ -73,6 +103,23 @@ public class MessageServiceImpl implements MessageService {
 
     }
 
+
+    /**
+     * <p>Sends notifications to each TPP in the list.</p>
+     *
+     * <p>Flow:</p>
+     * <ol>
+     *   <li>Returns empty if TPP list is empty</li>
+     *   <li>For each TPP, creates and saves {@code Message} with {@code MessageState.IN_PROCESS}</li>
+     *   <li>If save fails, marks message as "REFUSE" and skips TPP</li>
+     *   <li>Delegates successful saves to {@link NotifyServiceImpl#sendNotify(Message, TppDTO, long)}</li>
+     * </ol>
+     *
+     * @param tppDTOList list of TPP configurations
+     * @param messageDTO the message DTO
+     * @param retry current retry attempt
+     * @return {@code Mono<Void>} completing after all sends attempted
+     */
     private Mono<Void> sendNotifications(List<TppDTO> tppDTOList, MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
 
@@ -105,6 +152,17 @@ public class MessageServiceImpl implements MessageService {
                 .then();
     }
 
+    /**
+     * <p>Handles processing errors by re-enqueueing the message with incremented retry count.</p>
+     *
+     * <p>Delegates to {@link MessageCoreProducerServiceImpl#enqueueMessage(MessageDTO, long)}
+     * with {@code retry + 1}.</p>
+     *
+     * @param e the error that occurred
+     * @param messageDTO the message DTO
+     * @param retry current retry attempt
+     * @return {@code Mono<Void>} completing after re-enqueue
+     */
     private Mono<Void> handleError(Throwable e, MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
         log.error("[MESSAGE-SERVICE][HANDLE-ERROR] Error processing message ID: {} at retry attempt {}. Error: {}", messageId, retry, e.getMessage(), e);

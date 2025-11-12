@@ -2,6 +2,9 @@ package it.gov.pagopa.common.web.exception;
 
 import org.springframework.http.HttpStatus;
 
+/**
+ * Exception representing client errors without additional error details.
+ */
 public class ClientExceptionNoBody extends ClientException {
 
   public ClientExceptionNoBody(HttpStatus httpStatus, String message) {

@@ -21,10 +21,16 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Configuration class for MongoDB settings and custom conversions.
+ */
 @Configuration
 @EnableConfigurationProperties(MongoConfig.MongoDbCustomProperties.class)
 public class MongoConfig {
 
+    /**
+     * Configuration properties for MongoDB custom settings.
+     */
     @ConfigurationProperties(prefix = "spring.data.mongodb.config")
     @Getter
     @Setter
@@ -45,6 +51,12 @@ public class MongoConfig {
 
     }
 
+    /**
+     * Customizes the MongoDB client settings based on application properties.
+     *
+     * @param mongoDbCustomProperties the custom MongoDB properties
+     * @return a customizer for MongoClientSettings
+     */
     @Bean
     public MongoClientSettingsBuilderCustomizer customizer(MongoDbCustomProperties mongoDbCustomProperties) {
         return builder -> builder.applyToConnectionPoolSettings(
@@ -58,6 +70,11 @@ public class MongoConfig {
                 });
     }
 
+    /**
+     * Defines custom conversions for MongoDB to handle BigDecimal and OffsetDateTime types.
+     *
+     * @return a MongoCustomConversions object with custom converters
+     */
     @Bean
     public MongoCustomConversions mongoCustomConversions() {
         return new MongoCustomConversions(Arrays.asList(
@@ -71,6 +88,9 @@ public class MongoConfig {
         ));
     }
 
+    /**
+     * Converts BigDecimal to MongoDB Decimal128 format for writing.
+     */
     @WritingConverter
     public static class BigDecimalDecimal128Converter implements Converter<BigDecimal, Decimal128> {
 
@@ -80,6 +100,9 @@ public class MongoConfig {
         }
     }
 
+    /**
+     * Converts MongoDB Decimal128 to BigDecimal for reading.
+     */
     @ReadingConverter
     public static class Decimal128BigDecimalConverter implements Converter<Decimal128, BigDecimal> {
 
@@ -90,6 +113,9 @@ public class MongoConfig {
 
     }
 
+    /**
+     * Converts OffsetDateTime to Date for writing to MongoDB.
+     */
     @WritingConverter
     public static class OffsetDateTimeWriteConverter implements Converter<OffsetDateTime, Date> {
         @Override
@@ -98,6 +124,9 @@ public class MongoConfig {
         }
     }
 
+    /**
+     * Converts Date from MongoDB to OffsetDateTime for reading.
+     */
     @ReadingConverter
     public static class OffsetDateTimeReadConverter implements Converter<Date, OffsetDateTime> {
         @Override
