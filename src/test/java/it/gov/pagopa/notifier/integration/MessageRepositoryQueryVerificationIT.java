@@ -67,7 +67,7 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .messageUrl("https://example.com/message1")
         .originId("origin-001")
         .content("Test message content 1")
-        .notes("Test notes 1")
+        .title("Test title 1")
         .associatedPayment(false)
         .idPsp("PSP-001")
         .build();
@@ -84,7 +84,7 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .messageUrl("https://example.com/message2")
         .originId("origin-002")
         .content("Test message content 2")
-        .notes("Test notes 2")
+        .title("Test title 2")
         .associatedPayment(true)
         .idPsp("PSP-002")
         .build();
@@ -101,7 +101,7 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .messageUrl("https://example.com/message3")
         .originId("origin-003")
         .content("Test message content 3")
-        .notes("Test notes 3")
+        .title("Test title 3")
         .associatedPayment(false)
         .idPsp("PSP-003")
         .build();
@@ -163,7 +163,7 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .messageUrl("https://example.com/message4")
         .originId("origin-004")
         .content("Test message content 4")
-        .notes("Test notes 4")
+        .title("Test title 4")
         .associatedPayment(true)
         .idPsp("PSP-004")
         .build();

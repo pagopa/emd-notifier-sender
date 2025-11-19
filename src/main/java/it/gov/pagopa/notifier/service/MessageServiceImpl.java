@@ -32,20 +32,17 @@ public class MessageServiceImpl implements MessageService {
     private final NotifyServiceImpl sendNotificationService;
     private final MessageRepository messageRepository;
     private final MessageMapperDTOToObject mapperDTOToObject;
-    private final String note;
     public MessageServiceImpl(CitizenConnectorImpl citizenConnector,
                               TppConnectorImpl tppConnector,
                               MessageCoreProducerServiceImpl messageCoreProducerService, NotifyServiceImpl sendNotificationService,
                               MessageRepository messageRepository,
-                              MessageMapperDTOToObject mapperDTOToObject,
-                              @Value("${message-notes}") String note) {
+                              MessageMapperDTOToObject mapperDTOToObject) {
         this.tppConnector = tppConnector;
         this.citizenConnector = citizenConnector;
         this.messageCoreProducerService = messageCoreProducerService;
         this.sendNotificationService = sendNotificationService;
         this.messageRepository = messageRepository;
         this.mapperDTOToObject = mapperDTOToObject;
-        this.note = note;
     }
 
 
@@ -132,7 +129,7 @@ public class MessageServiceImpl implements MessageService {
 
         return Flux.fromIterable(tppDTOList)
                 .flatMap(tppDTO -> {
-                    Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), note, MessageState.IN_PROCESS);
+                    Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), MessageState.IN_PROCESS);
                     return messageRepository.save(message)
                             .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
                             .map(savedMessage -> Tuples.of(savedMessage, tppDTO))

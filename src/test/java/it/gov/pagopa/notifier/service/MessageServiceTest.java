@@ -27,9 +27,6 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = MessageServiceImpl.class)
-@TestPropertySource(properties = {
-        "message-notes=500"
-})
 class MessageServiceTest {
 
     @MockBean

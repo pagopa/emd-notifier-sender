@@ -15,6 +15,7 @@ public class MessageMapperObjectToDTO {
                 .senderDescription(message.getSenderDescription())
                 .messageUrl(message.getMessageUrl())
                 .originId(message.getOriginId())
+                .title(message.getTitle())
                 .content(message.getContent())
                 .associatedPayment(message.getAssociatedPayment())
                 .idPsp(message.getIdPsp())

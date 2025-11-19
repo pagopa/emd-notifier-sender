@@ -27,6 +27,7 @@ public class MessageDTO extends BaseMessage {
                 ", senderDescription='" + getSenderDescription() + '\'' +
                 ", messageUrl='" + getMessageUrl() + '\'' +
                 ", originId='" + getOriginId() + '\'' +
+                ", title='" + getTitle() + '\'' +
                 ", content='" + getContent() + '\'' +
                 ", idPsp='" + getIdPsp() + '\'' +
                 ", channel='" + channel + '\'' +

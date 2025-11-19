@@ -369,7 +369,7 @@ public class MessageSenderFlowIT extends BaseIT {
         .messageUrl("https://example.com/message/" + messageId)
         .originId("ORIGIN_" + messageId)
         .content("Test content for " + messageId)
-        .notes("Test notes")
+        .title("Test notes")
         .associatedPayment(false)
         .idPsp("PSP_TEST")
         .build();

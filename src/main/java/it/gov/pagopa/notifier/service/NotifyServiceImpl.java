@@ -37,19 +37,16 @@ public class NotifyServiceImpl implements NotifyService {
     private final NotifyErrorProducerService notifyErrorProducerService;
     private final MessageRepository messageRepository;
     private final DeleteProperties deleteProperties;
-    private final String note;
 
 
 
     public NotifyServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
                              MessageRepository messageRepository,
-                             DeleteProperties deleteProperties,
-                             @Value("${message-notes}") String note) {
+                             DeleteProperties deleteProperties) {
         this.webClient = WebClient.builder().build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
         this.deleteProperties = deleteProperties;
-        this.note = note;
     }
 
 
@@ -240,7 +237,7 @@ public class NotifyServiceImpl implements NotifyService {
                 .uri(tppDTO.getMessageUrl())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(extractBaseFields(message, note))
+                .bodyValue(extractBaseFields(message))
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnSuccess(response -> {

@@ -25,12 +25,12 @@ public class BaseMessage {
     private String senderDescription;
     private String messageUrl;
     private String originId;
+    private String title;
     private String content;
-    private String notes;
     private Boolean associatedPayment;
     private String idPsp;
 
-    public static BaseMessage extractBaseFields(Message messageDTO, String note) {
+    public static BaseMessage extractBaseFields(Message messageDTO) {
         return BaseMessage.builder()
                 .messageId(messageDTO.getMessageId())
                 .recipientId(messageDTO.getRecipientId())
@@ -38,6 +38,7 @@ public class BaseMessage {
                 .senderDescription(messageDTO.getSenderDescription())
                 .messageUrl(messageDTO.getMessageUrl())
                 .originId(messageDTO.getOriginId())
+                .title(messageDTO.getTitle())
                 .content(messageDTO.getContent())
                 .associatedPayment(messageDTO.getAssociatedPayment())
                 .idPsp(messageDTO.getIdPsp())
