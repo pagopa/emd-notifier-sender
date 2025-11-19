@@ -31,6 +31,9 @@ public class MessageDTO extends BaseMessage {
                 ", content='" + getContent() + '\'' +
                 ", idPsp='" + getIdPsp() + '\'' +
                 ", channel='" + channel + '\'' +
+                ", associatedPayment='" + getAssociatedPayment() + '\'' +
+                ", analogSchedulingDate='" + getAnalogSchedulingDate() + '\'' +
+                ", workflowType='" + getWorkflowType() + '\'' +
                 '}';
     }
 }

@@ -2,6 +2,7 @@ package it.gov.pagopa.notifier.integration;
 
 import it.gov.pagopa.notifier.enums.Channel;
 import it.gov.pagopa.notifier.enums.MessageState;
+import it.gov.pagopa.notifier.enums.WorkflowType;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +55,7 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
     ).verifyComplete();
 
     String triggerDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    String analogSchedulingDate = LocalDateTime.now().plusDays(5).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
     Message message1 = Message.builder()
         .messageId(TEST_MESSAGE_ID_1)
@@ -63,6 +65,8 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .messageRegistrationDate(LocalDateTime.parse("2025-10-15T15:00:00").format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
         .messageState(MessageState.IN_PROCESS)
         .triggerDateTime(triggerDateTime)
+        .analogSchedulingDate(analogSchedulingDate)
+        .workflowType(WorkflowType.ANALOG)
         .senderDescription("Test Sender 1")
         .messageUrl("https://example.com/message1")
         .originId("origin-001")
@@ -80,6 +84,8 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .messageRegistrationDate(LocalDateTime.parse("2025-10-20T00:00:00").format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
         .messageState(MessageState.SENT)
         .triggerDateTime(triggerDateTime)
+        .analogSchedulingDate(analogSchedulingDate)
+        .workflowType(WorkflowType.ANALOG)
         .senderDescription("Test Sender 2")
         .messageUrl("https://example.com/message2")
         .originId("origin-002")
@@ -97,6 +103,7 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .messageRegistrationDate(LocalDateTime.parse("2025-10-25T12:00:00").format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
         .messageState(MessageState.IN_PROCESS)
         .triggerDateTime(triggerDateTime)
+        .workflowType(WorkflowType.DIGITAL)
         .senderDescription("Test Sender 3")
         .messageUrl("https://example.com/message3")
         .originId("origin-003")

@@ -20,7 +20,8 @@ public class MessageMapperObjectToDTO {
                 .associatedPayment(message.getAssociatedPayment())
                 .idPsp(message.getIdPsp())
                 .channel(message.getChannel())
-                .notes(message.getNotes())
+                .analogSchedulingDate(message.getAnalogSchedulingDate())
+                .workflowType(message.getWorkflowType())
                 .build();
 
     }
