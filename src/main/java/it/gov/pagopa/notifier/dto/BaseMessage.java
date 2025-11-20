@@ -44,7 +44,7 @@ public class BaseMessage {
                 .associatedPayment(messageDTO.getAssociatedPayment())
                 .idPsp(messageDTO.getIdPsp())
                 .analogSchedulingDate(messageDTO.getAnalogSchedulingDate() != null
-                    ? normalizeToLocalDateTimeFormat(messageDTO.getAnalogSchedulingDate())
+                    ? messageDTO.getAnalogSchedulingDate()
                     : null)
                 .workflowType(messageDTO.getWorkflowType())
                 .build();
@@ -53,13 +53,12 @@ public class BaseMessage {
     private static String normalizeToLocalDateTimeFormat(String inputDateTime) {
         try {
             OffsetDateTime odt = OffsetDateTime.parse(inputDateTime);
-            return odt.atZoneSameInstant(java.time.ZoneOffset.UTC)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+            LocalDateTime ldt = odt.toLocalDateTime();
+            return ldt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
         } catch (DateTimeParseException e) {
             try {
                 LocalDateTime ldt = LocalDateTime.parse(inputDateTime);
-                return ldt.atZone(java.time.ZoneOffset.UTC)
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+                return ldt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
             } catch (DateTimeParseException ex) {
                 throw new IllegalArgumentException("Formato data non valido: " + inputDateTime, ex);
             }
