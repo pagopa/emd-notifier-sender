@@ -43,9 +43,7 @@ public class BaseMessage {
                 .content(messageDTO.getContent())
                 .associatedPayment(messageDTO.getAssociatedPayment())
                 .idPsp(messageDTO.getIdPsp())
-                .analogSchedulingDate(messageDTO.getAnalogSchedulingDate() != null
-                    ? messageDTO.getAnalogSchedulingDate()
-                    : null)
+                .analogSchedulingDate(messageDTO.getAnalogSchedulingDate())
                 .workflowType(messageDTO.getWorkflowType())
                 .build();
     }
