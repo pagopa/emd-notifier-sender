@@ -1,5 +1,6 @@
 package it.gov.pagopa.notifier.dto;
 
+import it.gov.pagopa.notifier.enums.WorkflowType;
 import it.gov.pagopa.notifier.model.Message;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,8 +11,6 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-
-import static org.springframework.integration.graph.LinkNode.Type.input;
 
 
 @AllArgsConstructor
@@ -25,12 +24,14 @@ public class BaseMessage {
     private String senderDescription;
     private String messageUrl;
     private String originId;
+    private String title;
     private String content;
-    private String notes;
     private Boolean associatedPayment;
+    private String analogSchedulingDate;
+    private WorkflowType workflowType;
     private String idPsp;
 
-    public static BaseMessage extractBaseFields(Message messageDTO, String note) {
+    public static BaseMessage extractBaseFields(Message messageDTO) {
         return BaseMessage.builder()
                 .messageId(messageDTO.getMessageId())
                 .recipientId(messageDTO.getRecipientId())
@@ -38,10 +39,12 @@ public class BaseMessage {
                 .senderDescription(messageDTO.getSenderDescription())
                 .messageUrl(messageDTO.getMessageUrl())
                 .originId(messageDTO.getOriginId())
+                .title(messageDTO.getTitle())
                 .content(messageDTO.getContent())
                 .associatedPayment(messageDTO.getAssociatedPayment())
                 .idPsp(messageDTO.getIdPsp())
-                .notes(messageDTO.getNotes() != null ? messageDTO.getNotes() : note)
+                .analogSchedulingDate(messageDTO.getAnalogSchedulingDate())
+                .workflowType(messageDTO.getWorkflowType())
                 .build();
     }
 
@@ -55,7 +58,7 @@ public class BaseMessage {
                 LocalDateTime ldt = LocalDateTime.parse(inputDateTime);
                 return ldt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
             } catch (DateTimeParseException ex) {
-                throw new IllegalArgumentException("Formato data non valido: " + input, ex);
+                throw new IllegalArgumentException("Formato data non valido: " + inputDateTime, ex);
             }
         }
     }

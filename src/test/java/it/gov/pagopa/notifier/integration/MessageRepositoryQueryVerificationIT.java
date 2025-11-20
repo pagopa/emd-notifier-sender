@@ -2,6 +2,7 @@ package it.gov.pagopa.notifier.integration;
 
 import it.gov.pagopa.notifier.enums.Channel;
 import it.gov.pagopa.notifier.enums.MessageState;
+import it.gov.pagopa.notifier.enums.WorkflowType;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +55,7 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
     ).verifyComplete();
 
     String triggerDateTime = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    String analogSchedulingDate = LocalDateTime.now().plusDays(5).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
     Message message1 = Message.builder()
         .messageId(TEST_MESSAGE_ID_1)
@@ -63,11 +65,13 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .messageRegistrationDate(LocalDateTime.parse("2025-10-15T15:00:00").format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
         .messageState(MessageState.IN_PROCESS)
         .triggerDateTime(triggerDateTime)
+        .analogSchedulingDate(analogSchedulingDate)
+        .workflowType(WorkflowType.ANALOG)
         .senderDescription("Test Sender 1")
         .messageUrl("https://example.com/message1")
         .originId("origin-001")
         .content("Test message content 1")
-        .notes("Test notes 1")
+        .title("Test title 1")
         .associatedPayment(false)
         .idPsp("PSP-001")
         .build();
@@ -80,11 +84,13 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .messageRegistrationDate(LocalDateTime.parse("2025-10-20T00:00:00").format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
         .messageState(MessageState.SENT)
         .triggerDateTime(triggerDateTime)
+        .analogSchedulingDate(analogSchedulingDate)
+        .workflowType(WorkflowType.ANALOG)
         .senderDescription("Test Sender 2")
         .messageUrl("https://example.com/message2")
         .originId("origin-002")
         .content("Test message content 2")
-        .notes("Test notes 2")
+        .title("Test title 2")
         .associatedPayment(true)
         .idPsp("PSP-002")
         .build();
@@ -97,11 +103,12 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .messageRegistrationDate(LocalDateTime.parse("2025-10-25T12:00:00").format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
         .messageState(MessageState.IN_PROCESS)
         .triggerDateTime(triggerDateTime)
+        .workflowType(WorkflowType.DIGITAL)
         .senderDescription("Test Sender 3")
         .messageUrl("https://example.com/message3")
         .originId("origin-003")
         .content("Test message content 3")
-        .notes("Test notes 3")
+        .title("Test title 3")
         .associatedPayment(false)
         .idPsp("PSP-003")
         .build();
@@ -163,7 +170,7 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .messageUrl("https://example.com/message4")
         .originId("origin-004")
         .content("Test message content 4")
-        .notes("Test notes 4")
+        .title("Test title 4")
         .associatedPayment(true)
         .idPsp("PSP-004")
         .build();

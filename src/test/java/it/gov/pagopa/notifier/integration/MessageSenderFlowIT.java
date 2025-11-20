@@ -8,9 +8,11 @@ import it.gov.pagopa.notifier.dto.TokenDTO;
 import it.gov.pagopa.notifier.enums.AuthenticationType;
 import it.gov.pagopa.notifier.enums.Channel;
 import it.gov.pagopa.notifier.enums.MessageState;
+import it.gov.pagopa.notifier.enums.WorkflowType;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import java.time.Instant;
+import java.time.Period;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
@@ -98,7 +100,7 @@ public class MessageSenderFlowIT extends BaseIT {
     setupTokenMock();
     setupMessageUrlMock();
 
-    MessageDTO messageDTO = createTestMessageDTO(TEST_MESSAGE_ID, TEST_FISCAL_CODE, Channel.SEND);
+    MessageDTO messageDTO = createTestMessageDTO(TEST_MESSAGE_ID, TEST_FISCAL_CODE, Channel.SEND, WorkflowType.ANALOG);
     long retryCount = 0L;
 
     sendMessageToKafka(messageDTO, retryCount);
@@ -159,7 +161,7 @@ public class MessageSenderFlowIT extends BaseIT {
     // No consents from citizen
     setupCitizenConnectorMock(TEST_FISCAL_CODE, Collections.emptyList());
 
-    MessageDTO messageDTO = createTestMessageDTO(TEST_MESSAGE_ID, TEST_FISCAL_CODE, Channel.SEND);
+    MessageDTO messageDTO = createTestMessageDTO(TEST_MESSAGE_ID, TEST_FISCAL_CODE, Channel.SEND, WorkflowType.ANALOG);
     long retryCount = 0L;
 
     sendMessageToKafka(messageDTO, retryCount);
@@ -206,7 +208,7 @@ public class MessageSenderFlowIT extends BaseIT {
             .withStatusCode(500)
             .withBody("Internal Server Error"));
 
-    MessageDTO messageDTO = createTestMessageDTO(TEST_MESSAGE_ID, TEST_FISCAL_CODE, Channel.SEND);
+    MessageDTO messageDTO = createTestMessageDTO(TEST_MESSAGE_ID, TEST_FISCAL_CODE, Channel.SEND, WorkflowType.ANALOG);
     long retryCount = 0L;
 
     sendMessageToKafka(messageDTO, retryCount);
@@ -248,7 +250,7 @@ public class MessageSenderFlowIT extends BaseIT {
     setupTokenMock();
     setupMessageUrlMock();
 
-    MessageDTO messageDTO = createTestMessageDTO(TEST_MESSAGE_ID, TEST_FISCAL_CODE, Channel.SEND);
+    MessageDTO messageDTO = createTestMessageDTO(TEST_MESSAGE_ID, TEST_FISCAL_CODE, Channel.SEND, WorkflowType.ANALOG);
     long retryCount = 0L;
 
     sendMessageToKafka(messageDTO, retryCount);
@@ -359,7 +361,7 @@ public class MessageSenderFlowIT extends BaseIT {
         .collect(Collectors.toList());
   }
 
-  private MessageDTO createTestMessageDTO(String messageId, String recipientId, Channel channel) {
+  private MessageDTO createTestMessageDTO(String messageId, String recipientId, Channel channel, WorkflowType workflowType) {
     return MessageDTO.builder()
         .messageId(messageId)
         .recipientId(recipientId)
@@ -369,9 +371,11 @@ public class MessageSenderFlowIT extends BaseIT {
         .messageUrl("https://example.com/message/" + messageId)
         .originId("ORIGIN_" + messageId)
         .content("Test content for " + messageId)
-        .notes("Test notes")
+        .title("Test notes")
         .associatedPayment(false)
         .idPsp("PSP_TEST")
+        .analogSchedulingDate(Instant.now().plus(Period.ofDays(5)).toString())
+        .workflowType(workflowType)
         .build();
   }
 

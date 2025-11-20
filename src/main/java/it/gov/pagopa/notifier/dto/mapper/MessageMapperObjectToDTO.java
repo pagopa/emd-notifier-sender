@@ -15,11 +15,13 @@ public class MessageMapperObjectToDTO {
                 .senderDescription(message.getSenderDescription())
                 .messageUrl(message.getMessageUrl())
                 .originId(message.getOriginId())
+                .title(message.getTitle())
                 .content(message.getContent())
                 .associatedPayment(message.getAssociatedPayment())
                 .idPsp(message.getIdPsp())
                 .channel(message.getChannel())
-                .notes(message.getNotes())
+                .analogSchedulingDate(message.getAnalogSchedulingDate())
+                .workflowType(message.getWorkflowType())
                 .build();
 
     }

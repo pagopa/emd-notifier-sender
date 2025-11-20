@@ -55,8 +55,7 @@ class NotifyServiceImplTest {
         sendNotificationService = new NotifyServiceImpl(
                 errorProducerService,
                 messageRepository,
-                deleteProperties,
-                "");
+                deleteProperties);
     }
 
     @AfterAll
