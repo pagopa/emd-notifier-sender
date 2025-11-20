@@ -22,6 +22,7 @@ public class BaseMessage {
     private String messageId;
     private String recipientId;
     private String triggerDateTime;
+    private String triggerDateTimeUTC;
     private String senderDescription;
     private String messageUrl;
     private String originId;
@@ -35,6 +36,7 @@ public class BaseMessage {
                 .messageId(messageDTO.getMessageId())
                 .recipientId(messageDTO.getRecipientId())
                 .triggerDateTime(normalizeToLocalDateTimeFormat(messageDTO.getTriggerDateTime()))
+                .triggerDateTimeUTC(messageDTO.getTriggerDateTime())
                 .senderDescription(messageDTO.getSenderDescription())
                 .messageUrl(messageDTO.getMessageUrl())
                 .originId(messageDTO.getOriginId())
