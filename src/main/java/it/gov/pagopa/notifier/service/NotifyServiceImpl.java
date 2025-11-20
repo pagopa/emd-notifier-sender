@@ -218,7 +218,7 @@ public class NotifyServiceImpl implements NotifyService {
      *
      * <p>Flow:</p>
      * <ol>
-     *   <li>Extracts base message fields via {@link BaseMessage#extractBaseFields(Message, String)}</li>
+     *   <li>Extracts base message fields via {@link BaseMessage#extractBaseFields(Message)}</li>
      *   <li>Posts JSON payload to TPP's message URL with Bearer token</li>
      *   <li>On success, updates message state to {@code SENT} and persists asynchronously</li>
      *   <li>Logs response and any save errors</li>
