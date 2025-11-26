@@ -33,6 +33,7 @@ import static it.gov.pagopa.notifier.dto.BaseMessage.extractBaseFields;
 @Slf4j
 public class NotifyServiceImpl implements NotifyService {
 
+    private final MessageTemplateService messageTemplateService;
     private final WebClient webClient;
     private final NotifyErrorProducerService notifyErrorProducerService;
     private final MessageRepository messageRepository;
@@ -42,11 +43,13 @@ public class NotifyServiceImpl implements NotifyService {
 
     public NotifyServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
                              MessageRepository messageRepository,
-                             DeleteProperties deleteProperties) {
+                             DeleteProperties deleteProperties,
+                             MessageTemplateService messageTemplateService) {
         this.webClient = WebClient.builder().build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
         this.deleteProperties = deleteProperties;
+        this.messageTemplateService = messageTemplateService;
     }
 
 
@@ -100,49 +103,55 @@ public class NotifyServiceImpl implements NotifyService {
    * <p>Throws {@code ClientExceptionWithBody} with {@code MESSAGES_NOT_FOUND} if no messages match criteria.</p>
    */
   public Mono<DeleteResponseDTO> deleteMessages(DeleteRequestDTO deleteRequestDTO) {
-        int batchSize = (deleteRequestDTO.getBatchSize() != null) ? deleteRequestDTO.getBatchSize() : deleteProperties.getBatchSize();
-        int intervalMS = (deleteRequestDTO.getIntervalMs() != null) ? deleteRequestDTO.getIntervalMs() : deleteProperties.getIntervalMs();
+      int batchSize = (deleteRequestDTO.getBatchSize() != null) ? deleteRequestDTO.getBatchSize() : deleteProperties.getBatchSize();
+      int intervalMS = (deleteRequestDTO.getIntervalMs() != null) ? deleteRequestDTO.getIntervalMs() : deleteProperties.getIntervalMs();
 
-        Flux<Message> messagesToDelete;
+      Flux<Message> messagesToDelete;
 
-        String currentDate = LocalDate.now().plusDays(1).toString();
-        String initialDate = LocalDate.MIN.toString();
+      String currentDate = LocalDate.now().plusDays(1).toString();
+      String initialDate = LocalDate.MIN.toString();
 
-        String startDate = deleteRequestDTO.getFilterDTO().getStartDate() == null ? initialDate : deleteRequestDTO.getFilterDTO().getStartDate();
-        String endDate = deleteRequestDTO.getFilterDTO().getEndDate() == null ? currentDate : deleteRequestDTO.getFilterDTO().getEndDate();
+      String startDate = deleteRequestDTO.getFilterDTO().getStartDate() == null ? initialDate : deleteRequestDTO.getFilterDTO().getStartDate();
+      String endDate = deleteRequestDTO.getFilterDTO().getEndDate() == null ? currentDate : deleteRequestDTO.getFilterDTO().getEndDate();
 
-        if (deleteRequestDTO.getFilterDTO().getStartDate() != null || deleteRequestDTO.getFilterDTO().getEndDate() != null) {
-            messagesToDelete = messageRepository.findByMessageRegistrationDateBetween(startDate, endDate);
-        } else {
-            messagesToDelete = messageRepository.findAll();
-        }
+      log.debug("[NOTIFY-SERVICE][DELETE-MESSAGES] Searching messages to delete between {} and {}", startDate, endDate);
 
-        long startTime = System.nanoTime();
+      if (deleteRequestDTO.getFilterDTO().getStartDate() != null || deleteRequestDTO.getFilterDTO().getEndDate() != null) {
+          messagesToDelete = messageRepository.findByMessageRegistrationDateBetween(startDate, endDate);
+      } else {
+          messagesToDelete = messageRepository.findAll();
+      }
 
-        return messagesToDelete.hasElements()
-                .flatMap(messages -> {
-                    if (Boolean.FALSE.equals(messages)) {
-                        return Mono.error(new ClientExceptionWithBody(HttpStatus.NOT_FOUND, "MESSAGES_NOT_FOUND", "MESSAGES_NOT_FOUND"));
-                    }
+      long startTime = System.nanoTime();
 
-                    return messagesToDelete
-                            .buffer(batchSize)
-                            .concatMap(batch -> Flux.fromIterable(batch)
-                                    .flatMap(messageRepository::delete)
-                                    .then(Mono.just(batch.size()))
-                                    .delayElement(Duration.ofMillis(intervalMS))
-                            )
-                            .reduce(Integer::sum)
-                            .flatMap(deletedCount ->
-                                    messageRepository.count()
-                                            .map(remainingCount -> {
-                                                long endTime = System.nanoTime();
-                                                long elapsedTime = (endTime - startTime) / 1_000_000;
-                                                return new DeleteResponseDTO(deletedCount, remainingCount.intValue(), elapsedTime);
-                                            })
-                            );
-                });
-    }
+      return messagesToDelete.hasElements()
+          .flatMap(messages -> {
+              if (Boolean.FALSE.equals(messages)) {
+                  log.info("[NOTIFY-SERVICE][DELETE-MESSAGES] No messages found for deletion criteria.");
+                  return Mono.error(new ClientExceptionWithBody(HttpStatus.NOT_FOUND, "MESSAGES_NOT_FOUND", "MESSAGES_NOT_FOUND"));
+              }
+
+              return messagesToDelete
+                  .buffer(batchSize)
+                  .concatMap(batch -> {
+                      log.debug("[NOTIFY-SERVICE][DELETE-MESSAGES] Processing batch of {} messages", batch.size());
+                      return Flux.fromIterable(batch)
+                          .flatMap(messageRepository::delete)
+                          .then(Mono.just(batch.size()))
+                          .delayElement(Duration.ofMillis(intervalMS));
+                  })
+                  .reduce(Integer::sum)
+                  .flatMap(deletedCount ->
+                      messageRepository.count()
+                          .map(remainingCount -> {
+                              long endTime = System.nanoTime();
+                              long elapsedTime = (endTime - startTime) / 1_000_000;
+                              log.info("[NOTIFY-SERVICE][DELETE-MESSAGES] Deletion complete. Deleted: {}, Remaining: {}, Time: {}ms", deletedCount, remainingCount, elapsedTime);
+                              return new DeleteResponseDTO(deletedCount, remainingCount.intValue(), elapsedTime);
+                          })
+                  );
+          });
+  }
 
 
   /**
@@ -195,6 +204,8 @@ public class NotifyServiceImpl implements NotifyService {
             }
         }
 
+        log.debug("[NOTIFY-SERVICE][GET-TOKEN] Resolved Auth URL for message ID {}: {}", messageId, urlWithTenant);
+
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         if(tppDTO.getTokenSection().getBodyAdditionalProperties()!=null) {
             for(Map.Entry<String, String> entry : tppDTO.getTokenSection().getBodyAdditionalProperties().entrySet()){
@@ -203,14 +214,21 @@ public class NotifyServiceImpl implements NotifyService {
             }
         }
 
+        if (log.isDebugEnabled()) {
+            log.debug("[NOTIFY-SERVICE][GET-TOKEN] Form Data keys for message ID {}: {}", messageId, formData.keySet());
+        }
+
         return webClient.post()
-                .uri(urlWithTenant)
-                .contentType(MediaType.valueOf(tppDTO.getTokenSection().getContentType()))
-                .bodyValue(formData)
-                .retrieve()
-                .bodyToMono(TokenDTO.class)
-                .doOnSuccess(token -> log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} at retry: {}",messageId,tppDTO.getTppId(),retry))
-                .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getEntityId(), error.getMessage()));
+            .uri(urlWithTenant)
+            .contentType(MediaType.valueOf(tppDTO.getTokenSection().getContentType()))
+            .bodyValue(formData)
+            .retrieve()
+            .bodyToMono(TokenDTO.class)
+            .doOnSuccess(token -> {
+                log.debug("[NOTIFY-SERVICE][GET-TOKEN] Token response received for message ID {}. Access Token present: {}", messageId, (token != null && token.getAccessToken() != null));
+                log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} at retry: {}",messageId,tppDTO.getTppId(),retry);
+            })
+            .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getEntityId(), error.getMessage()));
     }
 
     /**
@@ -232,26 +250,43 @@ public class NotifyServiceImpl implements NotifyService {
      * @return {@code Mono<String>} with TPP response body
      */
     private Mono<String> toUrl(Message message, TppDTO tppDTO, TokenDTO token, long retry) {
-        log.info("[NOTIFY-SERVICE][TO-URL] Sending message {} to TPP: {} at try {}", message.getMessageId(), tppDTO.getEntityId(), retry);
-        return webClient.post()
-                .uri(tppDTO.getMessageUrl())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccessToken())
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(extractBaseFields(message))
-                .retrieve()
-                .bodyToMono(String.class)
-                .doOnSuccess(response -> {
-                    log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent successfully to TPP {} at try {}. Response: {}", message.getMessageId(), tppDTO.getEntityId(), retry, response);
-                    message.setMessageState(MessageState.SENT);
-                    messageRepository.save(message)
-                            .doOnSuccess(savedMessage -> log.info("[NOTIFY-SERVICE][TO-URL] Saved message ID: {} for entityId: {}", savedMessage.getMessageId(), tppDTO.getEntityId()))
-                            .onErrorResume(error -> {
-                                log.error("[NOTIFY-SERVICE][TO-URL] Error saving message ID: {} for entityId: {}", message.getMessageId(), tppDTO.getEntityId());
-                                return Mono.empty();
-                            })
-                            .subscribe();
-                })
-                .doOnError(error -> log.error("[NOTIFY-SERVICE][TO-URL] Error sending message {} at try {} to : {}. Error: {}", message.getMessageId(), retry, tppDTO.getEntityId(), error.getMessage()));
+        log.info("[NOTIFY-SERVICE][TO-URL] Processing MsgId: {} -> Tpp: {} (Try: {})", message.getMessageId(), tppDTO.getEntityId(), retry);
+
+        BaseMessage dataModel = BaseMessage.extractBaseFields(message);
+
+        log.debug("[NOTIFY-SERVICE][TO-URL] Trying to render message {} for tpp: {} with data model {}", message.getMessageId(), tppDTO, dataModel);
+
+        return messageTemplateService.renderTemplate(tppDTO.getMessageTemplate(), dataModel)
+            .flatMap(jsonBody -> {
+                if (log.isDebugEnabled()) {
+                    log.debug("[NOTIFY-SERVICE][TO-URL] Payload MsgId {}: {}", message.getMessageId(), jsonBody);
+                }
+
+                return webClient.post()
+                    .uri(tppDTO.getMessageUrl())
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccessToken())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(jsonBody)
+                    .retrieve()
+                    .bodyToMono(String.class);
+            })
+            .doOnSuccess(response -> {
+                log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent. TPP responded.", message.getMessageId());
+
+                if (log.isDebugEnabled()) {
+                    log.debug("[NOTIFY-SERVICE][TO-URL] Response MsgId {}: {}", message.getMessageId(), response);
+                }
+
+                message.setMessageState(MessageState.SENT);
+                messageRepository.save(message)
+                    .doOnSuccess(saved -> log.info("[NOTIFY-SERVICE][TO-URL] DB Saved SENT. MsgId: {}", saved.getMessageId()))
+                    .doOnError(e -> log.error("[NOTIFY-SERVICE][TO-URL] DB Save Failed. MsgId: {}", message.getMessageId(), e))
+                    .subscribe();
+            })
+            .doOnError(error -> {
+                log.error("[NOTIFY-SERVICE][TO-URL] Failed MsgId: {} -> Tpp: {}. Reason: {}",
+                    message.getMessageId(), tppDTO.getEntityId(), error.getMessage(), error);
+            });
     }
 
 }

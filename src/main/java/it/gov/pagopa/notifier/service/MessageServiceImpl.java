@@ -66,8 +66,9 @@ public class MessageServiceImpl implements MessageService {
         log.info("[MESSAGE-SERVICE][PROCESS-MESSAGE] Start processing message ID: {} at retry attempt {}", messageId, retry);
 
         return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
-                .flatMap(tppIdList -> processTppList(tppIdList, messageDTO, retry))
-                .onErrorResume(e -> handleError(e, messageDTO, retry));
+            .doOnNext(ids -> log.debug("[MESSAGE-SERVICE][PROCESS-MESSAGE] Retrieved consent IDs for message ID {}: {}", messageId, ids))
+            .flatMap(tppIdList -> processTppList(tppIdList, messageDTO, retry))
+            .onErrorResume(e -> handleError(e, messageDTO, retry));
     }
 
     /**
@@ -96,8 +97,8 @@ public class MessageServiceImpl implements MessageService {
         log.info("[MESSAGE-SERVICE][PROCESS-TPP-LIST] Consent list found for message ID: {} at retry attempt {}: {}", messageId, retry, tppIdList);
 
         return tppConnector.getTppsEnabled(new TppIdList(tppIdList))
-                .flatMap(tppDTOList -> sendNotifications(tppDTOList, messageDTO, retry));
-
+            .doOnNext(tppDTOList -> log.debug("[MESSAGE-SERVICE][PROCESS-TPP-LIST] Retrieved TPP DTOs for message ID {}: {}", messageId, tppDTOList))
+            .flatMap(tppDTOList -> sendNotifications(tppDTOList, messageDTO, retry));
     }
 
 
@@ -128,25 +129,29 @@ public class MessageServiceImpl implements MessageService {
         log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending notifications for message ID: {} at retry attempt {}", messageId, retry);
 
         return Flux.fromIterable(tppDTOList)
-                .flatMap(tppDTO -> {
-                    Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), MessageState.IN_PROCESS);
-                    return messageRepository.save(message)
-                            .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
-                            .map(savedMessage -> Tuples.of(savedMessage, tppDTO))
-                            .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Error saving message ID: {} for entity ID: {}. Error: {}", message.getMessageId(), tppDTO.getEntityId(), e.getMessage()))
-                            .onErrorReturn(Tuples.of(Message.builder().id("REFUSE").messageId(messageDTO.getMessageId()).build(), tppDTO));
-                })
-                .flatMap(tuple -> {
-                    Message savedMessage = tuple.getT1();
-                    TppDTO tppDTO = tuple.getT2();
-                    if(!savedMessage.getId().equals("REFUSE")){
-                        log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", savedMessage.getMessageId(), retry, tppDTO.getTppId());
-                        return sendNotificationService.sendNotify(savedMessage, tppDTO, 0);
-                    }
-                    log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Message ID: {} for entity ID: {}. Will not processed", savedMessage.getMessageId(), tppDTO.getEntityId());
-                    return Mono.empty();
-                })
-                .then();
+            .doOnNext(tpp -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Processing TPP: {} for message ID: {}", tpp.getTppId(), messageId))
+            .flatMap(tppDTO -> {
+                Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), MessageState.IN_PROCESS);
+                return messageRepository.save(message)
+                    .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
+                    .map(savedMessage -> Tuples.of(savedMessage, tppDTO))
+                    .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Error saving message ID: {} for entity ID: {}. Error: {}", message.getMessageId(), tppDTO.getEntityId(), e.getMessage()))
+                    .onErrorReturn(Tuples.of(Message.builder().id("REFUSE").messageId(messageDTO.getMessageId()).build(), tppDTO));
+            })
+            .flatMap(tuple -> {
+                Message savedMessage = tuple.getT1();
+                TppDTO tppDTO = tuple.getT2();
+                if(!savedMessage.getId().equals("REFUSE")){
+                    log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", savedMessage.getMessageId(), retry, tppDTO.getTppId());
+
+                    return sendNotificationService.sendNotify(savedMessage, tppDTO, 0)
+                        .doOnSuccess(v -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Successfully sent notification to TPP: {} for message ID: {}", tppDTO.getTppId(), savedMessage.getMessageId()))
+                        .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Failed sending to TPP: {} for message ID: {}. Error: {}", tppDTO.getTppId(), savedMessage.getMessageId(), e.getMessage()));
+                }
+                log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Message ID: {} for entity ID: {}. Will not processed (REFUSE state)", savedMessage.getMessageId(), tppDTO.getEntityId());
+                return Mono.empty();
+            })
+            .then();
     }
 
     /**

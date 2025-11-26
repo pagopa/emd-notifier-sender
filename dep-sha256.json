@@ -225,6 +225,27 @@
       "sha256": "avm_RqAjvT_9SNlVKG2ib5Aae6Vk1yCWRRfXRMJRylc="
     },
     {
+      "id": "org.springframework.boot:spring-boot-starter-freemarker:jar:3.3.3",
+      "artifactId": "spring-boot-starter-freemarker",
+      "groupId": "org.springframework.boot",
+      "version": "3.3.3",
+      "sha256": "M2dhMJFPbn5wdFhrV6UR6rJeDY0VCCL8CA1h5BxwYdw="
+    },
+    {
+      "id": "org.freemarker:freemarker:jar:2.3.33",
+      "artifactId": "freemarker",
+      "groupId": "org.freemarker",
+      "version": "2.3.33",
+      "sha256": "q4KRgjY-dHoVMKNoQ2JC9Myn_zCd0pv8pjih_ce2dx0="
+    },
+    {
+      "id": "org.springframework:spring-context-support:jar:6.1.12",
+      "artifactId": "spring-context-support",
+      "groupId": "org.springframework",
+      "version": "6.1.12",
+      "sha256": "lgMDa8gHQRVzSvoJtfjfNQLufeaLt1VSLstCNvoAg7U="
+    },
+    {
       "id": "org.springframework.boot:spring-boot-starter-data-mongodb-reactive:jar:3.3.3",
       "artifactId": "spring-boot-starter-data-mongodb-reactive",
       "groupId": "org.springframework.boot",

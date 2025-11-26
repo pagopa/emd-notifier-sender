@@ -24,4 +24,5 @@ public class TppDTO {
     private LocalDateTime creationDate;
     private LocalDateTime lastUpdateDate;
     private TokenSection tokenSection;
+    private String messageTemplate;
 }
