@@ -7,6 +7,7 @@ import it.gov.pagopa.notifier.dto.*;
 import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.repository.MessageRepository;
+import it.gov.pagopa.notifier.utils.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -114,8 +115,6 @@ public class NotifyServiceImpl implements NotifyService {
       String startDate = deleteRequestDTO.getFilterDTO().getStartDate() == null ? initialDate : deleteRequestDTO.getFilterDTO().getStartDate();
       String endDate = deleteRequestDTO.getFilterDTO().getEndDate() == null ? currentDate : deleteRequestDTO.getFilterDTO().getEndDate();
 
-      log.debug("[NOTIFY-SERVICE][DELETE-MESSAGES] Searching messages to delete between {} and {}", startDate, endDate);
-
       if (deleteRequestDTO.getFilterDTO().getStartDate() != null || deleteRequestDTO.getFilterDTO().getEndDate() != null) {
           messagesToDelete = messageRepository.findByMessageRegistrationDateBetween(startDate, endDate);
       } else {
@@ -214,10 +213,6 @@ public class NotifyServiceImpl implements NotifyService {
             }
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("[NOTIFY-SERVICE][GET-TOKEN] Form Data keys for message ID {}: {}", messageId, formData.keySet());
-        }
-
         return webClient.post()
             .uri(urlWithTenant)
             .contentType(MediaType.valueOf(tppDTO.getTokenSection().getContentType()))
@@ -225,7 +220,6 @@ public class NotifyServiceImpl implements NotifyService {
             .retrieve()
             .bodyToMono(TokenDTO.class)
             .doOnSuccess(token -> {
-                log.debug("[NOTIFY-SERVICE][GET-TOKEN] Token response received for message ID {}. Access Token present: {}", messageId, (token != null && token.getAccessToken() != null));
                 log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} at retry: {}",messageId,tppDTO.getTppId(),retry);
             })
             .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getEntityId(), error.getMessage()));
@@ -254,12 +248,15 @@ public class NotifyServiceImpl implements NotifyService {
 
         BaseMessage dataModel = BaseMessage.extractBaseFields(message);
 
-        log.debug("[NOTIFY-SERVICE][TO-URL] Trying to render message {} for tpp: {} with data model {}", message.getMessageId(), tppDTO, dataModel);
-
+        if (log.isDebugEnabled()) {
+            log.debug(
+                "[NOTIFY-SERVICE][TO-URL] Trying to render message {} for tpp: {}",
+                message.getMessageId(), tppDTO);
+        }
         return messageTemplateService.renderTemplate(tppDTO.getMessageTemplate(), dataModel)
             .flatMap(jsonBody -> {
                 if (log.isDebugEnabled()) {
-                    log.debug("[NOTIFY-SERVICE][TO-URL] Payload MsgId {}: {}", message.getMessageId(), jsonBody);
+                    log.debug("[NOTIFY-SERVICE][TO-URL] Payload MsgId {}: {}", message.getMessageId(), LogUtils.maskSensitiveData(jsonBody));
                 }
 
                 return webClient.post()
@@ -274,7 +271,7 @@ public class NotifyServiceImpl implements NotifyService {
                 log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent. TPP responded.", message.getMessageId());
 
                 if (log.isDebugEnabled()) {
-                    log.debug("[NOTIFY-SERVICE][TO-URL] Response MsgId {}: {}", message.getMessageId(), response);
+                    log.debug("[NOTIFY-SERVICE][TO-URL] Response MsgId {}: {}", message.getMessageId(), LogUtils.maskSensitiveData(response));
                 }
 
                 message.setMessageState(MessageState.SENT);

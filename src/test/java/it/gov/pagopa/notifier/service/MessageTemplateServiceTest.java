@@ -17,7 +17,7 @@ class MessageTemplateServiceTest {
     void setUp() {
         freemarkerConfig = new Configuration(Configuration.VERSION_2_3_32);
         freemarkerConfig.setDefaultEncoding("UTF-8");
-        freemarkerConfig.setOutputFormat(JSONOutputFormat.INSTANCE); 
+        freemarkerConfig.setOutputFormat(JSONOutputFormat.INSTANCE);
 
         messageTemplateService = new MessageTemplateService(freemarkerConfig);
     }

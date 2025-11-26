@@ -35,13 +35,7 @@ public class MessageTemplateService {
 
             StringWriter out = new StringWriter();
             t.process(dataModel, out);
-            String jsonResult = out.toString();
-
-            if (log.isDebugEnabled()) {
-                log.debug("[MESSAGE-TEMPLATE] [RENDER] Rendered JSON for messageId: {}:\n{}", dataModel.getMessageId(), jsonResult);
-            }
-
-            return jsonResult;
+            return out.toString();
         });
     }
 }
