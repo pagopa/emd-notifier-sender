@@ -203,8 +203,6 @@ public class NotifyServiceImpl implements NotifyService {
             }
         }
 
-        log.debug("[NOTIFY-SERVICE][GET-TOKEN] Resolved Auth URL for message ID {}: {}", messageId, urlWithTenant);
-
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         if(tppDTO.getTokenSection().getBodyAdditionalProperties()!=null) {
             for(Map.Entry<String, String> entry : tppDTO.getTokenSection().getBodyAdditionalProperties().entrySet()){
