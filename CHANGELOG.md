@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/pagopa/emd-notifier-sender/compare/v1.1.0...v1.2.0) (2025-11-27)
+
+
+### Features
+
+* [MMC-276] make message editable for each TPP ([#78](https://github.com/pagopa/emd-notifier-sender/issues/78)) ([27756ac](https://github.com/pagopa/emd-notifier-sender/commit/27756acea114faaf9ebb754c8f8a2bb47163602b))
+
 ## [1.1.0](https://github.com/pagopa/emd-notifier-sender/compare/v1.0.6...v1.1.0) (2025-11-20)
 
 
