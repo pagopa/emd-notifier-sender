@@ -17,6 +17,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.client.WebClient; // <--- NEW
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -30,18 +31,20 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class NotifyServiceImplTest {
 
-    private  NotifyServiceImpl sendNotificationService;
+    private NotifyServiceImpl sendNotificationService;
     private static MockWebServer mockWebServer;
 
     @Mock
     private NotifyErrorProducerService errorProducerService;
 
     @Mock
+    private MessageTemplateService messageTemplateService;
+
+    @Mock
     private MessageRepository messageRepository;
 
     @Mock
     private DeleteProperties deleteProperties;
-
 
     @BeforeAll
     static void setUpBefore() throws IOException {
@@ -51,11 +54,13 @@ class NotifyServiceImplTest {
     }
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         sendNotificationService = new NotifyServiceImpl(
-                errorProducerService,
-                messageRepository,
-                deleteProperties);
+            errorProducerService,
+            messageRepository,
+            deleteProperties,
+            messageTemplateService
+        );
     }
 
     @AfterAll
@@ -64,18 +69,18 @@ class NotifyServiceImplTest {
     }
 
     @Test
-    void testDeleteMessages(){
+    void testDeleteMessages() {
         when(messageRepository.findAll()).thenReturn(Flux.just(MESSAGE));
         when(messageRepository.delete(any())).thenReturn(Mono.empty());
         when(messageRepository.count()).thenReturn(Mono.just(1L));
         StepVerifier.create(sendNotificationService.deleteMessages(DELETE_REQUEST_DTO))
-                .expectNextCount(1)
-                .verifyComplete();
+            .expectNextCount(1)
+            .verifyComplete();
     }
 
     @Test
-    void testDeleteMessagesBatch(){
-        when(messageRepository.findByMessageRegistrationDateBetween(any(),any())).thenReturn(Flux.just(MESSAGE));
+    void testDeleteMessagesBatch() {
+        when(messageRepository.findByMessageRegistrationDateBetween(any(), any())).thenReturn(Flux.just(MESSAGE));
         when(messageRepository.delete(any())).thenReturn(Mono.empty());
         when(messageRepository.count()).thenReturn(Mono.just(1L));
         when(deleteProperties.getBatchSize()).thenReturn(10);
@@ -87,64 +92,94 @@ class NotifyServiceImplTest {
     void testSendMessage_Success() {
         TPP_DTO.setAuthenticationUrl(mockWebServer.url(AUTHENTICATION_URL).toString());
         TPP_DTO.setMessageUrl(mockWebServer.url(MESSAGE_URL).toString());
+
+        when(messageTemplateService.renderTemplate(any(), any()))
+            .thenReturn(Mono.just("{\"mocked\":\"json_body\"}"));
+
         when(messageRepository.save(any())).thenReturn(Mono.just(MESSAGE));
 
         sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY).block();
 
+        verify(messageTemplateService, times(1)).renderTemplate(any(), any()); // <--- Check chiamata template
         verify(messageRepository, times(1)).save(any());
     }
 
-
-
     @Test
     void testSendMessage_TokenFailure() {
-        TPP_DTO.setAuthenticationUrl(mockWebServer.url("/fail").toString());
+        TPP_DTO.setAuthenticationUrl(mockWebServer.url("/fail").toString()); // URL che fallisce
         TPP_DTO.setMessageUrl(mockWebServer.url(MESSAGE_URL).toString());
-        when(errorProducerService.enqueueNotify(any(),any(),anyLong())).thenReturn(Mono.just("Error"));
 
+        when(errorProducerService.enqueueNotify(any(), any(), anyLong())).thenReturn(Mono.just("Error"));
         sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY).block();
 
         verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
     }
+
     @Test
-    void testSendMessage_SaveFail(){
+    void testSendMessage_SaveFail() {
         TPP_DTO.setAuthenticationUrl(mockWebServer.url(AUTHENTICATION_URL).toString());
         TPP_DTO.setMessageUrl(mockWebServer.url(MESSAGE_URL).toString());
+
+        when(messageTemplateService.renderTemplate(any(), any()))
+            .thenReturn(Mono.just("{\"mocked\":\"json_body\"}"));
+
         Mockito.when(messageRepository.save(any()))
-                .thenReturn(Mono.error(new RuntimeException("Mocked save error")));
+            .thenReturn(Mono.error(new RuntimeException("Mocked save error")));
 
         sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY).block();
 
+        verify(messageTemplateService, times(1)).renderTemplate(any(), any());
         verify(messageRepository, times(1)).save(any());
     }
+
     @Test
     void testSendMessage_ToUrlFailure() {
         TPP_DTO.setAuthenticationUrl(mockWebServer.url(AUTHENTICATION_URL).toString());
         TPP_DTO.setMessageUrl(mockWebServer.url("/fail").toString());
-        when(errorProducerService.enqueueNotify(any(),any(),anyLong())).thenReturn(Mono.just("Error"));
 
-        sendNotificationService.sendNotify(MESSAGE,TPP_DTO,RETRY).block();
+        when(messageTemplateService.renderTemplate(any(), any()))
+            .thenReturn(Mono.just("{\"mocked\":\"json_body\"}"));
+
+        when(errorProducerService.enqueueNotify(any(), any(), anyLong())).thenReturn(Mono.just("Error"));
+
+        sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY).block();
+
+        verify(messageTemplateService, times(1)).renderTemplate(any(), any());
+        verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
+    }
+
+    @Test
+    void testSendMessage_TemplateError() {
+        TPP_DTO.setAuthenticationUrl(mockWebServer.url(AUTHENTICATION_URL).toString());
+
+        when(messageTemplateService.renderTemplate(any(), any()))
+            .thenReturn(Mono.error(new RuntimeException("Template error")));
+
+        when(errorProducerService.enqueueNotify(any(), any(), anyLong())).thenReturn(Mono.just("Error"));
+
+        sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY).block();
 
         verify(errorProducerService, times(1)).enqueueNotify(any(), any(), anyLong());
+        verify(messageRepository, never()).save(any());
     }
 
     static class MyDispatcher extends Dispatcher {
         @NotNull
         @Override
-        public MockResponse dispatch(RecordedRequest request){
+        public MockResponse dispatch(RecordedRequest request) {
             assert request.getPath() != null;
             if (request.getPath().equals(AUTHENTICATION_URL)) {
                 return new MockResponse()
-                        .setBody("{\"access_token\":\"accessToken\"}")
-                        .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+                    .setBody("{\"access_token\":\"accessToken\"}")
+                    .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
             } else if (request.getPath().equals(MESSAGE_URL)) {
                 return new MockResponse()
-                        .setBody("Message sent successfully")
-                        .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+                    .setBody("Message sent successfully")
+                    .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
             }
             return new MockResponse()
-                    .setResponseCode(500)
-                    .setBody("Internal Server Error");
+                .setResponseCode(500)
+                .setBody("Internal Server Error");
         }
     }
 }

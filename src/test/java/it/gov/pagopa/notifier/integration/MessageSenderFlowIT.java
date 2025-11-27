@@ -24,6 +24,7 @@ import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MockServerContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
@@ -42,6 +43,7 @@ import static org.mockserver.model.JsonBody.json;
 /**
  * Integration test for the complete message processing flow.
  */
+@TestPropertySource(properties = "logging.level.it.gov.pagopa=DEBUG")
 public class MessageSenderFlowIT extends BaseIT {
 
   private static final Logger log = LoggerFactory.getLogger(MessageSenderFlowIT.class);
@@ -356,6 +358,23 @@ public class MessageSenderFlowIT extends BaseIT {
                   .bodyAdditionalProperties(tokenProps)
                   .build())
               .state(true)
+              .messageTemplate("""
+                {
+                  "messageId": "${messageId?json_string}",
+                  "recipientId": "${recipientId?json_string}",
+                  "triggerDateTimeUTC": "${triggerDateTimeUTC?json_string}",
+                  "triggerDateTime": "${triggerDateTime?json_string}",
+                  "messageUrl": "${messageUrl?json_string}",
+                  "idPsp": "${idPsp?json_string}",
+                  "senderDescription": "${(senderDescription! == '')?then('', senderDescription?json_string)}",
+                  "originId": ${originId???then('"' + originId?json_string + '"', 'null')},
+                  "title": ${title???then('"' + title?json_string + '"', 'null')},
+                  "content": ${content???then('"' + content?json_string + '"', 'null')},
+                  "analogSchedulingDate": ${analogSchedulingDate???then('"' + analogSchedulingDate?json_string + '"', 'null')},
+                  "workflowType": ${workflowType???then('"' + workflowType?json_string + '"', 'null')},
+                  "associatedPayment": ${associatedPayment???then(associatedPayment?c, 'null')}
+                }
+                """)
               .build();
         })
         .collect(Collectors.toList());
