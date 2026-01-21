@@ -3,6 +3,7 @@ package it.gov.pagopa.notifier.controller;
 
 import it.gov.pagopa.notifier.dto.DeleteRequestDTO;
 import it.gov.pagopa.notifier.dto.DeleteResponseDTO;
+import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.service.NotifyService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import reactor.core.publisher.Mono;
 
 /**
@@ -19,6 +27,10 @@ import reactor.core.publisher.Mono;
  *
  * <p>Error semantics and domain flows are documented in the service layer; controller focuses on HTTP contract.</p>
  */
+@Tag(
+    name = "Notifier Management", 
+    description = "API per la gestione delle notifiche."
+)
 @RestController
 @RequestMapping("/emd/notifier-sender")
 public interface NotifierSenderController {
@@ -35,6 +47,15 @@ public interface NotifierSenderController {
      *              <li>404 Not Found if no messages match the criteria</li>
      *          </ul>
      */
+    @Operation(
+        summary = "Delete messages in bulk",
+        description = "Delete messages based on provided criteria."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Messages deleted successfully",
+            content = @Content(schema = @Schema(implementation = TppDTO.class))),
+        @ApiResponse(responseCode = "400", description = "No messages match the criteria")
+    })
     @DeleteMapping("/messages/bulk-delete")
     Mono<ResponseEntity<DeleteResponseDTO>> deleteMessages(@Valid @RequestBody DeleteRequestDTO deleteRequestDTO);
 
