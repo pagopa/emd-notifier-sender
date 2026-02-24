@@ -77,7 +77,7 @@ public class MessageServiceImpl implements MessageService {
      * <p>Flow:</p>
      * <ol>
      *   <li>Returns empty if list is empty (no consents)</li>
-     *   <li>Fetches TPP configurations via {@link TppConnectorImpl#getTppsEnabled(TppIdList)}</li>
+     *   <li>Fetches TPP configurations via {@link TppConnectorImpl#getTppsEnabled(TppIdList, String)}</li>
      *   <li>Delegates to {@link #sendNotifications(List, MessageDTO, long)}</li>
      * </ol>
      *
@@ -96,7 +96,7 @@ public class MessageServiceImpl implements MessageService {
 
         log.info("[MESSAGE-SERVICE][PROCESS-TPP-LIST] Consent list found for message ID: {} at retry attempt {}: {}", messageId, retry, tppIdList);
 
-        return tppConnector.getTppsEnabled(new TppIdList(tppIdList))
+        return tppConnector.getTppsEnabled(new TppIdList(tppIdList), messageDTO.getRecipientId())
             .doOnNext(tppDTOList -> log.debug("[MESSAGE-SERVICE][PROCESS-TPP-LIST] Retrieved TPP DTOs for message ID {}: {}", messageId, tppDTOList))
             .flatMap(tppDTOList -> sendNotifications(tppDTOList, messageDTO, retry));
     }

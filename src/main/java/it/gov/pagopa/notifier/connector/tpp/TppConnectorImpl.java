@@ -31,12 +31,16 @@ public class TppConnectorImpl implements  TppConnector {
      * {@inheritDoc}
      *
      * @param tppIdList the list of TPP IDs to filter
-     * @return {@code Mono<List<TppDTO>>} list of enabled TPPs from emd-tpp service
+     * @param recipient the recipient's fiscal code to check for whitelist membership
+     * @return {@code Mono<List<TppDTO>>} list of enabled or whitelisted TPPs from emd-tpp service
      */
     @Override
-    public Mono<List<TppDTO>> getTppsEnabled(TppIdList tppIdList) {
+    public Mono<List<TppDTO>> getTppsEnabled(TppIdList tppIdList, String recipient) {
         return webClient.post()
-                .uri("/emd/tpp/list")
+                .uri(uriBuilder -> uriBuilder
+                        .path("/emd/tpp/list")
+                        .queryParam("recipient", recipient)
+                        .build())
                 .bodyValue(tppIdList)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<>() {
