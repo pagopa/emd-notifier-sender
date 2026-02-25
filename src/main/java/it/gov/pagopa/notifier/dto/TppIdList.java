@@ -10,5 +10,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TppIdList {
-    List<String> ids;
+    private List<String> ids;
+    private String recipientId;
+
+    public TppIdList(List<String> ids) {
+        this.ids = ids;
+    }
 }

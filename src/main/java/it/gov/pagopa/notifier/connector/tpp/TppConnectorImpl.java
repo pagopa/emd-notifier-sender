@@ -36,11 +36,9 @@ public class TppConnectorImpl implements  TppConnector {
      */
     @Override
     public Mono<List<TppDTO>> getTppsEnabled(TppIdList tppIdList, String recipient) {
+        tppIdList.setRecipientId(recipient);
         return webClient.post()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/emd/tpp/list")
-                        .queryParam("recipient", recipient)
-                        .build())
+                .uri("/emd/tpp/list")
                 .bodyValue(tppIdList)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<>() {

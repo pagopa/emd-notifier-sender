@@ -44,7 +44,7 @@ class TppConnectorImplTest {
     }
 
     @Test
-    void testGetTppSEnabled() throws JsonProcessingException {
+    void testGetTppSEnabled() throws JsonProcessingException, InterruptedException {
         mockWebServer.enqueue(new MockResponse()
                .setResponseCode(200)
                .setBody(objectMapper.writeValueAsString(List.of(TPP_DTO)))
@@ -54,5 +54,9 @@ class TppConnectorImplTest {
          List<TppDTO> consentList = resultMono.block();
          assertThat(consentList).hasSize(1);
          assertThat(consentList.get(0)).isEqualTo(TPP_DTO);
+
+         var recordedRequest = mockWebServer.takeRequest();
+         assertThat(recordedRequest.getRequestUrl().query()).isNull();
+         assertThat(recordedRequest.getBody().readUtf8()).contains("\"recipientId\":\"FISCAL_CODE\"");
     }
 }
