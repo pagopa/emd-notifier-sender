@@ -12,7 +12,7 @@ import java.util.List;
 public interface TppConnector {
 
     /**
-     * <p>Retrieves enabled TPPs from a list of TPP identifiers.</p>
+     * <p>Get list of enabled tpp or tpp with whitelistRecipient field containing the recipientId based on the provided tpp ids.</p>
      * <p>Delegates to the emd-tpp service filtering endpoint.</p>
      *
      * @param tppIdList the list of TPP IDs to filter
