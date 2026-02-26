@@ -6,9 +6,20 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import jakarta.validation.constraints.NotNull;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class TppIdList {
+    
+    @NotNull
     List<String> ids;
+
+    /**
+     * The getRecipientId used for filtering TPPs based on their whitelistRecipient field.
+     */
+    @NotNull
+    private String getRecipientId;
+
 }

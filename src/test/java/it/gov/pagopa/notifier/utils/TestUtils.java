@@ -14,7 +14,7 @@ public class TestUtils {
     public static final List<TppDTO> TPP_DTO_LIST = List.of(TPP_DTO);
     public static final String TPP_ID = TPP_DTO.getTppId();
     public static final List<String> TPP_ID_STRING_LIST = List.of(TPP_ID);
-    public static final TppIdList TPP_ID_LIST = new TppIdList(List.of(TPP_ID));
+    public static final TppIdList TPP_ID_LIST = new TppIdList(List.of(TPP_ID), "recipientId");
     public static final MessageDTO MESSAGE_DTO = MessageDTOFaker.mockInstance();
     public static final String FISCAL_CODE = MESSAGE_DTO.getRecipientId();
     public static final Message MESSAGE = MessageFaker.mockInstance();

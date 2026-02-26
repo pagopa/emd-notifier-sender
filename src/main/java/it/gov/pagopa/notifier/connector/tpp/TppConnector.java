@@ -18,5 +18,5 @@ public interface TppConnector {
      * @param tppIdList the list of TPP IDs to filter
      * @return {@code Mono<List<TppDTO>>} list of enabled TPPs matching the provided IDs
      */
-    Mono<List<TppDTO>> getTppsEnabled(TppIdList tppIdList);
+    Mono<List<TppDTO>> filterEnabledList(TppIdList tppIdList);
 }

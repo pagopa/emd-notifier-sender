@@ -34,7 +34,7 @@ public class TppConnectorImpl implements  TppConnector {
      * @return {@code Mono<List<TppDTO>>} list of enabled TPPs from emd-tpp service
      */
     @Override
-    public Mono<List<TppDTO>> getTppsEnabled(TppIdList tppIdList) {
+    public Mono<List<TppDTO>> filterEnabledList(TppIdList tppIdList) {
         return webClient.post()
                 .uri("/emd/tpp/list")
                 .bodyValue(tppIdList)
