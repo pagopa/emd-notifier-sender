@@ -17,9 +17,9 @@ public class TppIdList {
     List<String> ids;
 
     /**
-     * The getRecipientId used for filtering TPPs based on their whitelistRecipient field.
+     * The recipientId used for filtering TPPs based on their whitelistRecipient field.
      */
     @NotNull
-    private String getRecipientId;
+    private String recipientId;
 
 }
