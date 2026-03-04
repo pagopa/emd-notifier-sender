@@ -13,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 
@@ -51,7 +50,7 @@ class MessageServiceTest {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));
 
-        Mockito.when(tppService.getTppsEnabled(any()))
+        Mockito.when(tppService.filterEnabledList(any()))
                 .thenReturn(Mono.just(TPP_DTO_LIST));
 
         Mockito.when(sendNotificationService.sendNotify(MESSAGE,TPP_DTO,0))
@@ -71,7 +70,7 @@ class MessageServiceTest {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));
 
-        Mockito.when(tppService.getTppsEnabled(any()))
+        Mockito.when(tppService.filterEnabledList(any()))
                 .thenReturn(Mono.just(TPP_DTO_LIST));
 
         Mockito.when(sendNotificationService.sendNotify(MESSAGE,TPP_DTO,0))
@@ -100,7 +99,7 @@ class MessageServiceTest {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));
 
-        Mockito.when(tppService.getTppsEnabled(any()))
+        Mockito.when(tppService.filterEnabledList(any()))
                 .thenReturn(Mono.just(Collections.emptyList()));
 
         messageService.processMessage(MESSAGE_DTO,0).block();
@@ -128,7 +127,7 @@ class MessageServiceTest {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));
 
-        Mockito.when(tppService.getTppsEnabled(any()))
+        Mockito.when(tppService.filterEnabledList(any()))
                 .thenReturn(Mono.error(new TppInvocationException()));
 
         Mockito.when(messageCoreProducerService.enqueueMessage(any(),anyLong()))

@@ -50,7 +50,7 @@ class TppConnectorImplTest {
                .setBody(objectMapper.writeValueAsString(List.of(TPP_DTO)))
                .addHeader("Content-Type", "application/json"));
 
-         Mono<List<TppDTO>> resultMono = tppConnector.getTppsEnabled(TPP_ID_LIST);
+         Mono<List<TppDTO>> resultMono = tppConnector.filterEnabledList(TPP_ID_LIST);
          List<TppDTO> consentList = resultMono.block();
          assertThat(consentList).hasSize(1);
          assertThat(consentList.get(0)).isEqualTo(TPP_DTO);
