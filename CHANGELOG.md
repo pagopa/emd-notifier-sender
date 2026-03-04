@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/pagopa/emd-notifier-sender/compare/v1.2.0...v1.3.0) (2026-03-04)
+
+
+### Features
+
+* [MMC-358] Update getTppsEnabled ([#81](https://github.com/pagopa/emd-notifier-sender/issues/81)) ([2247032](https://github.com/pagopa/emd-notifier-sender/commit/2247032341b54df481c38ae3bd6a6b2c5b41bda6))
+
 ## [1.2.0](https://github.com/pagopa/emd-notifier-sender/compare/v1.1.0...v1.2.0) (2025-11-27)
 
 
