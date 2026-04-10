@@ -1,0 +1,295 @@
+openapi: 3.0.3
+info:
+  title: Specifiche Integrazione Messaggi di Cortesia (Server-to-Server)
+  version: 1.3.1
+  description: >
+    # Guida all'Integrazione
+
+
+    Questo documento descrive le specifiche tecniche per l'integrazione con
+    **Messaggi di Cortesia** (anche chiamato *EMD*).
+
+    <br>Il TPP deve esporre due endpoint:
+
+
+    1.  **Endpoint di Autenticazione (OAuth2):** Per ottenere il token.
+
+    2.  **Endpoint di Ricezione Messaggi:** Per ricevere effettivamente i
+    messaggi di cortesia.
+
+
+    ---
+
+
+    ## 1. Configurazione Dinamica dell'Autenticazione
+
+
+    Messaggi di Cortesia si adatta alla vostra implementazione. Durante
+    l'onboarding configureremo:
+
+
+    * **URL e Path dinamici:** Supporto a placeholder dinamici (es.
+    `https://login.microsoftonline.com/{tenantId}/oauth2/token`).
+
+    * **Body Parameters:** Inviamo le credenziali (es. `client_id`,
+    `client_secret`, `scope`) concordate. Supporto a parametri aggiuntivi
+
+    * **Formato Richiesta:** Il body verrà inviato come
+    **`application/x-www-form-urlencoded`** (essendo standard de-facto per
+    oauth2).
+
+    * **Risposta:** Il vostro endpoint **DEVE** restituire un JSON conforme allo
+    standard OAuth2 contenente l'`access_token`.
+
+
+
+    > **NOTA BENE:** Attualmente il servizio supporta **esclusivamente** il
+    protocollo **OAuth2**.
+
+
+    ---
+
+
+    ## 2. Ricezione del Messaggio
+
+
+    Messaggi di Cortesia utilizzerà il token per autenticare la chiamata `POST`
+    verso il vostro endpoint.
+
+
+    * **Header:** `Authorization: Bearer <access_token>`
+
+    * **Body:** Corrisponde a un JSON prestabilito (vedi schema
+    `NotificationPayload` o chiamata POST `/{message_endpoint}`).
+paths:
+  /{auth_endpoint}:
+    post:
+      summary: Richiesta Token (OAuth2)
+      description: >
+        Endpoint dinamico per l'autenticazione.<br><br> Per testare l'openapi
+        inserire la parte finale del percorso nella variabile `auth_endpoint`,
+        mentre il baseUrl impostarlo nella variabile `auth_base_url` nella
+        sezione dedicata "Servers" dedicata sotto, dopo aver cliccato "Try it
+        out".<br><br>Il path completo della request sarà la concatenazione tra
+        `auth_base_url` e `auth_endpoint`.
+      operationId: getToken
+      servers:
+        - url: '{auth_base_url}'
+          description: Server Identity Provider
+          variables:
+            auth_base_url:
+              default: https://login.microsoftonline.com/*tenantId*/oauth2/
+              description: Base URL (Dominio)
+      parameters:
+        - in: path
+          name: auth_endpoint
+          required: true
+          description: Percorso dell'endpoint (es. token). NON inserire lo slash iniziale.
+          style: simple
+          explode: false
+          allowReserved: true
+          schema:
+            type: string
+            example: token
+      requestBody:
+        description: Payload dinamico (Form Data).
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthRequestDynamic'
+      responses:
+        '200':
+          description: Autenticazione riuscita.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Credenziali non valide.
+  /{message_endpoint}:
+    post:
+      summary: Ricezione Messaggio
+      description: >
+        Endpoint dedicato alla ricezione del Messaggio di Cortesia.<br><br> Per
+        testare l'openapi inserire la parte finale del percorso nella variabile
+        `message_endpoint`, mentre il baseUrl impostarlo nella variabile
+        `message_base_url` nella sezione dedicata "Servers" dedicata sotto, dopo
+        aver cliccato "Try it out".<br><br>Il path completo della request sarà
+        la concatenazione tra `message_base_url` e `message_endpoint`.
+      operationId: receiveNotification
+      security:
+        - bearerAuth: []
+      servers:
+        - url: '{message_base_url}'
+          description: Server Applicativo
+          variables:
+            message_base_url:
+              default: https://api.tpp.it/api/v1/
+              description: Base URL dell'api di ricezione messaggi.
+      parameters:
+        - in: path
+          name: message_endpoint
+          required: true
+          description: >-
+            Percorso del webhook (es. notifiche/ricevi). NON inserire lo slash
+            iniziale.
+          style: simple
+          explode: false
+          allowReserved: true
+          schema:
+            type: string
+            example: message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPayload'
+      responses:
+        '200':
+          description: Notifica ricevuta. Il payload della risposta non viene considerato.
+        '401':
+          description: Token mancante.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AuthRequestDynamic:
+      type: object
+      description: Credenziali dinamiche.
+      additionalProperties:
+        type: string
+      example:
+        client_id: CLIENT_123
+        client_secret: SECRET_XYZ
+        grant_type: client_credentials
+    TokenResponse:
+      type: object
+      required:
+        - access_token
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          format: int64
+    NotificationPayload:
+      type: object
+      required:
+        - messageId
+        - recipientId
+        - title
+        - triggerDateTime
+        - triggerDateTimeUTC
+        - senderDescription
+        - messageUrl
+        - originId
+        - content
+        - workflowType
+      properties:
+        messageId:
+          description: ID univoco del messaggio.
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: 8a32fa8a-5036-4b39-8f2e-47d3a6d23f9e
+        recipientId:
+          description: ID del destinatario (Codice Fiscale).
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: RSSMRA85T10A562S
+        triggerDateTime:
+          description: >-
+            Data e ora in cui il soggetto che ha originato il messaggio ha
+            richiesto l'invio.
+          type: string
+          format: date-time
+          example: '2024-06-21T12:34:56'
+        triggerDateTimeUTC:
+          type: string
+          format: date-time
+          description: >-
+            Data e ora in cui il soggetto che ha originato il messaggio ha
+            richiesto l'invio (ISO 8601).
+          example: '2025-10-06T12:00:40.695Z'
+        senderDescription:
+          description: >-
+            Descrizione del soggetto che ha originato il messaggio. Supporta
+            UTF-8.
+          type: string
+          minLength: 1
+          maxLength: 250
+          example: Comune di Pontecagnano
+        messageUrl:
+          description: URL per recuperare il messaggio originale.
+          type: string
+          format: uri
+          minLength: 1
+          maxLength: 2048
+          example: https://cittadini.dev.notifichedigitali.it
+        originId:
+          description: ID del messaggio originale.
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: XRUZ-GZAJ-ZUEJ-202407-W-1
+        title:
+          description: Titolo del messaggio. Supporta UTF-8.
+          type: string
+          minLength: 1
+          maxLength: 250
+          example: Nuovo messaggio!
+        content:
+          description: >
+            Contenuto del messaggio in formato Markdown, dinamico in base a
+            workflowType (ANALOG/DIGITAL).
+
+
+            - ANALOG: include la scadenza per accedere alla notifica ed evitare
+            la consegna postale
+
+            - DIGITAL: messaggio standard senza scadenza, include informazioni
+            sulla consegna legale
+          type: string
+          minLength: 1
+          maxLength: 100000
+          example: Ciao, hai ricevuto una notifica SEND...
+        associatedPayment:
+          description: Flag che indica se è presente un pagamento associato.
+          type: boolean
+          example: true
+        analogSchedulingDate:
+          description: |
+            Data di scadenza per la deadline di 5 giorni (ISO 8601).
+            Obbligatorio solo quando workflowType è ANALOG.
+          type: string
+          format: date-time
+          example: '2024-06-26T12:34:56.000Z'
+        workflowType:
+          description: Identifica il tipo di notifica (ANALOG o DIGITAL).
+          type: string
+          enum:
+            - ANALOG
+            - DIGITAL
+          example: ANALOG
+      example:
+        messageId: 8a32fa8a-5036-4b39-8f2e-47d3a6d23f9e
+        recipientId: RSSMRA85T10A562S
+        triggerDateTime: '2024-06-21T12:34:56'
+        triggerDateTimeUTC: '2024-06-21T12:34:56.000Z'
+        senderDescription: Comune di Pontecagnano
+        messageUrl: https://cittadini.dev.notifichedigitali.it
+        originId: XRUZ-GZAJ-ZUEJ-202407-W-1
+        title: Nuovo messaggio!
+        content: Ciao, hai ricevuto una notifica SEND...
+        analogSchedulingDate: '2024-06-26T12:34:56.000Z'
+        workflowType: ANALOG
+        associatedPayment: true
