@@ -2,6 +2,7 @@ package it.gov.pagopa.notifier.service;
 
 
 import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
+import it.gov.pagopa.common.configuration.WebClientRetrySpecs;
 import it.gov.pagopa.notifier.configuration.DeleteProperties;
 import it.gov.pagopa.notifier.dto.*;
 import it.gov.pagopa.notifier.enums.MessageState;
@@ -45,8 +46,9 @@ public class NotifyServiceImpl implements NotifyService {
     public NotifyServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
                              MessageRepository messageRepository,
                              DeleteProperties deleteProperties,
-                             MessageTemplateService messageTemplateService) {
-        this.webClient = WebClient.builder().build();
+                             MessageTemplateService messageTemplateService,
+                             WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder.build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
         this.deleteProperties = deleteProperties;
