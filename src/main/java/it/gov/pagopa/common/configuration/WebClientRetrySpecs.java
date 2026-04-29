@@ -2,6 +2,7 @@ package it.gov.pagopa.common.configuration;
 
 import io.netty.channel.ConnectTimeoutException;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.util.retry.Retry;
 
 import java.net.ConnectException;
@@ -20,13 +21,27 @@ public final class WebClientRetrySpecs {
     private WebClientRetrySpecs() {}
 
     /**
-     * Permissive policy: retries on any {@link WebClientRequestException}.
-     * <strong>Use only for idempotent operations</strong> (GET, PUT, DELETE).
+     * Permissive policy for <strong>idempotent operations</strong> (GET, PUT, DELETE).
+     *
+     * <p>Retries on transport errors ({@link WebClientRequestException}) and
+     * transient HTTP gateway errors (502, 503, 504) common during AKS rolling updates.
+     * Does <em>not</em> retry 4xx or non-transient 5xx.
+     *
+     * @return a fresh {@link Retry} spec — must NOT be reused across pipelines
      */
     public static Retry transientNetwork() {
         return Retry.backoff(MAX_RETRY_ATTEMPTS, MIN_BACKOFF)
                 .jitter(JITTER)
-                .filter(ex -> ex instanceof WebClientRequestException);
+                .filter(ex -> {
+                    if (ex instanceof WebClientRequestException) {
+                        return true;
+                    }
+                    if (ex instanceof WebClientResponseException responseEx) {
+                        int status = responseEx.getStatusCode().value();
+                        return status == 502 || status == 503 || status == 504;
+                    }
+                    return false;
+                });
     }
 
     /**

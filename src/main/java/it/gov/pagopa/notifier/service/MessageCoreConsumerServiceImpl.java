@@ -87,10 +87,14 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
         }
 
         log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Processing attempt {} for message ID: {}", retry, messageId);
-        messageCoreService.processMessage(messageDTO, retry)
-                .subscribe();
-
-        return Mono.just("[NOTIFIER-ERROR-CONSUMER][EXECUTE] Processing attempt %s for message %s in progress".formatted(retry, messageId));
+        // FIX Graceful Shutdown: rimosso .subscribe() fire-and-forget.
+        // BaseKafkaConsumer attende il completamento di questo Mono<String> prima di fare il commit
+        // dell'offset Kafka. Con .subscribe() + Mono.just("in progress"), l'offset veniva committed
+        // immediatamente mentre la business logic girava in background, causando perdita di messaggi
+        // e duplicati in caso di crash/shutdown. Ora la chain è integra: il commit avviene solo
+        // dopo che processMessage() ha completato tutta la sua elaborazione.
+        return messageCoreService.processMessage(messageDTO, retry)
+                .thenReturn("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Processing attempt %s for message %s completed".formatted(retry, messageId));
     }
 
 }
