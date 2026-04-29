@@ -43,7 +43,7 @@ public class WebClientConfig {
      * connector gets its own isolated bucket of up to {@value} connections —
      * there is no contention between them.
      */
-    private static final int MAX_CONNECTIONS = 50;
+    private static final int MAX_CONNECTIONS = 300;
 
     /**
      * Maximum number of requests that may queue waiting for a connection when the
