@@ -301,6 +301,7 @@ public class NotifyServiceImpl implements NotifyService {
                 return messageRepository.save(message)
                     .doOnSuccess(saved -> log.info("[NOTIFY-SERVICE][TO-URL] DB Saved SENT. MsgId: {}", saved.getMessageId()))
                     .doOnError(e -> log.error("[NOTIFY-SERVICE][TO-URL] DB Save Failed. MsgId: {}", message.getMessageId(), e))
+                    .onErrorResume(e -> Mono.just(message))
                     .thenReturn(response);
             })
             .doOnError(error -> {
