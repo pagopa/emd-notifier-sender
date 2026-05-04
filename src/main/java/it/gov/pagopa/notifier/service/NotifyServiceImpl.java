@@ -283,6 +283,7 @@ public class NotifyServiceImpl implements NotifyService {
                     .bodyValue(jsonBody)
                     .retrieve()
                     .bodyToMono(String.class)
+                    .defaultIfEmpty("")
                     .retryWhen(WebClientRetrySpecs.connectFailureOnly());
             })
             // FIX Graceful Shutdown: sostituito doOnSuccess + subscribe() con flatMap.
