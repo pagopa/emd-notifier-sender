@@ -2,7 +2,7 @@ package it.gov.pagopa.notifier.configuration;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 @Component
 @Slf4j
