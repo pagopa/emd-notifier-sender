@@ -66,7 +66,8 @@ public class NotifyServiceImpl implements NotifyService {
    *
    * <p>Executes according to the cron expression defined in {@code delete.batchExecutionCron}.
    * Delegates to {@link #cleanupOldMessages()} e blocca il thread dello scheduler
-   * per un massimo di {@code shutdownTimeoutSeconds} secondi.</p>
+   * per un massimo della {@link Duration} configurata in {@code shutdownTimeout}
+   * (valorizzata da {@code spring.lifecycle.timeout-per-shutdown-phase}).</p>
    *
    * <p><b>FIX Graceful Shutdown:</b> invece di {@code .subscribe()} (fire-and-forget),
    * viene usato {@code .block(timeout)} sul thread dello scheduler (thread bloccante,
