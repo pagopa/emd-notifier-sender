@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
 
+import it.gov.pagopa.common.configuration.WebClientRetrySpecs;
 import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
 import it.gov.pagopa.notifier.configuration.DeleteProperties;
 import it.gov.pagopa.notifier.dto.*;
@@ -40,37 +41,45 @@ public class NotifyServiceImpl implements NotifyService {
     private final MessageRepository messageRepository;
     private final DeleteProperties deleteProperties;
 
-
+    // Reads the same property used by Spring Boot Graceful Shutdown
+    // (spring.lifecycle.timeout-per-shutdown-phase), ensuring the .block() timeout
+    // in scheduleDeletionTask() is always consistent with the actual shutdown budget.
+    @Value("${spring.lifecycle.timeout-per-shutdown-phase:30s}")
+    private Duration shutdownTimeout;
 
     public NotifyServiceImpl(NotifyErrorProducerService notifyErrorProducerService,
                              MessageRepository messageRepository,
                              DeleteProperties deleteProperties,
-                             MessageTemplateService messageTemplateService) {
-        this.webClient = WebClient.builder().build();
+                             MessageTemplateService messageTemplateService,
+                             WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder.build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
         this.deleteProperties = deleteProperties;
         this.messageTemplateService = messageTemplateService;
     }
 
-
-  /**
-   * <p>Scheduled task that triggers automatic cleanup of old messages.</p>
-   *
-   * <p>Executes according to the cron expression defined in {@code delete.batchExecutionCron}.
-   * Delegates to {@link #cleanupOldMessages()} and logs results.</p>
-   */
+    /**
+     * FIX Graceful Shutdown: invece di .subscribe() (fire-and-forget),
+     * viene usato .block(timeout) sul thread dello scheduler (thread bloccante,
+     * non su un thread Reactor non-blocking). Questo garantisce che Spring possa attendere
+     * il completamento del task durante la fase di shutdown prima di distruggere il contesto.
+     */
     @Scheduled(cron = "${delete.batchExecutionCron}")
-    public void scheduleDeletionTask(){
+    public void scheduleDeletionTask() {
         log.info("Start batch");
-        cleanupOldMessages()
-                .doOnSuccess(response -> log.info("Fine batch di eliminazione - Cancellati: {}, Rimasti: {}, Tempo: {}ms",
-                        response.getDeletedCount(), response.getRemainingCount(), response.getElapsedTime()))
-                .doOnError(error -> log.error("Errore nel batch di eliminazione: {}", error.getMessage()))
-                .subscribe();
+        try {
+            DeleteResponseDTO response = cleanupOldMessages().block(shutdownTimeout);
+            if (response != null) {
+                log.info("Fine batch di eliminazione - Cancellati: {}, Rimasti: {}, Tempo: {}ms",
+                        response.getDeletedCount(), response.getRemainingCount(), response.getElapsedTime());
+            }
+        } catch (Exception e) {
+            log.error("Errore nel batch di eliminazione: {}", e.getMessage(), e);
+        }
     }
 
-  /**
+    /**
    * <p>Cleans up old messages based on the retention period defined in configuration.</p>
    *
    * <p>Calculates the cutoff date as {@code now - retentionPeriodDays} and delegates
@@ -107,14 +116,16 @@ public class NotifyServiceImpl implements NotifyService {
       int batchSize = (deleteRequestDTO.getBatchSize() != null) ? deleteRequestDTO.getBatchSize() : deleteProperties.getBatchSize();
       int intervalMS = (deleteRequestDTO.getIntervalMs() != null) ? deleteRequestDTO.getIntervalMs() : deleteProperties.getIntervalMs();
 
-      Flux<Message> messagesToDelete;
-
       String currentDate = LocalDate.now().plusDays(1).toString();
       String initialDate = LocalDate.MIN.toString();
 
       String startDate = deleteRequestDTO.getFilterDTO().getStartDate() == null ? initialDate : deleteRequestDTO.getFilterDTO().getStartDate();
       String endDate = deleteRequestDTO.getFilterDTO().getEndDate() == null ? currentDate : deleteRequestDTO.getFilterDTO().getEndDate();
 
+      // FIX double-subscription: la versione originale subscriveva messagesToDelete due volte
+      // (hasElements() + iterazione), causando due query MongoDB separate. Con switchIfEmpty
+      // sulla Flux bufferizzata si esegue una sola query e il caso empty è gestito correttamente.
+      Flux<Message> messagesToDelete;
       if (deleteRequestDTO.getFilterDTO().getStartDate() != null || deleteRequestDTO.getFilterDTO().getEndDate() != null) {
           messagesToDelete = messageRepository.findByMessageRegistrationDateBetween(startDate, endDate);
       } else {
@@ -123,33 +134,27 @@ public class NotifyServiceImpl implements NotifyService {
 
       long startTime = System.nanoTime();
 
-      return messagesToDelete.hasElements()
-          .flatMap(messages -> {
-              if (Boolean.FALSE.equals(messages)) {
-                  log.info("[NOTIFY-SERVICE][DELETE-MESSAGES] No messages found for deletion criteria.");
-                  return Mono.error(new ClientExceptionWithBody(HttpStatus.NOT_FOUND, "MESSAGES_NOT_FOUND", "MESSAGES_NOT_FOUND"));
-              }
-
-              return messagesToDelete
-                  .buffer(batchSize)
-                  .concatMap(batch -> {
-                      log.debug("[NOTIFY-SERVICE][DELETE-MESSAGES] Processing batch of {} messages", batch.size());
-                      return Flux.fromIterable(batch)
-                          .flatMap(messageRepository::delete)
-                          .then(Mono.just(batch.size()))
-                          .delayElement(Duration.ofMillis(intervalMS));
+      return messagesToDelete
+          .buffer(batchSize)
+          .switchIfEmpty(Flux.error(new ClientExceptionWithBody(
+                  HttpStatus.NOT_FOUND, "MESSAGES_NOT_FOUND", "MESSAGES_NOT_FOUND")))
+          .concatMap(batch -> {
+              log.debug("[NOTIFY-SERVICE][DELETE-MESSAGES] Processing batch of {} messages", batch.size());
+              return Flux.fromIterable(batch)
+                  .flatMap(messageRepository::delete)
+                  .then(Mono.just(batch.size()))
+                  .delayElement(Duration.ofMillis(intervalMS));
+          })
+          .reduce(Integer::sum)
+          .flatMap(deletedCount ->
+              messageRepository.count()
+                  .map(remainingCount -> {
+                      long endTime = System.nanoTime();
+                      long elapsedTime = (endTime - startTime) / 1_000_000;
+                      log.info("[NOTIFY-SERVICE][DELETE-MESSAGES] Deletion complete. Deleted: {}, Remaining: {}, Time: {}ms", deletedCount, remainingCount, elapsedTime);
+                      return new DeleteResponseDTO(deletedCount, remainingCount.intValue(), elapsedTime);
                   })
-                  .reduce(Integer::sum)
-                  .flatMap(deletedCount ->
-                      messageRepository.count()
-                          .map(remainingCount -> {
-                              long endTime = System.nanoTime();
-                              long elapsedTime = (endTime - startTime) / 1_000_000;
-                              log.info("[NOTIFY-SERVICE][DELETE-MESSAGES] Deletion complete. Deleted: {}, Remaining: {}, Time: {}ms", deletedCount, remainingCount, elapsedTime);
-                              return new DeleteResponseDTO(deletedCount, remainingCount.intValue(), elapsedTime);
-                          })
-                  );
-          });
+          );
   }
 
 
@@ -170,7 +175,7 @@ public class NotifyServiceImpl implements NotifyService {
 
         return getToken(tppDTO, message.getMessageId(), retry)
                 .flatMap(token -> toUrl(message, tppDTO, token, retry))
-                .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(message,tppDTO,retry + 1))
+                .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(message, tppDTO, retry + 1))
                 .then();
     }
 
@@ -256,32 +261,34 @@ public class NotifyServiceImpl implements NotifyService {
                 if (log.isDebugEnabled()) {
                     log.debug("[NOTIFY-SERVICE][TO-URL] Payload MsgId {}: {}", message.getMessageId(), LogUtils.maskSensitiveData(jsonBody));
                 }
-
                 return webClient.post()
                     .uri(tppDTO.getMessageUrl())
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccessToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(jsonBody)
                     .retrieve()
-                    .bodyToMono(String.class);
+                    .bodyToMono(String.class)
+                    .defaultIfEmpty("")
+                    .retryWhen(WebClientRetrySpecs.connectFailureOnly());
             })
-            .doOnSuccess(response -> {
+            // FIX Graceful Shutdown: sostituito doOnSuccess + subscribe() con flatMap.
+            // doOnSuccess è un operatore di side-effect: non attende il completamento del publisher interno.
+            // Il .subscribe() annidato creava un'operazione fire-and-forget non tracciata da Spring.
+            // Con flatMap, il salvataggio su DB è concatenato nella reactive chain principale.
+            .flatMap(response -> {
                 log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent. TPP responded.", message.getMessageId());
-
                 if (log.isDebugEnabled()) {
                     log.debug("[NOTIFY-SERVICE][TO-URL] Response MsgId {}: {}", message.getMessageId(), LogUtils.maskSensitiveData(response));
                 }
-
                 message.setMessageState(MessageState.SENT);
-                messageRepository.save(message)
+                return messageRepository.save(message)
                     .doOnSuccess(saved -> log.info("[NOTIFY-SERVICE][TO-URL] DB Saved SENT. MsgId: {}", saved.getMessageId()))
                     .doOnError(e -> log.error("[NOTIFY-SERVICE][TO-URL] DB Save Failed. MsgId: {}", message.getMessageId(), e))
-                    .subscribe();
+                    .onErrorResume(e -> Mono.just(message))
+                    .thenReturn(response);
             })
-            .doOnError(error -> {
-                log.error("[NOTIFY-SERVICE][TO-URL] Failed MsgId: {} -> Tpp: {}. Reason: {}",
-                    message.getMessageId(), tppDTO.getEntityId(), error.getMessage(), error);
-            });
+            .doOnError(error -> log.error("[NOTIFY-SERVICE][TO-URL] Failed MsgId: {} -> Tpp: {}. Reason: {}",
+                message.getMessageId(), tppDTO.getEntityId(), error.getMessage(), error));
     }
 
 }
