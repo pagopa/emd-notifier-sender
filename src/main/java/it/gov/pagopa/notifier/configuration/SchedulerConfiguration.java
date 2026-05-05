@@ -1,27 +1,23 @@
 package it.gov.pagopa.notifier.configuration;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
 /**
- * Configuration class for scheduled task execution.
- * Provides a thread pool for managing scheduled operations.
+ * Classe rimossa: il ScheduledExecutorService è stato eliminato.
+ *
+ * <p>Il delay di 5 secondi tra un retry Kafka e il successivo viveva in un
+ * {@code ScheduledExecutorService} non gestito da Spring, causando due problemi critici:</p>
+ * <ol>
+ *   <li>Il {@code Mono.fromRunnable()} che wrappava {@code scheduler.schedule(...)} completava
+ *       immediatamente (task <em>sottomesso</em>), non quando la publish Kafka avveniva realmente
+ *       (5 secondi dopo). Di conseguenza {@code BaseKafkaConsumer} committava l'offset Kafka
+ *       prima che il messaggio fosse effettivamente inviato → perdita di messaggi a ogni pod restart.</li>
+ *   <li>Spring non era a conoscenza dei task in volo su questo executor durante lo shutdown,
+ *       quindi li abortiva silenziosamente prima del completamento.</li>
+ * </ol>
+ *
+ * <p>Il delay è stato spostato dentro la reactive chain con {@code Mono.delay(Duration.ofSeconds(5))}
+ * in {@code MessageCoreProducerServiceImpl} e {@code NotifyErrorProducerServiceImpl},
+ * garantendo che l'offset Kafka venga committato solo dopo la pubblicazione effettiva del messaggio.</p>
  */
-@Configuration
-public class SchedulerConfiguration {
-
-    /**
-     * Creates a ScheduledExecutorService with a fixed thread pool.
-     * The pool is configured with 3 threads to handle concurrent scheduled tasks.
-     *
-     * @return a ScheduledExecutorService instance with 3 threads
-     */
-    @Bean
-    public ScheduledExecutorService scheduler(){
-        return  Executors.newScheduledThreadPool(3);
-    }
-
+public final class SchedulerConfiguration {
+    private SchedulerConfiguration() {}
 }

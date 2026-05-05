@@ -88,10 +88,14 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
         }
 
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Attempting to send message ID: {} to TPP: {} at retry attempt: {}", notificationId, entityId, retry);
-        sendMessageService.sendNotify(notification, tppDTO, retry)
-                .subscribe();
-
-        return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Processing attempt for message %s to TPP %s in progress".formatted(notificationId, entityId));
+        // FIX Graceful Shutdown: rimosso .subscribe() fire-and-forget.
+        // BaseKafkaConsumer attende il completamento di questo Mono<String> prima di fare il commit
+        // dell'offset Kafka. Con .subscribe() + Mono.just("in progress"), l'offset veniva committed
+        // immediatamente mentre la business logic girava in background, causando perdita di messaggi
+        // e duplicati in caso di crash/shutdown. Ora la chain è integra: il commit avviene solo
+        // dopo che sendNotify() ha completato tutta la sua elaborazione.
+        return sendMessageService.sendNotify(notification, tppDTO, retry)
+                .thenReturn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Processing attempt for message %s to TPP %s completed".formatted(notificationId, entityId));
     }
 
 }

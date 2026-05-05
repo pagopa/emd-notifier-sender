@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.connector.citizen;
 
-
+import it.gov.pagopa.common.configuration.WebClientRetrySpecs;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -9,31 +10,35 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-/**
- * <p>Implementation of {@link CitizenConnector}.</p>
- *
- * <p>Uses {@link WebClient} to perform HTTP calls to the emd-citizen service.</p>
- */
 @Service
+@Slf4j
 public class CitizenConnectorImpl implements CitizenConnector {
 
     private final WebClient webClient;
-    public CitizenConnectorImpl( @Value("${rest-client.citizen.baseUrl}") String baseUrl) {
-        this.webClient = WebClient.builder().baseUrl(baseUrl).build();
 
+    /**
+     * @param webClientBuilder pre-configured builder from {@code WebClientConfig}
+     * @param baseUrl          base URL of the emd-citizen service
+     */
+    public CitizenConnectorImpl(WebClient.Builder webClientBuilder,
+                                @Value("${rest-client.citizen.baseUrl}") String baseUrl) {
+        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
     }
 
     /**
      * {@inheritDoc}
      *
-     * @param fiscalCode the citizen's fiscal code
-     * @return {@code Mono<List<String>>} list of enabled TPP IDs from emd-citizen service
+     * <p>Idempotent GET → permissive retry on any transient network error.
      */
+    @Override
     public Mono<List<String>> getCitizenConsentsEnabled(String fiscalCode) {
         return webClient.get()
-                .uri("/emd/citizen/list/{fiscalCode}/enabled/tpp",fiscalCode)
+                .uri("/emd/citizen/list/{fiscalCode}/enabled/tpp", fiscalCode)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<>() {
-                });
+                .bodyToMono(new ParameterizedTypeReference<List<String>>() {})
+                .retryWhen(WebClientRetrySpecs.transientNetwork())
+                .doOnError(ex -> log.error(
+                        "[CITIZEN-CONNECTOR] GET /emd/citizen/list/{{fiscalCode}}/enabled/tpp failed: {}",
+                        ex.getMessage()));
     }
 }

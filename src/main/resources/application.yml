@@ -20,7 +20,7 @@ spring:
           maxWaitTimeMS: ${MONGODB_CONNECTIONPOOL_MAX_WAIT_MS:120000}
           maxConnectionLifeTimeMS: ${MONGODB_CONNECTIONPOOL_MAX_CONNECTION_LIFE_MS:0}
           maxConnectionIdleTimeMS: ${MONGODB_CONNECTIONPOOL_MAX_CONNECTION_IDLE_MS:120000}
-          maxConnecting: ${MONGODB_CONNECTIONPOOL_MAX_CONNECTING:2}
+          maxConnecting: ${MONGODB_CONNECTIONPOOL_MAX_CONNECTING:8}
 
   cloud:
     function:
@@ -79,7 +79,7 @@ spring:
           auto-create-topics: false
           configuration:
             heartbeat.interval.ms: ${KAFKA_CONFIG_HEARTBEAT_INTERVAL_MS:3000}
-            session.timeout.ms: ${KAFKA_CONFIG_SESSION_TIMEOUT_MS:30000}
+            session.timeout.ms: ${KAFKA_CONFIG_SESSION_TIMEOUT_MS:15000}
             request.timeout.ms: ${KAFKA_CONFIG_REQUEST_TIMEOUT_MS:60000}
             metadata.max.age.ms: ${KAFKA_CONFIG_METADATA_MAX_AGE:180000}
             sasl.mechanism: ${KAFKA_CONFIG_SASL_MECHANISM:PLAIN}
@@ -111,7 +111,7 @@ spring:
               standardHeaders: ${KAFKA_COMMANDS_STANDARD_HEADERS:${KAFKA_CONSUMER_CONFIG_STANDARD_HEADERS:both}}
               configuration:
                 max.poll:
-                  records: ${KAFKA_COMMANDS_MAX_POLL_SIZE:${KAFKA_CONSUMER_CONFIG_MAX_POLL_SIZE:500}}
+                  records: ${KAFKA_COMMANDS_MAX_POLL_SIZE:${KAFKA_CONSUMER_CONFIG_MAX_POLL_SIZE:50}}
                   interval.ms: ${KAFKA_COMMANDS_INTERVAL_TIMEOUT_MS:${KAFKA_CONFIG_MAX_POLL_INTERVAL_TIMEOUT_MS:300000}}
                 connections.max.idle.ms: ${KAFKA_COMMANDS_REQUEST_CONNECTIONS_MAX_IDLE_MS:${KAFKA_CONSUMER_CONFIG_CONNECTIONS_MAX_IDLE_MS:180000}}
                 socket.connection.setup.timeout:
@@ -126,7 +126,7 @@ spring:
               standardHeaders: ${KAFKA_COMMANDS_STANDARD_HEADERS:${KAFKA_CONSUMER_CONFIG_STANDARD_HEADERS:both}}
               configuration:
                 max.poll:
-                  records: ${KAFKA_COMMANDS_MAX_POLL_SIZE:${KAFKA_CONSUMER_CONFIG_MAX_POLL_SIZE:500}}
+                  records: ${KAFKA_COMMANDS_MAX_POLL_SIZE:${KAFKA_CONSUMER_CONFIG_MAX_POLL_SIZE:50}}
                   interval.ms: ${KAFKA_COMMANDS_INTERVAL_TIMEOUT_MS:${KAFKA_CONFIG_MAX_POLL_INTERVAL_TIMEOUT_MS:300000}}
                 connections.max.idle.ms: ${KAFKA_COMMANDS_REQUEST_CONNECTIONS_MAX_IDLE_MS:${KAFKA_CONSUMER_CONFIG_CONNECTIONS_MAX_IDLE_MS:180000}}
                 socket.connection.setup.timeout:

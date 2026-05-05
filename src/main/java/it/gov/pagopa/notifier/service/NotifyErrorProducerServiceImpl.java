@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+
+import java.time.Duration;
 
 import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
 
@@ -62,10 +65,17 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
 
         log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Enqueuing message ID: {} for TPP: {} with retry attempt: {}", messageId, entityId, retry);
 
-        return Mono.fromRunnable(() -> {
-            log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageId, entityId, retry);
-            notifyErrorProducer.scheduleMessage(createMessage(message, tppDTO, retry));
-        });
+        // Il delay di 5s vive DENTRO la reactive chain: BaseKafkaConsumer attende il completamento
+        // di questo Mono prima di committare l'offset Kafka, garantendo che il messaggio
+        // sia effettivamente pubblicato su Kafka prima che l'offset venga committed.
+        // subscribeOn(boundedElastic) è necessario perché streamBridge.send() è bloccante.
+        return Mono.delay(Duration.ofSeconds(5))
+                .publishOn(Schedulers.boundedElastic())
+                .flatMap(tick -> Mono.fromRunnable(() -> {
+                    log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageId, entityId, retry);
+                    notifyErrorProducer.scheduleMessage(createMessage(message, tppDTO, retry));
+                }))
+                .then(Mono.just("enqueued"));
     }
 
     /**
