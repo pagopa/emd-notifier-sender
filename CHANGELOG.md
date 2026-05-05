@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.1](https://github.com/pagopa/emd-notifier-sender/compare/v1.3.0...v1.3.1) (2026-05-05)
+
+
+### Bug Fixes
+
+* [MMC-525] configure Netty WebClient connection pool ([8085b90](https://github.com/pagopa/emd-notifier-sender/commit/8085b90b089b83bc7f6bb9dae81e27f72c76a809))
+
+
+### Documentation
+
+* add third-party message receiver OpenAPI spec ([0f08f49](https://github.com/pagopa/emd-notifier-sender/commit/0f08f49710e0f285ed4b0a8522da13a363233d4a))
+
 ## [1.3.0](https://github.com/pagopa/emd-notifier-sender/compare/v1.2.0...v1.3.0) (2026-03-04)
 
 
