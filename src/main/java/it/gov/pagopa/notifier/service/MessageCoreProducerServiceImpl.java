@@ -65,7 +65,8 @@ public class MessageCoreProducerServiceImpl implements MessageCoreProducerServic
         // Il delay di 5s vive DENTRO la reactive chain: BaseKafkaConsumer attende il completamento
         // di questo Mono prima di committare l'offset Kafka, garantendo che il messaggio
         // sia effettivamente pubblicato su Kafka prima che l'offset venga committed.
-        // subscribeOn(boundedElastic) è necessario perché streamBridge.send() è bloccante.
+        // publishOn(Schedulers.boundedElastic()) sposta le operazioni downstream su un
+        // thread adatto a chiamate bloccanti come streamBridge.send().
         return Mono.delay(Duration.ofSeconds(5))
                 .publishOn(Schedulers.boundedElastic())
                 .flatMap(tick -> Mono.fromRunnable(() -> {
