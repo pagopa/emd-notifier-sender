@@ -1,3 +1,5 @@
+package it.gov.pagopa.notifier.configuration;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import javax.annotation.PreDestroy;
@@ -10,7 +12,7 @@ public class TacticalShutdownBlocker {
     public void blockShutdown() {
         log.warn("[TACTICAL-SHUTDOWN] SIGTERM ricevuto. Metto in pausa lo spegnimento di Spring per 20 secondi per far finire le catene WebFlux staccate...");
         try {
-            // Blocca la chiusura del context di Spring, dando tempo ai thread 
+            // Blocca la chiusura del context di Spring, dando tempo ai thread
             // in background (Netty/Reactor) di svuotare il batch Kafka in corso.
             Thread.sleep(20000);
         } catch (InterruptedException e) {
