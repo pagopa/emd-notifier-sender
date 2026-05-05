@@ -59,7 +59,8 @@ class NotifyServiceImplTest {
             errorProducerService,
             messageRepository,
             deleteProperties,
-            messageTemplateService
+            messageTemplateService,
+            WebClient.builder()
         );
     }
 
