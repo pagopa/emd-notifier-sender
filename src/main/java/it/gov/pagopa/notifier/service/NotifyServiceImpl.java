@@ -283,6 +283,18 @@ public class NotifyServiceImpl implements NotifyService {
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(jsonBody)
                     .retrieve()
+                    .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(), clientResponse -> 
+                        clientResponse.bodyToMono(String.class)
+                            .defaultIfEmpty("Nessun corpo del messaggio di errore fornito")
+                            .flatMap(errorBody -> {
+                                // Log the error response body for debugging purposes
+                                log.error("[NOTIFY-SERVICE][TO-URL] TPP ERROR Response | MsgId: {} | Status: {} | Body: {}", 
+                                    message.getMessageId(), clientResponse.statusCode(), errorBody);
+                                
+                                // Propagate the error with the response body included for better error handling upstream
+                                return Mono.error(new RuntimeException("TPP Server Error: " + errorBody));
+                            })
+                    )
                     .bodyToMono(String.class)
                     .defaultIfEmpty("")
                     .retryWhen(WebClientRetrySpecs.connectFailureOnly());
