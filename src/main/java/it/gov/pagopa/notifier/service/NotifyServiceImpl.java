@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -283,17 +284,11 @@ public class NotifyServiceImpl implements NotifyService {
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(jsonBody)
                     .retrieve()
-                    .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(), clientResponse -> 
-                        clientResponse.bodyToMono(String.class)
-                            .defaultIfEmpty("Nessun corpo del messaggio di errore fornito")
-                            .flatMap(errorBody -> {
-                                // Log the error response body for debugging purposes
-                                log.error("[NOTIFY-SERVICE][TO-URL] TPP ERROR Response | MsgId: {} | Status: {} | Body: {}", 
-                                    message.getMessageId(), clientResponse.statusCode(), errorBody);
-                                
-                                // Propagate the error with the response body included for better error handling upstream
-                                return Mono.error(new RuntimeException("TPP Server Error: " + errorBody));
-                            })
+                    .onStatus(HttpStatusCode::isError, response -> 
+                        // Extract error body for better diagnostics, but default to a generic message if body is empty
+                        response.bodyToMono(String.class)
+                            .defaultIfEmpty("No error body provided by TPP")
+                            .flatMap(errorBody -> Mono.error(new RuntimeException("TPP Server Error: " + errorBody)))
                     )
                     .bodyToMono(String.class)
                     .defaultIfEmpty("")
