@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -311,8 +313,13 @@ public class NotifyServiceImpl implements NotifyService {
                     .thenReturn(response);
             })
             .doOnError(error -> {
+                String detail = error.getMessage();
+                // If the error is a WebClientResponseException, include the response body in the log for better diagnostics.
+                if (error instanceof WebClientResponseException ex) {
+                    detail += " | Body: " + ex.getResponseBodyAsString();
+                }
                 log.error("[NOTIFY-SERVICE][TO-URL] Failed MsgId: {} -> Tpp: {}. Reason: {}",
-                    message.getMessageId(), tppDTO.getEntityId(), error.getMessage(), error);
+                    message.getMessageId(), tppDTO.getEntityId(), detail, error);
             });
     }
 
