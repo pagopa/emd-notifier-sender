@@ -285,10 +285,7 @@ public class NotifyServiceImpl implements NotifyService {
                     .bodyValue(jsonBody)
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, response -> 
-                        // Extract error body for better diagnostics, but default to a generic message if body is empty
-                        response.bodyToMono(String.class)
-                            .defaultIfEmpty("No error body provided by TPP")
-                            .flatMap(errorBody -> Mono.error(new RuntimeException("TPP Server Error: " + errorBody)))
+                        response.createException().flatMap(Mono::error)
                     )
                     .bodyToMono(String.class)
                     .defaultIfEmpty("")
