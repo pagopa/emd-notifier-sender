@@ -1,0 +1,103 @@
+name: PR Pipeline
+
+# Single orchestrator for the PR chain:
+#   detect-changes → depcheck (pom.xml only) → ┬─ ci-tests (always) → snapshot-docker
+#                                              ├─ code-review (SonarCloud)
+#                                              └─ security-scan (Trivy)
+#
+# Rules:
+#   - depcheck runs ONLY if pom.xml changed, otherwise it is SKIPPED.
+#   - ci-tests, code-review and security-scan run on EVERY PR push, as long as
+#     depcheck did NOT fail (they run whether depcheck succeeded OR was skipped).
+#   - snapshot-docker runs ONLY if ci-tests did NOT fail (success).
+#
+# All steps are reusable workflows (on: workflow_call), appear as native PR status
+# checks, and run against the PR head commit (post-depcheck).
+# On main/release-* and on schedule, code-review and security-scan keep their own
+# standalone triggers (push / schedule / workflow_dispatch).
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# Cancel superseded runs for the same PR when a new commit is pushed.
+concurrency:
+  group: pr-pipeline-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write        # depcheck may commit dep-sha256.json
+  packages: write        # snapshot-docker pushes to GHCR
+  pull-requests: read
+  security-events: write # security-scan uploads Trivy SARIF
+  actions: read          # security-scan SARIF upload on private repos
+
+jobs:
+  # 1) Decide whether pom.xml changed in this PR.
+  detect-changes:
+    name: 🔎 Detect pom.xml change
+    runs-on: ubuntu-22.04
+    outputs:
+      pom: ${{ steps.filter.outputs.pom }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+
+      - name: Detect pom.xml diff
+        id: filter
+        run: |
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          if git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- pom.xml | grep -q .; then
+            echo "pom=true"  >> "$GITHUB_OUTPUT"
+            echo "📦 pom.xml changed → depcheck will run."
+          else
+            echo "pom=false" >> "$GITHUB_OUTPUT"
+            echo "⏭️  pom.xml unchanged → depcheck will be skipped."
+          fi
+
+  # 2) Regenerate dep-sha256.json — only if pom.xml changed.
+  depcheck:
+    name: 🔄 Depcheck
+    needs: detect-changes
+    if: needs.detect-changes.outputs.pom == 'true'
+    uses: ./.github/workflows/dependabot-depcheck.yml
+    secrets: inherit
+
+  # 3) Tests — always run, unless depcheck FAILED (skipped depcheck is fine).
+  ci-tests:
+    name: 🧪 CI - Tests
+    needs: [detect-changes, depcheck]
+    if: ${{ !failure() && !cancelled() }}
+    uses: ./.github/workflows/ci-tests.yml
+    secrets: inherit
+
+  # 3b) SonarCloud — runs after depcheck (success or skipped), in parallel with tests.
+  code-review:
+    name: 🔍 SonarCloud Analysis
+    needs: [detect-changes, depcheck]
+    if: ${{ !failure() && !cancelled() }}
+    uses: ./.github/workflows/code-review.yml
+    secrets: inherit
+
+  # 3c) Container scan — runs after depcheck (success or skipped), in parallel with tests.
+  # disabled for security reasons
+#  security-scan:
+#    name: 🛡️ Container Scan
+#    needs: [detect-changes, depcheck]
+#    if: ${{ !failure() && !cancelled() }}
+#    uses: ./.github/workflows/security-scan.yml
+#    secrets: inherit
+
+  # 4) Snapshot — only if ci-tests succeeded. Skipped on fork PRs (no push token).
+  snapshot-docker:
+    name: 📦 Snapshot Docker
+    needs: ci-tests
+    if: >-
+      !failure() && !cancelled() &&
+      needs.ci-tests.result == 'success' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    uses: ./.github/workflows/snapshot-docker.yml
+    secrets: inherit
+
