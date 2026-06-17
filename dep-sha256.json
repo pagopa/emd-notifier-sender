@@ -1170,11 +1170,11 @@
       "sha256": "z1Klt4orH8RwT0ZbnbCvJetJAdKC-twUcDBFTH4hKN8="
     },
     {
-      "id": "org.springframework.security:spring-security-crypto:jar:6.3.8",
+      "id": "org.springframework.security:spring-security-crypto:jar:7.1.0",
       "artifactId": "spring-security-crypto",
       "groupId": "org.springframework.security",
-      "version": "6.3.8",
-      "sha256": "o4RIxarBYd7iiIf71ZthftNXe4smxxAJbJbgd5nwEVY="
+      "version": "7.1.0",
+      "sha256": "b2lXVIooRRcS5TuUo-dwV3NbL87ATJnKbdVVtXRFOpg="
     },
     {
       "id": "io.github.openfeign:feign-core:jar:13.2.1",
