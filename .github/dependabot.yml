@@ -5,13 +5,23 @@ registries:
     type: maven-repository
     url: https://maven.pkg.github.com/pagopa
     username: "mil-github-bot"
-    password: ${{secrets.MIL_BOT_TOKEN}}
-
-
+    password: "${{ secrets.MIL_BOT_TOKEN }}"
 
 updates:
   - package-ecosystem: "maven"
     directory: "/"
-    registries: "*"
+    registries:
+      - github-pagopa
     schedule:
-      interval: "monthly"
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "fix"
+      include: "scope"
+    groups:
+      non-major-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
