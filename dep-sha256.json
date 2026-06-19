@@ -792,11 +792,11 @@
       "sha256": "PPbNaJLjLitMHDng9S9SSKL1s3ZG_fu3mma0a2GEFO0="
     },
     {
-      "id": "org.projectlombok:lombok:jar:1.18.30",
+      "id": "org.projectlombok:lombok:jar:1.18.46",
       "artifactId": "lombok",
       "groupId": "org.projectlombok",
-      "version": "1.18.30",
-      "sha256": "FBUbR1gtVwtN4WoUfs4729GazkruW946VXjIfbnsuZg="
+      "version": "1.18.46",
+      "sha256": "AfexoBXjPiti1fXzcFMwY1erFBX9GB_Lp3lPXRmMESY="
     },
     {
       "id": "org.apache.httpcomponents.client5:httpclient5:jar:5.3.1",
@@ -869,18 +869,18 @@
       "sha256": "AbF21xihaSY-eCkGkfxHmXcYa8xrMzSHMlCE1lhvRic="
     },
     {
-      "id": "net.minidev:json-smart:jar:2.5.2",
+      "id": "net.minidev:json-smart:jar:2.6.0",
       "artifactId": "json-smart",
       "groupId": "net.minidev",
-      "version": "2.5.2",
-      "sha256": "T73tsBBc7cf3ZrlcKX0uiPtqVg2kjzu6oMxTjqi3v3E="
+      "version": "2.6.0",
+      "sha256": "GuS1YUWK-1QL6OxcbbtPLnFaMZp65khUmYqvkkdw1hs="
     },
     {
-      "id": "net.minidev:accessors-smart:jar:2.5.2",
+      "id": "net.minidev:accessors-smart:jar:2.6.0",
       "artifactId": "accessors-smart",
       "groupId": "net.minidev",
-      "version": "2.5.2",
-      "sha256": "m4p7xDhh1hVsAhFm2UH7fd2-RGPi-l7ogHfksBRSqDY="
+      "version": "2.6.0",
+      "sha256": "IiyfVHuyCpn8SGQDo5g1LRMG-2cbOKvX7KtkAd8XDmE="
     },
     {
       "id": "org.ow2.asm:asm:jar:9.7.1",
@@ -1016,11 +1016,11 @@
       "sha256": "BqWoDpNTOTwiuyscRHT-iAHYW42BcQU9XbkItudXmgE="
     },
     {
-      "id": "org.xmlunit:xmlunit-core:jar:2.10.0",
+      "id": "org.xmlunit:xmlunit-core:jar:2.12.0",
       "artifactId": "xmlunit-core",
       "groupId": "org.xmlunit",
-      "version": "2.10.0",
-      "sha256": "P4mwpinT2cymbhX43eXglHhS-kQXK8d-om7fluPk_Pg="
+      "version": "2.12.0",
+      "sha256": "sml-UuOoJOCHSzaYsMT2dsc2MBvCjoKFtnq1OFYE1P4="
     },
     {
       "id": "io.projectreactor:reactor-test:jar:3.6.9",
@@ -1191,18 +1191,18 @@
       "sha256": "0EaW5-tUFZc7kYmKoaateHf2SK8Qj0h_6XldfDT5rRM="
     },
     {
-      "id": "org.testcontainers:junit-jupiter:jar:1.21.3",
+      "id": "org.testcontainers:junit-jupiter:jar:1.21.4",
       "artifactId": "junit-jupiter",
       "groupId": "org.testcontainers",
-      "version": "1.21.3",
-      "sha256": "Q2Mqrndt7Otwf-WlziVpGOvxLCKC8W3VEM1TVzVszdA="
+      "version": "1.21.4",
+      "sha256": "kt8qb9Z8MKy1s1IRGFWAM_cRx5c_q19FlyEf8_0T9BY="
     },
     {
-      "id": "org.testcontainers:testcontainers:jar:1.21.3",
+      "id": "org.testcontainers:testcontainers:jar:1.21.4",
       "artifactId": "testcontainers",
       "groupId": "org.testcontainers",
-      "version": "1.21.3",
-      "sha256": "75NN2sb0J1nXHDA6KERUSlbPOBszQ3FJlV09jJkr7F0="
+      "version": "1.21.4",
+      "sha256": "6oGpyjN7uufug_NyuS1VFAx6uXa85z_xt58t0VHKlhA="
     },
     {
       "id": "org.apache.commons:commons-compress:jar:1.24.0",
@@ -1247,25 +1247,25 @@
       "sha256": "ZtT4GaBipRodVie__CP6xV0Wd_Dgof66FEqr3WcKZLs="
     },
     {
-      "id": "org.testcontainers:mongodb:jar:1.21.3",
+      "id": "org.testcontainers:mongodb:jar:1.21.4",
       "artifactId": "mongodb",
       "groupId": "org.testcontainers",
-      "version": "1.21.3",
-      "sha256": "lXk-RQKuDz7fvf3BuhCdstUFGQTOtCy3MOwSRWOwMhY="
+      "version": "1.21.4",
+      "sha256": "JSZwaFzR99i9xAbIbjAqpl9Pp8DG3nCoe0ZMwROCSJ4="
     },
     {
-      "id": "org.testcontainers:kafka:jar:1.21.3",
+      "id": "org.testcontainers:kafka:jar:1.21.4",
       "artifactId": "kafka",
       "groupId": "org.testcontainers",
-      "version": "1.21.3",
-      "sha256": "QUSvTudIHr8lySTYMVRQ9xflH_BPuXG2USF41WbyWBw="
+      "version": "1.21.4",
+      "sha256": "24kdiGpYCRqEM7yiJ3HK2O8O1IoTpU6nhXLP9OllRXk="
     },
     {
-      "id": "org.testcontainers:mockserver:jar:1.21.3",
+      "id": "org.testcontainers:mockserver:jar:1.21.4",
       "artifactId": "mockserver",
       "groupId": "org.testcontainers",
-      "version": "1.21.3",
-      "sha256": "r8P461k6AdFYNqmIQtbaZ4eHkgjLHSKmaf8oeO3V9kg="
+      "version": "1.21.4",
+      "sha256": "ooQffPgRnBkw9AkWAZ4Y1_cE4f2KWui4Ay1elM_9xD8="
     },
     {
       "id": "org.mock-server:mockserver-client-java:jar:5.15.0",
@@ -1338,11 +1338,11 @@
       "sha256": "Bp8UUHZ2KCqMS4cbJzMqpEkcFjOewOhvTYbUWpU7UfU="
     },
     {
-      "id": "io.netty:netty-handler:jar:4.1.118.Final",
+      "id": "io.netty:netty-handler:jar:4.2.15.Final",
       "artifactId": "netty-handler",
       "groupId": "io.netty",
-      "version": "4.1.118.Final",
-      "sha256": "JuP4pehZ_WLPPBPcbXXk4Yh58ACl0K1_WPhnlnXSPa4="
+      "version": "4.2.15.Final",
+      "sha256": "mbWeS-pyIg0q7VLfi6832XQxsGreCxNSJs33MWiXXqs="
     },
     {
       "id": "io.netty:netty-resolver:jar:4.1.112.Final",
@@ -1357,6 +1357,13 @@
       "groupId": "io.netty",
       "version": "4.1.112.Final",
       "sha256": "55zOobh6Y0jU69Pfs3oszNm3y2XDN19szawIbHtc5Ic="
+    },
+    {
+      "id": "io.netty:netty-codec-base:jar:4.2.15.Final",
+      "artifactId": "netty-codec-base",
+      "groupId": "io.netty",
+      "version": "4.2.15.Final",
+      "sha256": "LG051ycGKLjPwxZvvXqT1ZWVjlnEYbwy3bODyMkb-BE="
     },
     {
       "id": "io.netty:netty-handler-proxy:jar:4.1.112.Final",
@@ -1779,11 +1786,11 @@
       "sha256": "H-OrnCfYNVl-031hZ8m7zLksLT0Buhr-7Cqta0Ny0-g="
     },
     {
-      "id": "commons-io:commons-io:jar:2.14.0",
+      "id": "commons-io:commons-io:jar:2.22.0",
       "artifactId": "commons-io",
       "groupId": "commons-io",
-      "version": "2.14.0",
-      "sha256": "410d9yMlaO1Lgdmp7ZSgFZs_9s8ZFcwh7vXLVdexV6I="
+      "version": "2.22.0",
+      "sha256": "K5p7H3JvuGIW29LIMh6r4CIdvVsb6BwY4ctTgRsQR1g="
     },
     {
       "id": "org.apache.commons:commons-text:jar:1.10.0",
