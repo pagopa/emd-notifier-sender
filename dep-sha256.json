@@ -491,74 +491,53 @@
       "sha256": "Dz8YV-0zEWWD9IC031wCGINsR7-8nGIhwNc_NW3s83s="
     },
     {
-      "id": "com.azure.spring:spring-cloud-azure-starter-data-cosmos:jar:5.16.0",
+      "id": "com.azure.spring:spring-cloud-azure-starter-data-cosmos:jar:7.3.0",
       "artifactId": "spring-cloud-azure-starter-data-cosmos",
       "groupId": "com.azure.spring",
-      "version": "5.16.0",
-      "sha256": "mxMJQQ1p3o61ffEm3Eww8dqQlTAP2UabTBjeq0Gvnm4="
+      "version": "7.3.0",
+      "sha256": "IOB3zloQ1CoGY88rKJ4NNQOJ3PcysL1EAKiuluk9788="
     },
     {
-      "id": "com.azure.spring:spring-cloud-azure-starter:jar:5.16.0",
+      "id": "com.azure.spring:spring-cloud-azure-starter:jar:7.3.0",
       "artifactId": "spring-cloud-azure-starter",
       "groupId": "com.azure.spring",
-      "version": "5.16.0",
-      "sha256": "JMEEcj2hU-BlyHmKVYrhaXDv1klgtT0gkhRuMQKzIAs="
+      "version": "7.3.0",
+      "sha256": "cadbjAIAbEs31Mlw_Z8rPSZRJTFrxWMWpPkIJ_5nJ7A="
     },
     {
-      "id": "com.azure.spring:spring-cloud-azure-autoconfigure:jar:5.16.0",
+      "id": "com.azure.spring:spring-cloud-azure-autoconfigure:jar:7.3.0",
       "artifactId": "spring-cloud-azure-autoconfigure",
       "groupId": "com.azure.spring",
-      "version": "5.16.0",
-      "sha256": "XEyQW5Q4Ptg2dw5JCtXVoytnCBHrQXL0DsI5j2ylzK4="
+      "version": "7.3.0",
+      "sha256": "FUvqj7BL2m1w6hp80w2v4Q7G_7q6vVxOwWgjAA1ZqgI="
     },
     {
-      "id": "com.azure.spring:spring-cloud-azure-service:jar:5.16.0",
+      "id": "com.azure.spring:spring-cloud-azure-service:jar:7.3.0",
       "artifactId": "spring-cloud-azure-service",
       "groupId": "com.azure.spring",
-      "version": "5.16.0",
-      "sha256": "eekOG3mrsYC17kp-u3FfFObbQW92tEX0GINlk02eE9Q="
+      "version": "7.3.0",
+      "sha256": "dSkZTvDR7fd0eZwgbfNMB8PSbLvwt_7GMW4utkazatI="
     },
     {
-      "id": "com.azure.spring:spring-cloud-azure-core:jar:5.16.0",
+      "id": "com.azure.spring:spring-cloud-azure-core:jar:7.3.0",
       "artifactId": "spring-cloud-azure-core",
       "groupId": "com.azure.spring",
-      "version": "5.16.0",
-      "sha256": "6RUGPRBqN_6fkpon931FH49q14-yoaf51wXtjd7Nloc="
+      "version": "7.3.0",
+      "sha256": "AgDEsQ8V0r-NgNY2Ctphda-S7trN1kb1ONSZR45KwDc="
     },
     {
-      "id": "com.azure:azure-identity:jar:1.13.2",
+      "id": "com.azure:azure-identity:jar:1.18.3",
       "artifactId": "azure-identity",
       "groupId": "com.azure",
-      "version": "1.13.2",
-      "sha256": "8A68OLHc91o1EpuLCtQ0UUyE_TEMevrxKCS9BOWQ8kM="
+      "version": "1.18.3",
+      "sha256": "iKWBuYzXwMfv0jqXfpuswcoZTNtFhnrrBjNyhEnlqJg="
     },
     {
-      "id": "com.microsoft.azure:msal4j:jar:1.16.2",
+      "id": "com.microsoft.azure:msal4j:jar:1.23.1",
       "artifactId": "msal4j",
       "groupId": "com.microsoft.azure",
-      "version": "1.16.2",
-      "sha256": "I0eOo3JTBFxYuLgDZ6ibSMvyvT4-9Dwt3T59lrhT70M="
-    },
-    {
-      "id": "com.nimbusds:oauth2-oidc-sdk:jar:11.9.1",
-      "artifactId": "oauth2-oidc-sdk",
-      "groupId": "com.nimbusds",
-      "version": "11.9.1",
-      "sha256": "CCDJaQlmME0HU0e4joGuSQITRA_E0shPPTcNQZQbK5w="
-    },
-    {
-      "id": "com.nimbusds:content-type:jar:2.3",
-      "artifactId": "content-type",
-      "groupId": "com.nimbusds",
-      "version": "2.3",
-      "sha256": "YDSXk-AG-6lrUyywwh4Q6Wn-DbjYf5HDuer4K6KZiJU="
-    },
-    {
-      "id": "com.nimbusds:lang-tag:jar:1.7",
-      "artifactId": "lang-tag",
-      "groupId": "com.nimbusds",
-      "version": "1.7",
-      "sha256": "6MHFlOJCW9vqLYYN5Vxptp_F1ZRURSRJoPCRPCpbijE="
+      "version": "1.23.1",
+      "sha256": "QU1P48Zse7GnQQFPNS5fCoMpFycD5_uwAg0jKoyDhbE="
     },
     {
       "id": "com.microsoft.azure:msal4j-persistence-extension:jar:1.3.0",
@@ -568,25 +547,25 @@
       "sha256": "38QcgX-_p2BXr2_-Q3nbympeFrjoffi92iPzcXVsLQk="
     },
     {
-      "id": "net.java.dev.jna:jna-platform:jar:5.6.0",
+      "id": "net.java.dev.jna:jna-platform:jar:5.17.0",
       "artifactId": "jna-platform",
       "groupId": "net.java.dev.jna",
-      "version": "5.6.0",
-      "sha256": "ns6ovysbOZY5OdGLcEZO72DFCP7Ygg-dyroMNVGOq_c="
+      "version": "5.17.0",
+      "sha256": "t-PUbIe60utAmw5wSRa82BIGFo41cxLf3dDiU2ec2eA="
     },
     {
-      "id": "com.azure:azure-core-amqp:jar:2.9.8",
+      "id": "com.azure:azure-core-amqp:jar:2.11.4",
       "artifactId": "azure-core-amqp",
       "groupId": "com.azure",
-      "version": "2.9.8",
-      "sha256": "JJKuXvwG3neHq9ebN6AClgAy4rkq3q8WjIBpzsIgsBA="
+      "version": "2.11.4",
+      "sha256": "FK69aDiEeMtTS-nvZyuiA4TsQXrojegNjzFwGqFyOQg="
     },
     {
-      "id": "com.microsoft.azure:qpid-proton-j-extensions:jar:1.2.5",
+      "id": "com.microsoft.azure:qpid-proton-j-extensions:jar:1.2.6",
       "artifactId": "qpid-proton-j-extensions",
       "groupId": "com.microsoft.azure",
-      "version": "1.2.5",
-      "sha256": "j9MUtNcPmmFprKUToHvYLKdETOsegOYTmkkkDEsrCM0="
+      "version": "1.2.6",
+      "sha256": "Tcd6Xh0iqATrXZt8MPSszstUFc3kp0NhGpYB_OMK3aI="
     },
     {
       "id": "org.apache.qpid:proton-j:jar:0.34.1",
@@ -596,53 +575,67 @@
       "sha256": "4bU9yaHlSyOv9uzmk7vzsqslAEVCAx7EkBgymwOIiOo="
     },
     {
-      "id": "com.azure:azure-core-management:jar:1.15.2",
+      "id": "com.azure:azure-core-management:jar:1.19.4",
       "artifactId": "azure-core-management",
       "groupId": "com.azure",
-      "version": "1.15.2",
-      "sha256": "qn-_jSfJQcd29O6_nEk1kGSHBPR7LsFSdq8pJFBHSqI="
+      "version": "1.19.4",
+      "sha256": "nDDmrK6lKIuzeJlekJxnXCzwUfvu_GUZu466GucaS8M="
     },
     {
-      "id": "com.azure:azure-spring-data-cosmos:jar:5.16.0",
+      "id": "org.springframework.boot:spring-boot-jackson2:jar:4.0.6",
+      "artifactId": "spring-boot-jackson2",
+      "groupId": "org.springframework.boot",
+      "version": "4.0.6",
+      "sha256": "D32GKdr6X5KX2IxOxV3azdYajNto2NUYQk1sjIrBOUA="
+    },
+    {
+      "id": "com.azure:azure-spring-data-cosmos:jar:7.3.0",
       "artifactId": "azure-spring-data-cosmos",
       "groupId": "com.azure",
-      "version": "5.16.0",
-      "sha256": "er5x-BGe9pn2fLG-M8bmYmdHoGAOfSgpYqUvXS2T94Y="
+      "version": "7.3.0",
+      "sha256": "1LPzQ61xuWOFe5fw4cOv1NG_mSL_jhrM2QwqSzPxJH0="
     },
     {
-      "id": "com.azure:azure-cosmos:jar:4.63.2",
+      "id": "org.springframework.boot:spring-boot-persistence:jar:4.0.6",
+      "artifactId": "spring-boot-persistence",
+      "groupId": "org.springframework.boot",
+      "version": "4.0.6",
+      "sha256": "DHCLoZUBJizwdTl6fAihGsj5PnRb-dvjfiCaEvRkuDQ="
+    },
+    {
+      "id": "com.azure:azure-cosmos:jar:4.80.0",
       "artifactId": "azure-cosmos",
       "groupId": "com.azure",
-      "version": "4.63.2",
-      "sha256": "Wn8iFGeBDs0aNBc5ncG1rUcHPQSXjKwgOCJm__Cqsf0="
+      "version": "4.80.0",
+      "sha256": "HLerHUfWukYM-zEqjWK-3wlvQK3XXdjsSQYCwXXPv-w="
     },
     {
-      "id": "com.azure:azure-core:jar:1.51.0",
+      "id": "com.azure:azure-core:jar:1.58.0",
       "artifactId": "azure-core",
       "groupId": "com.azure",
-      "version": "1.51.0",
-      "sha256": "nzkkTTzCAab9aetYANmVFiS8rFSK7jtR79ZC5Ky_RXw="
+      "version": "1.58.0",
+      "sha256": "oTLl6TazlVQZrCyhkQc7MX-a3qXnK32I5c0LZvj2MOk="
     },
     {
-      "id": "com.azure:azure-json:jar:1.2.0",
+      "id": "com.azure:azure-json:jar:1.5.1",
       "artifactId": "azure-json",
       "groupId": "com.azure",
-      "version": "1.2.0",
-      "sha256": "x0Ga4E9mjrTcOGTNZKa3cger2Tue54TwQt6ny0UoQN4="
+      "version": "1.5.1",
+      "sha256": "utIdXrMG2CuFlRtYodnlAamwmXDkUr7m1NRF_VqRxRk="
     },
     {
-      "id": "com.azure:azure-xml:jar:1.1.0",
+      "id": "com.azure:azure-xml:jar:1.2.1",
       "artifactId": "azure-xml",
       "groupId": "com.azure",
-      "version": "1.1.0",
-      "sha256": "EAYggySgja3VRjrS7fowV6HsOt7p15w8oAsU7y9my84="
+      "version": "1.2.1",
+      "sha256": "CLRYSBtlZVRgUhWrCxZfaOYCU1nlK-pHNtAyMo1Aujs="
     },
     {
-      "id": "com.azure:azure-core-http-netty:jar:1.15.3",
+      "id": "com.azure:azure-core-http-netty:jar:1.16.4",
       "artifactId": "azure-core-http-netty",
       "groupId": "com.azure",
-      "version": "1.15.3",
-      "sha256": "GOmTLAqj9CzugPzO4ZB4Sfqdtb5AuM_6IdGn_B10V-U="
+      "version": "1.16.4",
+      "sha256": "OWC1gAgxMYidSONxlGWe-ahm0zUCB1QW7RMwsv_uO7U="
     },
     {
       "id": "io.netty:netty-transport-native-kqueue:jar:osx-x86_64:4.1.112.Final",
