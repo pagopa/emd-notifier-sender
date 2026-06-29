@@ -53,6 +53,9 @@ class MessageServiceTest {
         Mockito.when(tppService.filterEnabledList(any()))
                 .thenReturn(Mono.just(TPP_DTO_LIST));
 
+        Mockito.when(messageRepository.findByMessageIdAndEntityId(any(), any()))
+                .thenReturn(Mono.empty());
+
         Mockito.when(sendNotificationService.sendNotify(MESSAGE,TPP_DTO,0))
                 .thenReturn(Mono.empty());
 
@@ -73,6 +76,9 @@ class MessageServiceTest {
         Mockito.when(tppService.filterEnabledList(any()))
                 .thenReturn(Mono.just(TPP_DTO_LIST));
 
+        Mockito.when(messageRepository.findByMessageIdAndEntityId(any(), any()))
+                .thenReturn(Mono.empty());
+
         Mockito.when(sendNotificationService.sendNotify(MESSAGE,TPP_DTO,0))
                 .thenReturn(Mono.empty());
 
@@ -82,6 +88,31 @@ class MessageServiceTest {
         messageService.processMessage(MESSAGE_DTO,0).block();
         verify(messageCoreProducerService,times(0)).enqueueMessage(MESSAGE_DTO,0);
         verify(sendNotificationService,times(1)).sendNotify(MESSAGE,TPP_DTO,0);
+    }
+
+    @Test
+    void sendMessage_Idempotent_SkipAlreadySent()  {
+        // IDEMPOTENZA: un documento già in stato SENT (redelivery Kafka) non deve
+        // generare una nuova scrittura né una seconda notifica al TPP.
+        it.gov.pagopa.notifier.model.Message alreadySent = it.gov.pagopa.notifier.model.Message.builder()
+                .id("id").messageId("messageId").entityId("entityId")
+                .messageState(it.gov.pagopa.notifier.enums.MessageState.SENT)
+                .build();
+
+        Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
+                .thenReturn(Mono.just(TPP_ID_STRING_LIST));
+
+        Mockito.when(tppService.filterEnabledList(any()))
+                .thenReturn(Mono.just(TPP_DTO_LIST));
+
+        Mockito.when(messageRepository.findByMessageIdAndEntityId(any(), any()))
+                .thenReturn(Mono.just(alreadySent));
+
+        messageService.processMessage(MESSAGE_DTO,0).block();
+
+        verify(messageRepository,times(0)).save(any());
+        verify(sendNotificationService,times(0)).sendNotify(any(),any(),anyLong());
+        verify(messageCoreProducerService,times(0)).enqueueMessage(any(),anyLong());
     }
 
     @Test

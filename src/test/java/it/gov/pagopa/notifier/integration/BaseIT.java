@@ -65,12 +65,15 @@ abstract class BaseIT {
         kafka::getBootstrapServers);
     registry.add("spring.cloud.stream.binders.kafka-notify-error-out.environment.spring.cloud.stream.kafka.binder.brokers",
         kafka::getBootstrapServers);
+    registry.add("spring.cloud.stream.binders.kafka-notify-dlq-out.environment.spring.cloud.stream.kafka.binder.brokers",
+        kafka::getBootstrapServers);
 
     // Disable SASL for all binders
     registry.add("spring.cloud.stream.binders.kafka-message-core-in.environment.spring.cloud.stream.kafka.binder.configuration.sasl.jaas.config", () -> "");
     registry.add("spring.cloud.stream.binders.kafka-message-core-out.environment.spring.cloud.stream.kafka.binder.configuration.sasl.jaas.config", () -> "");
     registry.add("spring.cloud.stream.binders.kafka-notify-error-in.environment.spring.cloud.stream.kafka.binder.configuration.sasl.jaas.config", () -> "");
     registry.add("spring.cloud.stream.binders.kafka-notify-error-out.environment.spring.cloud.stream.kafka.binder.configuration.sasl.jaas.config", () -> "");
+    registry.add("spring.cloud.stream.binders.kafka-notify-dlq-out.environment.spring.cloud.stream.kafka.binder.configuration.sasl.jaas.config", () -> "");
 
     // Spring Cloud Stream - Bindings for courtesy message (consumer)
     registry.add("spring.cloud.stream.bindings.consumerMessage-in-0.destination",
@@ -99,6 +102,12 @@ abstract class BaseIT {
         () -> "test-notify-error");
     registry.add("spring.cloud.stream.bindings.notifySender-out-0.binder",
         () -> "kafka-notify-error-out");
+
+    // Spring Cloud Stream - Bindings for DLQ (producer)
+    registry.add("spring.cloud.stream.bindings.notifyDlq-out-0.destination",
+        () -> "test-notify-dlq");
+    registry.add("spring.cloud.stream.bindings.notifyDlq-out-0.binder",
+        () -> "kafka-notify-dlq-out");
 
   }
 }

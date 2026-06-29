@@ -1,5 +1,6 @@
 package it.gov.pagopa.notifier.service;
 
+import it.gov.pagopa.common.configuration.MongoRetrySpecs;
 import it.gov.pagopa.notifier.connector.citizen.CitizenConnectorImpl;
 import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.dto.MessageDTO;
@@ -10,11 +11,9 @@ import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuples;
 
 import java.util.List;
 
@@ -130,28 +129,57 @@ public class MessageServiceImpl implements MessageService {
 
         return Flux.fromIterable(tppDTOList)
             .doOnNext(tpp -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Processing TPP: {} for message ID: {}", tpp.getTppId(), messageId))
-            .flatMap(tppDTO -> {
-                Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), MessageState.IN_PROCESS);
-                return messageRepository.save(message)
-                    .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
-                    .map(savedMessage -> Tuples.of(savedMessage, tppDTO))
-                    .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Error saving message ID: {} for entity ID: {}. Error: {}", message.getMessageId(), tppDTO.getEntityId(), e.getMessage()))
-                    .onErrorReturn(Tuples.of(Message.builder().id("REFUSE").messageId(messageDTO.getMessageId()).build(), tppDTO));
-            })
-            .flatMap(tuple -> {
-                Message savedMessage = tuple.getT1();
-                TppDTO tppDTO = tuple.getT2();
-                if(!savedMessage.getId().equals("REFUSE")){
-                    log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", savedMessage.getMessageId(), retry, tppDTO.getTppId());
-
-                    return sendNotificationService.sendNotify(savedMessage, tppDTO, 0)
-                        .doOnSuccess(v -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Successfully sent notification to TPP: {} for message ID: {}", tppDTO.getTppId(), savedMessage.getMessageId()))
-                        .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Failed sending to TPP: {} for message ID: {}. Error: {}", tppDTO.getTppId(), savedMessage.getMessageId(), e.getMessage()));
-                }
-                log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Message ID: {} for entity ID: {}. Will not processed (REFUSE state)", savedMessage.getMessageId(), tppDTO.getEntityId());
-                return Mono.empty();
-            })
+            .flatMap(tppDTO ->
+                // IDEMPOTENZA: cerchiamo un documento esistente per la chiave naturale (messageId+entityId).
+                // Optional distingue "già presente" da "assente": senza questo, uno skip (Mono.empty)
+                // verrebbe confuso con "non trovato" e ricreerebbe il documento.
+                messageRepository.findByMessageIdAndEntityId(messageId, tppDTO.getEntityId())
+                    .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
+                    .map(java.util.Optional::of)
+                    .defaultIfEmpty(java.util.Optional.empty())
+                    .flatMap(existingOpt -> resolveAndNotify(existingOpt, messageDTO, tppDTO, retry)))
             .then();
+    }
+
+    /**
+     * <p>Resolves the persistence state for a single TPP and triggers the notification.</p>
+     *
+     * <ul>
+     *   <li>If a document already exists and is {@code SENT} → skip (idempotent, no duplicate call).</li>
+     *   <li>If it exists in another state → reuse it and (re)send.</li>
+     *   <li>If it does not exist → create {@code IN_PROCESS} and send.</li>
+     * </ul>
+     */
+    private Mono<Void> resolveAndNotify(java.util.Optional<Message> existingOpt, MessageDTO messageDTO, TppDTO tppDTO, long retry) {
+        String messageId = messageDTO.getMessageId();
+
+        if (existingOpt.isPresent()) {
+            Message existing = existingOpt.get();
+            if (MessageState.SENT.equals(existing.getMessageState())) {
+                log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Message ID: {} for entity ID: {} already SENT. Skipping (idempotent).", messageId, tppDTO.getEntityId());
+                return Mono.empty();
+            }
+            log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Reusing existing message ID: {} for entity ID: {} (state: {})", messageId, tppDTO.getEntityId(), existing.getMessageState());
+            return notify(existing, tppDTO, retry);
+        }
+
+        Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), MessageState.IN_PROCESS);
+        return messageRepository.save(message)
+            .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
+            .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
+            .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Error saving message ID: {} for entity ID: {}. Error: {}", message.getMessageId(), tppDTO.getEntityId(), e.getMessage()))
+            .flatMap(savedMessage -> notify(savedMessage, tppDTO, retry))
+            // Se il salvataggio fallisce definitivamente, non inviamo: il messaggio resterà non processato
+            // e verrà ritentato dal flusso di retry a monte.
+            .onErrorResume(e -> Mono.empty());
+    }
+
+    /** Sends the notification for a persisted message to the given TPP. */
+    private Mono<Void> notify(Message savedMessage, TppDTO tppDTO, long retry) {
+        log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", savedMessage.getMessageId(), retry, tppDTO.getTppId());
+        return sendNotificationService.sendNotify(savedMessage, tppDTO, 0)
+            .doOnSuccess(v -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Successfully sent notification to TPP: {} for message ID: {}", tppDTO.getTppId(), savedMessage.getMessageId()))
+            .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Failed sending to TPP: {} for message ID: {}. Error: {}", tppDTO.getTppId(), savedMessage.getMessageId(), e.getMessage()));
     }
 
     /**

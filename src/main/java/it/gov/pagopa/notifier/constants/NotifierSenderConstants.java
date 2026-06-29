@@ -30,6 +30,10 @@ public class NotifierSenderConstants {
 
         public static final String ERROR_MSG_HEADER_RETRY = "retry";
         public static final String ERROR_MSG_ENTITY_ID = "entityId";
+        /** Identifies which flow exhausted its retries and routed the message to the DLQ. */
+        public static final String DLQ_SOURCE = "dlqSource";
+        /** Human-readable reason why the message landed in the DLQ. */
+        public static final String DLQ_REASON = "dlqReason";
 
         private MessageHeader() {}
     }

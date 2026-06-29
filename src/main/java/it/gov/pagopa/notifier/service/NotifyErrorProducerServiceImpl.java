@@ -1,10 +1,12 @@
 package it.gov.pagopa.notifier.service;
 
 
+import it.gov.pagopa.common.configuration.MongoRetrySpecs;
 import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.dto.NotifyErrorQueuePayload;
 import it.gov.pagopa.notifier.dto.TppDTO;
+import it.gov.pagopa.notifier.event.producer.NotifyDlqProducer;
 import it.gov.pagopa.notifier.event.producer.NotifyErrorProducer;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import jakarta.validation.constraints.NotNull;
@@ -27,16 +29,24 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerService {
 
     private final NotifyErrorProducer notifyErrorProducer;
+    private final NotifyDlqProducer notifyDlqProducer;
     private final MessageRepository messageRepository;
-
-    private final Long maxTry;
+    private final long maxTry;
+    private final long initialDelaySeconds;
+    private final long maxDelaySeconds;
 
     public NotifyErrorProducerServiceImpl(NotifyErrorProducer notifyErrorProducer,
+                                          NotifyDlqProducer notifyDlqProducer,
                                           MessageRepository messageRepository,
-                                          @Value("${app.retry.max-retry}") long maxRetry){
+                                          @Value("${app.retry.max-retry}") long maxRetry,
+                                          @Value("${app.retry.initial-delay-seconds:5}") long initialDelaySeconds,
+                                          @Value("${app.retry.max-delay-seconds:60}") long maxDelaySeconds) {
         this.notifyErrorProducer = notifyErrorProducer;
+        this.notifyDlqProducer = notifyDlqProducer;
         this.messageRepository = messageRepository;
         this.maxTry = maxRetry;
+        this.initialDelaySeconds = initialDelaySeconds;
+        this.maxDelaySeconds = maxDelaySeconds;
     }
 
 
@@ -45,8 +55,8 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
      *
      * <p>Flow:</p>
      * <ol>
-     *   <li>Checks if retry count exceeds {@code maxTry}; if so, returns empty</li>
-     *   <li>Constructs Kafka message via {@link #createMessage(Message, TppDTO, long)}</li>
+     *   <li>Checks if retry count exceeds {@code maxTry}; if so, saves message as ERROR and returns empty</li>
+     *   <li>Computes exponential backoff delay: {@code min(initialDelay * 2^(retry-1), maxDelay)}</li>
      *   <li>Publishes to error queue via {@link NotifyErrorProducer#scheduleMessage(org.springframework.messaging.Message)}</li>
      * </ol>
      *
@@ -58,24 +68,49 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
         String entityId = tppDTO.getEntityId();
 
         if (retry > maxTry) {
-            log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Message ID: {} for TPP: {} exceeds max retry attempts ({}). Not retryable.", messageId, entityId, maxTry);
-            message.setMessageState(MessageState.ERROR);
-            return messageRepository.save(message).flatMap(messageWithError -> Mono.empty());
+            log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Message ID: {} for TPP: {} exceeds max retry attempts ({}). Routing to DLQ.", messageId, entityId, maxTry);
+            return routeToDlq(message, tppDTO, retry);
         }
 
-        log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Enqueuing message ID: {} for TPP: {} with retry attempt: {}", messageId, entityId, retry);
+        // Backoff esponenziale: initialDelay * 2^(retry-1), con cap a maxDelay.
+        // Esempio con initialDelay=5s, maxDelay=60s:
+        //   retry=1 →  5s, retry=2 → 10s, retry=3 → 20s, retry=4 → 40s, retry=5 → 60s (cap)
+        // Il delay vive DENTRO la reactive chain: BaseKafkaConsumer attende il completamento
+        // di questo Mono prima di committare l'offset Kafka.
+        long delaySeconds = Math.min(initialDelaySeconds * (1L << (retry - 1)), maxDelaySeconds);
+        log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Enqueuing message ID: {} for TPP: {} with retry attempt: {}, backoff delay: {}s", messageId, entityId, retry, delaySeconds);
 
-        // Il delay di 5s vive DENTRO la reactive chain: BaseKafkaConsumer attende il completamento
-        // di questo Mono prima di committare l'offset Kafka, garantendo che il messaggio
-        // sia effettivamente pubblicato su Kafka prima che l'offset venga committed.
-        // subscribeOn(boundedElastic) è necessario perché streamBridge.send() è bloccante.
-        return Mono.delay(Duration.ofSeconds(5))
+        return Mono.delay(Duration.ofSeconds(delaySeconds))
                 .publishOn(Schedulers.boundedElastic())
                 .flatMap(tick -> Mono.fromRunnable(() -> {
                     log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageId, entityId, retry);
                     notifyErrorProducer.scheduleMessage(createMessage(message, tppDTO, retry));
                 }))
                 .then(Mono.just("enqueued"));
+    }
+
+    /**
+     * <p>Routes a terminally-failed message to the Dead Letter Queue, then persists state ERROR.</p>
+     *
+     * <p>If the DLQ publish itself fails, the error is propagated so the Kafka offset is NOT
+     * committed and the message is reprocessed later — we never lose it silently.</p>
+     */
+    private Mono<String> routeToDlq(Message message, TppDTO tppDTO, long retry) {
+        String messageId = message.getMessageId();
+        String entityId = tppDTO.getEntityId();
+
+        return Mono.fromCallable(() -> notifyDlqProducer.sendToDlq(createDlqMessage(message, tppDTO, retry)))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(accepted -> {
+                    if (Boolean.FALSE.equals(accepted)) {
+                        return Mono.error(new IllegalStateException(
+                                "DLQ broker did not accept message ID: " + messageId + " for entity: " + entityId));
+                    }
+                    message.setMessageState(MessageState.ERROR);
+                    return messageRepository.save(message)
+                            .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
+                            .thenReturn("dlq");
+                });
     }
 
     /**
@@ -100,6 +135,18 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
                 .build();
     }
 
-
+    /**
+     * <p>Builds the DLQ message, enriching it with diagnostic headers
+     * ({@code DLQ_SOURCE}, {@code DLQ_REASON}) for operators inspecting the dead-letter topic.</p>
+     */
+    @NotNull
+    private static org.springframework.messaging.Message<NotifyErrorQueuePayload> createDlqMessage(Message message, TppDTO tppDTO, long retry) {
+        return MessageBuilder
+                .withPayload(new NotifyErrorQueuePayload(tppDTO, message))
+                .setHeader(ERROR_MSG_HEADER_RETRY, retry)
+                .setHeader(DLQ_SOURCE, "notify-error")
+                .setHeader(DLQ_REASON, "Max retry attempts exceeded")
+                .build();
+    }
 
 }

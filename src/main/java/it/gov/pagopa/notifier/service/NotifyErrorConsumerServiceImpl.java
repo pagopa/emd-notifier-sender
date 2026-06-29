@@ -33,8 +33,9 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
                                               NotifyServiceImpl sendMessageService,
                                               @Value("${spring.application.name}") String applicationName,
                                               @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitDelay,
-                                              @Value("${app.message-core.build-delay-duration}") long delayMinusCommit) {
-        super(applicationName, Duration.ofMillis(commitDelay),Duration.ofMillis(delayMinusCommit));
+                                              @Value("${app.message-core.build-delay-duration}") long delayMinusCommit,
+                                              @Value("${app.kafka.consumer.concurrency:${KAFKA_COMMANDS_MAX_POLL_SIZE:10}}") int concurrency) {
+        super(applicationName, Duration.ofMillis(commitDelay), Duration.ofMillis(delayMinusCommit), concurrency);
         this.objectReader = objectMapper.readerFor(NotifyErrorQueuePayload.class);
         this.sendMessageService = sendMessageService;
     }

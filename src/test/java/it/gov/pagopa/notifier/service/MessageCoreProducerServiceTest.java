@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.event.producer.MessageCoreProducer;
+import it.gov.pagopa.notifier.event.producer.NotifyDlqProducer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -20,7 +21,9 @@ import static org.mockito.Mockito.times;
         MessageCoreProducerServiceImpl.class
 })
 @TestPropertySource(properties = {
-        "app.retry.max-retry=5"
+        "app.retry.max-retry=5",
+        "app.retry.initial-delay-seconds=0",
+        "app.retry.max-delay-seconds=0"
 })
  class MessageCoreProducerServiceTest {
 
@@ -28,6 +31,8 @@ import static org.mockito.Mockito.times;
     MessageCoreProducerServiceImpl messageCoreProducerService;
     @MockBean
     MessageCoreProducer messageErrorProducer;
+    @MockBean
+    NotifyDlqProducer notifyDlqProducer;
 
 
     @Test
@@ -37,9 +42,14 @@ import static org.mockito.Mockito.times;
     }
 
     @Test
-    void enqueueMessage_K0(){
+    void enqueueMessage_K0_RoutesToDlq(){
+        // Oltre i max retry: il messaggio NON viene re-inviato in coda, ma instradato alla DLQ.
+        Mockito.when(notifyDlqProducer.sendMessageDtoToDlq(any())).thenReturn(true);
+
         messageCoreProducerService.enqueueMessage(MESSAGE_DTO,RETRY_KO).block();
+
         Mockito.verify(messageErrorProducer,times(0)).scheduleMessage(any());
+        Mockito.verify(notifyDlqProducer,times(1)).sendMessageDtoToDlq(any());
     }
 
 

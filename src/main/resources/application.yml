@@ -55,6 +55,13 @@ spring:
               binder:
                 brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_LIST:${KAFKA_BROKER:}}
                 configuration.sasl.jaas.config: ${KAFKA_NOTIFY_ERROR_OUT_SASL_JAAS_CONFIG:}
+        kafka-notify-dlq-out:
+          type: kafka
+          environment:
+            spring.cloud.stream.kafka:
+              binder:
+                brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_LIST:${KAFKA_BROKER:}}
+                configuration.sasl.jaas.config: ${KAFKA_NOTIFY_DLQ_OUT_SASL_JAAS_CONFIG:}
       bindings:
         consumerMessage-in-0:
           binder: kafka-message-core-in
@@ -74,6 +81,10 @@ spring:
           binder: kafka-notify-error-out
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_NOTIFY_ERROR:emd-notify-error}
+        notifyDlq-out-0:
+          binder: kafka-notify-dlq-out
+          content-type: ${KAFKA_CONTENT_TYPE:application/json}
+          destination: ${KAFKA_TOPIC_NOTIFY_DLQ:emd-notify-dlq}
       kafka:
         binder:
           auto-create-topics: false
@@ -97,6 +108,17 @@ spring:
           notifySender-out-0:
             producer:
               configuration:
+                connections.max.idle.ms: ${KAFKA_ONBOARDING_CONNECTION_MAX_IDLE_TIME:180000}
+                retry.backoff.ms: ${KAFKA_ONBOARDING_KAFKA_RETRY_MS:${KAFKA_RETRY_MS:10000}}
+                linger.ms: ${KAFKA_ONBOARDING_LINGER_MS:${KAFKA_LINGER_MS:2}}
+                batch.size: ${KAFKA_ONBOARDING_BATCH_SIZE:${KAFKA_BATCH_SIZE:16384}}
+                metadata.max.idle.ms: ${KAFKA_ONBOARDING_METADATA_MAX_IDLE_MS:${KAFKA_METADATA_MAX_IDLE_MS:180000}}
+          notifyDlq-out-0:
+            producer:
+              configuration:
+                # acks=all + idempotence: la DLQ è l'ultima rete di sicurezza, deve essere durabile.
+                acks: ${KAFKA_PRODUCER_ACKS:all}
+                enable.idempotence: ${KAFKA_PRODUCER_IDEMPOTENCE:true}
                 connections.max.idle.ms: ${KAFKA_ONBOARDING_CONNECTION_MAX_IDLE_TIME:180000}
                 retry.backoff.ms: ${KAFKA_ONBOARDING_KAFKA_RETRY_MS:${KAFKA_RETRY_MS:10000}}
                 linger.ms: ${KAFKA_ONBOARDING_LINGER_MS:${KAFKA_LINGER_MS:2}}
@@ -137,8 +159,17 @@ spring:
 app:
   message-core:
     build-delay-duration: ${BENEFICIARY_RULE_BUILD_DELAY_DURATION:500}
+  kafka:
+    consumer:
+      # Messaggi elaborati in parallelo per pod. Tenere <= max.poll.records per non saturare MongoDB.
+      # Totale writes simultanee su DB = concurrency * numero_pod
+      concurrency: ${KAFKA_CONSUMER_CONCURRENCY:${KAFKA_COMMANDS_MAX_POLL_SIZE:10}}
   retry:
     max-retry: ${ERROR_MESSAGE_MAX_RETRY:3}
+    # Delay iniziale del backoff esponenziale: min(initialDelay * 2^(retry-1), maxDelay)
+    # retry=1 → 5s, retry=2 → 10s, retry=3 → 20s, ...
+    initial-delay-seconds: ${RETRY_INITIAL_DELAY_SECONDS:5}
+    max-delay-seconds: ${RETRY_MAX_DELAY_SECONDS:60}
   token:
     client: ${HYPE_KEY:}
     clientId: ${HYPE_CLIENT:}

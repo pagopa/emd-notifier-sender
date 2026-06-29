@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
 
+import it.gov.pagopa.common.configuration.MongoRetrySpecs;
 import it.gov.pagopa.common.configuration.WebClientRetrySpecs;
 import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
 import it.gov.pagopa.notifier.configuration.DeleteProperties;
@@ -140,9 +141,11 @@ public class NotifyServiceImpl implements NotifyService {
       // a single query is executed and the empty case is handled correctly in the same chain.
       Flux<Message> messagesToDelete;
       if (deleteRequestDTO.getFilterDTO().getStartDate() != null || deleteRequestDTO.getFilterDTO().getEndDate() != null) {
-          messagesToDelete = messageRepository.findByMessageRegistrationDateBetween(startDate, endDate);
+          messagesToDelete = messageRepository.findByMessageRegistrationDateBetween(startDate, endDate)
+                  .retryWhen(MongoRetrySpecs.cosmosDbThrottling());
       } else {
-          messagesToDelete = messageRepository.findAll();
+          messagesToDelete = messageRepository.findAll()
+                  .retryWhen(MongoRetrySpecs.cosmosDbThrottling());
       }
 
       long startTime = System.nanoTime();
@@ -154,13 +157,14 @@ public class NotifyServiceImpl implements NotifyService {
           .concatMap(batch -> {
               log.debug("[NOTIFY-SERVICE][DELETE-MESSAGES] Processing batch of {} messages", batch.size());
               return Flux.fromIterable(batch)
-                  .flatMap(messageRepository::delete)
+                  .flatMap(msg -> messageRepository.delete(msg).retryWhen(MongoRetrySpecs.cosmosDbThrottling()))
                   .then(Mono.just(batch.size()))
                   .delayElement(Duration.ofMillis(intervalMS));
           })
           .reduce(Integer::sum)
           .flatMap(deletedCount ->
               messageRepository.count()
+                  .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
                   .map(remainingCount -> {
                       long endTime = System.nanoTime();
                       long elapsedTime = (endTime - startTime) / 1_000_000;
@@ -301,6 +305,7 @@ public class NotifyServiceImpl implements NotifyService {
 
                 message.setMessageState(MessageState.SENT);
                 return messageRepository.save(message)
+                    .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
                     .doOnSuccess(saved -> log.info("[NOTIFY-SERVICE][TO-URL] DB Saved SENT. MsgId: {}", saved.getMessageId()))
                     .doOnError(e -> log.error("[NOTIFY-SERVICE][TO-URL] DB Save Failed. MsgId: {}", message.getMessageId(), e))
                     .onErrorResume(e -> Mono.just(message))
