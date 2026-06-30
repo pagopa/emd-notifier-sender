@@ -43,6 +43,7 @@ public abstract class BaseKafkaConsumer<T, R> {
     private final String applicationName;
     private final Duration commitDelay;
     private final Duration delayMinusCommit;
+    private final int concurrency;
 
     private static final Collector<KafkaAcknowledgeResult<?>, ?, Map<Integer, Pair<Long, KafkaAcknowledgeResult<?>>>> kafkaAcknowledgeResultMapCollector =
             Collectors.groupingBy(KafkaAcknowledgeResult::partition
@@ -54,10 +55,15 @@ public abstract class BaseKafkaConsumer<T, R> {
                                     max.orElse(null))
                     ));
 
-    protected BaseKafkaConsumer(String applicationName,Duration commitDelay, Duration delayMinusCommit ) {
+    protected BaseKafkaConsumer(String applicationName, Duration commitDelay, Duration delayMinusCommit) {
+        this(applicationName, commitDelay, delayMinusCommit, Queues.SMALL_BUFFER_SIZE);
+    }
+
+    protected BaseKafkaConsumer(String applicationName, Duration commitDelay, Duration delayMinusCommit, int concurrency) {
         this.applicationName = applicationName;
         this.commitDelay = commitDelay;
         this.delayMinusCommit = delayMinusCommit;
+        this.concurrency = concurrency;
     }
 
     record KafkaAcknowledgeResult<T> (Acknowledgment ack, Integer partition, Long offset, T result){
@@ -109,7 +115,7 @@ public abstract class BaseKafkaConsumer<T, R> {
 
     /** Concurrency level used to process polled messages */
     protected int getConcurrency() {
-        return Queues.SMALL_BUFFER_SIZE;
+        return concurrency;
     }
 
     /** The {@link Duration} to wait before to commit processed messages */

@@ -137,8 +137,17 @@ spring:
 app:
   message-core:
     build-delay-duration: ${BENEFICIARY_RULE_BUILD_DELAY_DURATION:500}
+  kafka:
+    consumer:
+      # Messaggi elaborati in parallelo per pod. Tenere <= max.poll.records per non saturare MongoDB.
+      # Totale writes simultanee su DB = concurrency * numero_pod
+      concurrency: ${KAFKA_CONSUMER_CONCURRENCY:${KAFKA_COMMANDS_MAX_POLL_SIZE:10}}
   retry:
     max-retry: ${ERROR_MESSAGE_MAX_RETRY:3}
+    # Delay iniziale del backoff esponenziale: min(initialDelay * 2^(retry-1), maxDelay)
+    # retry=1 → 5s, retry=2 → 10s, retry=3 → 20s, ...
+    initial-delay-seconds: ${RETRY_INITIAL_DELAY_SECONDS:5}
+    max-delay-seconds: ${RETRY_MAX_DELAY_SECONDS:60}
   token:
     client: ${HYPE_KEY:}
     clientId: ${HYPE_CLIENT:}

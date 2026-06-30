@@ -100,5 +100,6 @@ abstract class BaseIT {
     registry.add("spring.cloud.stream.bindings.notifySender-out-0.binder",
         () -> "kafka-notify-error-out");
 
+
   }
 }

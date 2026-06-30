@@ -20,7 +20,9 @@ import static org.mockito.Mockito.times;
         MessageCoreProducerServiceImpl.class
 })
 @TestPropertySource(properties = {
-        "app.retry.max-retry=5"
+        "app.retry.max-retry=5",
+        "app.retry.initial-delay-seconds=0",
+        "app.retry.max-delay-seconds=0"
 })
  class MessageCoreProducerServiceTest {
 
@@ -37,8 +39,10 @@ import static org.mockito.Mockito.times;
     }
 
     @Test
-    void enqueueMessage_K0(){
+    void enqueueMessage_K0_Abandoned(){
+        // Oltre i max retry: il messaggio NON viene re-inviato in coda ed è semplicemente abbandonato.
         messageCoreProducerService.enqueueMessage(MESSAGE_DTO,RETRY_KO).block();
+
         Mockito.verify(messageErrorProducer,times(0)).scheduleMessage(any());
     }
 

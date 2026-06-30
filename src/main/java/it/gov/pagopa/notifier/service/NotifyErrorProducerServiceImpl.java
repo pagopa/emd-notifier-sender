@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
 
+import it.gov.pagopa.common.configuration.MongoRetrySpecs;
 import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.dto.NotifyErrorQueuePayload;
@@ -28,15 +29,20 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
 
     private final NotifyErrorProducer notifyErrorProducer;
     private final MessageRepository messageRepository;
-
-    private final Long maxTry;
+    private final long maxTry;
+    private final long initialDelaySeconds;
+    private final long maxDelaySeconds;
 
     public NotifyErrorProducerServiceImpl(NotifyErrorProducer notifyErrorProducer,
                                           MessageRepository messageRepository,
-                                          @Value("${app.retry.max-retry}") long maxRetry){
+                                          @Value("${app.retry.max-retry}") long maxRetry,
+                                          @Value("${app.retry.initial-delay-seconds:5}") long initialDelaySeconds,
+                                          @Value("${app.retry.max-delay-seconds:60}") long maxDelaySeconds) {
         this.notifyErrorProducer = notifyErrorProducer;
         this.messageRepository = messageRepository;
         this.maxTry = maxRetry;
+        this.initialDelaySeconds = initialDelaySeconds;
+        this.maxDelaySeconds = maxDelaySeconds;
     }
 
 
@@ -45,12 +51,12 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
      *
      * <p>Flow:</p>
      * <ol>
-     *   <li>Checks if retry count exceeds {@code maxTry}; if so, returns empty</li>
-     *   <li>Constructs Kafka message via {@link #createMessage(Message, TppDTO, long)}</li>
+     *   <li>Checks if retry count exceeds {@code maxTry}; if so, saves message as ERROR and returns empty</li>
+     *   <li>Computes exponential backoff delay: {@code min(initialDelay * 2^(retry-1), maxDelay)}</li>
      *   <li>Publishes to error queue via {@link NotifyErrorProducer#scheduleMessage(org.springframework.messaging.Message)}</li>
      * </ol>
      *
-     * <p>Messages exceeding max retries are logged and discarded.</p>
+     * <p>Messages exceeding max retries are persisted in state ERROR and remain queryable from the DB.</p>
      */
     @Override
     public Mono<String> enqueueNotify(Message message, TppDTO tppDTO, long retry) {
@@ -58,18 +64,22 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
         String entityId = tppDTO.getEntityId();
 
         if (retry > maxTry) {
-            log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Message ID: {} for TPP: {} exceeds max retry attempts ({}). Not retryable.", messageId, entityId, maxTry);
+            log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Message ID: {} for TPP: {} exceeds max retry attempts ({}). Persisting state ERROR.", messageId, entityId, maxTry);
             message.setMessageState(MessageState.ERROR);
-            return messageRepository.save(message).flatMap(messageWithError -> Mono.empty());
+            return messageRepository.save(message)
+                    .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
+                    .flatMap(messageWithError -> Mono.empty());
         }
 
-        log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Enqueuing message ID: {} for TPP: {} with retry attempt: {}", messageId, entityId, retry);
+        // Backoff esponenziale: initialDelay * 2^(retry-1), con cap a maxDelay.
+        // Esempio con initialDelay=5s, maxDelay=60s:
+        //   retry=1 →  5s, retry=2 → 10s, retry=3 → 20s, retry=4 → 40s, retry=5 → 60s (cap)
+        // Il delay vive DENTRO la reactive chain: BaseKafkaConsumer attende il completamento
+        // di questo Mono prima di committare l'offset Kafka.
+        long delaySeconds = Math.min(initialDelaySeconds * (1L << (retry - 1)), maxDelaySeconds);
+        log.info("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Enqueuing message ID: {} for TPP: {} with retry attempt: {}, backoff delay: {}s", messageId, entityId, retry, delaySeconds);
 
-        // Il delay di 5s vive DENTRO la reactive chain: BaseKafkaConsumer attende il completamento
-        // di questo Mono prima di committare l'offset Kafka, garantendo che il messaggio
-        // sia effettivamente pubblicato su Kafka prima che l'offset venga committed.
-        // subscribeOn(boundedElastic) è necessario perché streamBridge.send() è bloccante.
-        return Mono.delay(Duration.ofSeconds(5))
+        return Mono.delay(Duration.ofSeconds(delaySeconds))
                 .publishOn(Schedulers.boundedElastic())
                 .flatMap(tick -> Mono.fromRunnable(() -> {
                     log.debug("[NOTIFY-ERROR-PRODUCER-SERVICE][ENQUEUE-NOTIFY] Sending message ID: {} for TPP: {} with retry: {} to notify error queue.", messageId, entityId, retry);
@@ -99,7 +109,5 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
                 .setHeader(ERROR_MSG_HEADER_RETRY, retry)
                 .build();
     }
-
-
 
 }

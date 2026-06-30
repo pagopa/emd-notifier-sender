@@ -1,5 +1,6 @@
 package it.gov.pagopa.notifier.stub.service;
 
+import it.gov.pagopa.common.configuration.MongoRetrySpecs;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.mapper.MessageMapperObjectToDTO;
 import it.gov.pagopa.notifier.repository.MessageRepository;
@@ -28,7 +29,8 @@ public class StubMessageCoreServiceImpl implements StubMessageCoreService {
      */
     @Override
     public Mono<List<MessageDTO>> getMessages(String fiscalCode, String entityId) {
-        return messageRepository.findByRecipientIdAndEntityId(fiscalCode,entityId)
+        return messageRepository.findByRecipientIdAndEntityId(fiscalCode, entityId)
+                .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
                 .collectList()
                 .map(messageList -> messageList.stream()
                         .map(mapperToDTO::map)

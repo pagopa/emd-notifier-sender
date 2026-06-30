@@ -22,7 +22,9 @@ import static org.mockito.Mockito.times;
         NotifyErrorProducerServiceImpl.class
 })
 @TestPropertySource(properties = {
-        "app.retry.max-retry=5"
+        "app.retry.max-retry=5",
+        "app.retry.initial-delay-seconds=0",
+        "app.retry.max-delay-seconds=0"
 })
  class NotifyErrorProducerServiceTest {
 
@@ -40,10 +42,14 @@ import static org.mockito.Mockito.times;
     }
 
     @Test
-    void enqueueNotify_KO(){
+    void enqueueNotify_KO_PersistsError(){
+        // Oltre i max retry: nessun re-enqueue, il messaggio viene persistito in stato ERROR.
         Mockito.when(messageRepository.save(any()))
                 .thenReturn(Mono.just(MESSAGE));
+
         notifyErrorProducerService.enqueueNotify(MESSAGE,TPP_DTO, RETRY_KO).block();
+
         Mockito.verify(notifyErrorProducer,times(0)).scheduleMessage(any());
+        Mockito.verify(messageRepository,times(1)).save(any());
     }
 }
