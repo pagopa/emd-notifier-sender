@@ -55,13 +55,6 @@ spring:
               binder:
                 brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_LIST:${KAFKA_BROKER:}}
                 configuration.sasl.jaas.config: ${KAFKA_NOTIFY_ERROR_OUT_SASL_JAAS_CONFIG:}
-        kafka-notify-dlq-out:
-          type: kafka
-          environment:
-            spring.cloud.stream.kafka:
-              binder:
-                brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_LIST:${KAFKA_BROKER:}}
-                configuration.sasl.jaas.config: ${KAFKA_NOTIFY_DLQ_OUT_SASL_JAAS_CONFIG:}
       bindings:
         consumerMessage-in-0:
           binder: kafka-message-core-in
@@ -81,10 +74,6 @@ spring:
           binder: kafka-notify-error-out
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_NOTIFY_ERROR:emd-notify-error}
-        notifyDlq-out-0:
-          binder: kafka-notify-dlq-out
-          content-type: ${KAFKA_CONTENT_TYPE:application/json}
-          destination: ${KAFKA_TOPIC_NOTIFY_DLQ:emd-notify-dlq}
       kafka:
         binder:
           auto-create-topics: false
@@ -108,17 +97,6 @@ spring:
           notifySender-out-0:
             producer:
               configuration:
-                connections.max.idle.ms: ${KAFKA_ONBOARDING_CONNECTION_MAX_IDLE_TIME:180000}
-                retry.backoff.ms: ${KAFKA_ONBOARDING_KAFKA_RETRY_MS:${KAFKA_RETRY_MS:10000}}
-                linger.ms: ${KAFKA_ONBOARDING_LINGER_MS:${KAFKA_LINGER_MS:2}}
-                batch.size: ${KAFKA_ONBOARDING_BATCH_SIZE:${KAFKA_BATCH_SIZE:16384}}
-                metadata.max.idle.ms: ${KAFKA_ONBOARDING_METADATA_MAX_IDLE_MS:${KAFKA_METADATA_MAX_IDLE_MS:180000}}
-          notifyDlq-out-0:
-            producer:
-              configuration:
-                # acks=all + idempotence: la DLQ è l'ultima rete di sicurezza, deve essere durabile.
-                acks: ${KAFKA_PRODUCER_ACKS:all}
-                enable.idempotence: ${KAFKA_PRODUCER_IDEMPOTENCE:true}
                 connections.max.idle.ms: ${KAFKA_ONBOARDING_CONNECTION_MAX_IDLE_TIME:180000}
                 retry.backoff.ms: ${KAFKA_ONBOARDING_KAFKA_RETRY_MS:${KAFKA_RETRY_MS:10000}}
                 linger.ms: ${KAFKA_ONBOARDING_LINGER_MS:${KAFKA_LINGER_MS:2}}

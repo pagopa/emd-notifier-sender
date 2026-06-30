@@ -3,7 +3,6 @@ package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.event.producer.MessageCoreProducer;
-import it.gov.pagopa.notifier.event.producer.NotifyDlqProducer;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,18 +26,15 @@ import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHe
 public class MessageCoreProducerServiceImpl implements MessageCoreProducerService {
 
     private final MessageCoreProducer messageCoreProducer;
-    private final NotifyDlqProducer notifyDlqProducer;
     private final long maxTry;
     private final long initialDelaySeconds;
     private final long maxDelaySeconds;
 
     public MessageCoreProducerServiceImpl(MessageCoreProducer messageCoreProducer,
-                                          NotifyDlqProducer notifyDlqProducer,
                                           @Value("${app.retry.max-retry}") long maxRetry,
                                           @Value("${app.retry.initial-delay-seconds:5}") long initialDelaySeconds,
                                           @Value("${app.retry.max-delay-seconds:60}") long maxDelaySeconds) {
         this.messageCoreProducer = messageCoreProducer;
-        this.notifyDlqProducer = notifyDlqProducer;
         this.maxTry = maxRetry;
         this.initialDelaySeconds = initialDelaySeconds;
         this.maxDelaySeconds = maxDelaySeconds;
@@ -51,22 +47,23 @@ public class MessageCoreProducerServiceImpl implements MessageCoreProducerServic
      * <p>Flow:</p>
      * <ol>
      *   <li>Check if retry count exceeds maximum allowed attempts.</li>
-     *   <li>If exceeded, route the message to the DLQ (no silent loss).</li>
+     *   <li>If exceeded, log and stop: the message is an upstream processing failure not yet persisted,
+     *       so there is nothing to update — it is simply abandoned after exhausting retries.</li>
      *   <li>Otherwise, compute exponential backoff delay: {@code min(initialDelay * 2^(retry-1), maxDelay)}.</li>
      *   <li>Schedule message via {@link MessageCoreProducer#scheduleMessage(Message)} after the delay.</li>
      * </ol>
      *
      * @param messageDTO the message to be enqueued
      * @param retry the current retry attempt count (incremented after each failure)
-     * @return {@code Mono<Void>} completes when the message is enqueued or routed to the DLQ
+     * @return {@code Mono<Void>} completes when the message is enqueued or abandoned
      */
     @Override
     public Mono<Void> enqueueMessage(MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
 
         if (retry > maxTry) {
-            log.info("[MESSAGE-CORE-PRODUCER-SERVICE][ENQUEUE-MESSAGE] Message ID: {} exceeds max retry attempts ({}). Routing to DLQ.", messageId, maxTry);
-            return routeToDlq(messageDTO, retry);
+            log.info("[MESSAGE-CORE-PRODUCER-SERVICE][ENQUEUE-MESSAGE] Message ID: {} exceeds max retry attempts ({}). Message will not be retried.", messageId, maxTry);
+            return Mono.empty();
         }
 
         // Backoff esponenziale: initialDelay * 2^(retry-1), con cap a maxDelay.
@@ -87,41 +84,12 @@ public class MessageCoreProducerServiceImpl implements MessageCoreProducerServic
                 .then();
     }
 
-    /**
-     * <p>Routes a terminally-failed upstream message to the DLQ.</p>
-     *
-     * <p>If the DLQ publish fails, the error is propagated so the Kafka offset is NOT committed
-     * and the message is reprocessed later — never lost silently.</p>
-     */
-    private Mono<Void> routeToDlq(MessageDTO messageDTO, long retry) {
-        String messageId = messageDTO.getMessageId();
-        return Mono.fromCallable(() -> notifyDlqProducer.sendMessageDtoToDlq(createDlqMessage(messageDTO, retry)))
-                .subscribeOn(Schedulers.boundedElastic())
-                .flatMap(accepted -> {
-                    if (Boolean.FALSE.equals(accepted)) {
-                        return Mono.error(new IllegalStateException(
-                                "DLQ broker did not accept message ID: " + messageId));
-                    }
-                    return Mono.empty();
-                });
-    }
-
     @NotNull
     private static Message<MessageDTO> createMessage(MessageDTO messageDTO, long retry) {
         log.debug("[MESSAGE-CORE-PRODUCER-SERVICE][CREATE-MESSAGE] Creating message for ID: {} with retry attempt: {}", messageDTO.getMessageId(), retry);
         return MessageBuilder
                 .withPayload(messageDTO)
                 .setHeader(ERROR_MSG_HEADER_RETRY, retry)
-                .build();
-    }
-
-    @NotNull
-    private static Message<MessageDTO> createDlqMessage(MessageDTO messageDTO, long retry) {
-        return MessageBuilder
-                .withPayload(messageDTO)
-                .setHeader(ERROR_MSG_HEADER_RETRY, retry)
-                .setHeader(DLQ_SOURCE, "message-core")
-                .setHeader(DLQ_REASON, "Max retry attempts exceeded")
                 .build();
     }
 

@@ -53,7 +53,7 @@ import static org.mockserver.model.JsonBody.json;
  * <ul>
  *   <li>Idempotency: a redelivered message (Kafka at-least-once) must not duplicate
  *       the persisted document nor the TPP notification.</li>
- *   <li>Dead Letter Queue: a message that exhausts its retries must land on the DLQ topic.</li>
+ *   <li>Exhausted retries: a message that exhausts its retries must be persisted in state ERROR.</li>
  * </ul>
  */
 @TestPropertySource(properties = {
@@ -138,72 +138,41 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
         request().withPath("/tpp/messages").withMethod("POST"),
         org.mockserver.verify.VerificationTimes.exactly(1));
 
-    // ...e un solo documento persistito per la chiave naturale (id deterministico = upsert).
+    // ...e un solo documento persistito per la chiave naturale (vincolo unique compound messageId-entityId).
     List<Message> finalDocs = messageRepository.findAll()
         .filter(m -> TEST_MESSAGE_ID.equals(m.getMessageId()))
         .collectList().block();
     assertThat(finalDocs).hasSize(1);
     assertThat(finalDocs.get(0).getMessageState()).isEqualTo(MessageState.SENT);
-    assertThat(finalDocs.get(0).getId())
-        .isEqualTo(TEST_MESSAGE_ID + ":" + "ENTITY_" + TEST_TPP_ID);
+    assertThat(finalDocs.get(0).getEntityId())
+        .isEqualTo("ENTITY_" + TEST_TPP_ID);
   }
 
   @Test
-  void exhaustedRetries_routesToDlqTopic() throws Exception {
+  void exhaustedRetries_persistsErrorState() throws Exception {
     setupCitizenConnectorMock(TEST_FISCAL_CODE, List.of(TEST_TPP_ID));
     setupTppConnectorMock(List.of(TEST_TPP_ID));
     setupTokenMock();
-    // Il TPP risponde sempre 500 -> la notifica fallisce e, con max-retry=0, finisce subito in DLQ.
+    // Il TPP risponde sempre 500 -> la notifica fallisce e, con max-retry=0, viene persistita in stato ERROR.
     mockServerClient
         .when(request().withPath("/tpp/messages").withMethod("POST"))
         .respond(response().withStatusCode(500).withBody("error"));
 
-    try (KafkaConsumer<String, String> dlqConsumer = createDlqConsumer()) {
-      dlqConsumer.subscribe(Collections.singletonList("test-notify-dlq"));
-
-      MessageDTO messageDTO = createTestMessageDTO("MSG-DLQ-001", TEST_FISCAL_CODE);
-      sendMessageToKafka(messageDTO, 0L);
-
-      ConsumerRecord<String, String> dlqRecord = pollForDlqRecord(dlqConsumer);
-
-      assertThat(dlqRecord).as("a record must be routed to the DLQ topic").isNotNull();
-      assertThat(dlqRecord.value()).contains("MSG-DLQ-001");
-    }
+    MessageDTO messageDTO = createTestMessageDTO("MSG-ERROR-001", TEST_FISCAL_CODE);
+    sendMessageToKafka(messageDTO, 0L);
 
     // Il messaggio risulta persistito in stato ERROR.
     await().atMost(Duration.ofSeconds(20))
         .pollInterval(Duration.ofMillis(500))
         .untilAsserted(() -> {
           List<Message> saved = messageRepository.findAll()
-              .filter(m -> "MSG-DLQ-001".equals(m.getMessageId()))
+              .filter(m -> "MSG-ERROR-001".equals(m.getMessageId()))
               .collectList().block();
           assertThat(saved).isNotNull();
           assertThat(saved).anyMatch(m -> m.getMessageState() == MessageState.ERROR);
         });
   }
 
-  // ============ KAFKA DLQ CONSUMER ============
-
-  private KafkaConsumer<String, String> createDlqConsumer() {
-    Properties props = new Properties();
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-    props.put(ConsumerConfig.GROUP_ID_CONFIG, "test-dlq-verifier-" + System.currentTimeMillis());
-    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    return new KafkaConsumer<>(props);
-  }
-
-  private ConsumerRecord<String, String> pollForDlqRecord(KafkaConsumer<String, String> consumer) {
-    long deadline = System.currentTimeMillis() + Duration.ofSeconds(30).toMillis();
-    while (System.currentTimeMillis() < deadline) {
-      ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
-      if (!records.isEmpty()) {
-        return records.iterator().next();
-      }
-    }
-    return null;
-  }
 
   // ============ MOCK SETUP ============
 

@@ -13,27 +13,15 @@ class MessageMapperDTOToObjectTest {
     private final MessageMapperDTOToObject mapper = new MessageMapperDTOToObject();
 
     @Test
-    void map_buildsDeterministicId() {
+    void map_buildsMessage() {
         Message message = mapper.map(MESSAGE_DTO, TPP_DTO.getIdPsp(), TPP_DTO.getEntityId(), MessageState.IN_PROCESS);
 
-        String expectedId = MESSAGE_DTO.getMessageId() + ":" + TPP_DTO.getEntityId();
-        Assertions.assertEquals(expectedId, message.getId());
+        // L'_id non viene valorizzato: è generato da Mongo; l'idempotenza è data dall'indice
+        // unique compound (messageId, entityId).
+        Assertions.assertNull(message.getId());
+        Assertions.assertEquals(MESSAGE_DTO.getMessageId(), message.getMessageId());
         Assertions.assertEquals(MessageState.IN_PROCESS, message.getMessageState());
         Assertions.assertEquals(TPP_DTO.getEntityId(), message.getEntityId());
-    }
-
-    @Test
-    void map_sameNaturalKey_producesSameId() {
-        // IDEMPOTENZA: due mappature con stessa chiave naturale -> stesso _id (upsert, non duplicato).
-        Message first = mapper.map(MESSAGE_DTO, TPP_DTO.getIdPsp(), TPP_DTO.getEntityId(), MessageState.IN_PROCESS);
-        Message second = mapper.map(MESSAGE_DTO, TPP_DTO.getIdPsp(), TPP_DTO.getEntityId(), MessageState.SENT);
-
-        Assertions.assertEquals(first.getId(), second.getId());
-    }
-
-    @Test
-    void buildId_isStable() {
-        Assertions.assertEquals("msg1:entityA", MessageMapperDTOToObject.buildId("msg1", "entityA"));
     }
 }
 

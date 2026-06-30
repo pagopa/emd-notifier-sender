@@ -1,6 +1,5 @@
 package it.gov.pagopa.notifier.service;
 
-import it.gov.pagopa.notifier.event.producer.NotifyDlqProducer;
 import it.gov.pagopa.notifier.event.producer.NotifyErrorProducer;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import org.junit.jupiter.api.Test;
@@ -35,8 +34,6 @@ import static org.mockito.Mockito.times;
     MessageRepository messageRepository;
     @MockBean
     NotifyErrorProducer notifyErrorProducer;
-    @MockBean
-    NotifyDlqProducer notifyDlqProducer;
 
     @Test
     void enqueueNotify_OK(){
@@ -45,16 +42,14 @@ import static org.mockito.Mockito.times;
     }
 
     @Test
-    void enqueueNotify_KO_RoutesToDlq(){
-        // Oltre i max retry: instradamento alla DLQ + persistenza stato ERROR.
-        Mockito.when(notifyDlqProducer.sendToDlq(any())).thenReturn(true);
+    void enqueueNotify_KO_PersistsError(){
+        // Oltre i max retry: nessun re-enqueue, il messaggio viene persistito in stato ERROR.
         Mockito.when(messageRepository.save(any()))
                 .thenReturn(Mono.just(MESSAGE));
 
         notifyErrorProducerService.enqueueNotify(MESSAGE,TPP_DTO, RETRY_KO).block();
 
         Mockito.verify(notifyErrorProducer,times(0)).scheduleMessage(any());
-        Mockito.verify(notifyDlqProducer,times(1)).sendToDlq(any());
         Mockito.verify(messageRepository,times(1)).save(any());
     }
 }
