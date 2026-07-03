@@ -13,12 +13,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -283,6 +286,9 @@ public class NotifyServiceImpl implements NotifyService {
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(jsonBody)
                     .retrieve()
+                    .onStatus(HttpStatusCode::isError, response -> 
+                        response.createException().flatMap(Mono::error)
+                    )
                     .bodyToMono(String.class)
                     .defaultIfEmpty("")
                     .retryWhen(WebClientRetrySpecs.connectFailureOnly());
@@ -307,8 +313,13 @@ public class NotifyServiceImpl implements NotifyService {
                     .thenReturn(response);
             })
             .doOnError(error -> {
+                String detail = error.getMessage();
+                // If the error is a WebClientResponseException, include the response body in the log for better diagnostics.
+                if (error instanceof WebClientResponseException ex) {
+                    detail += " | Body: " + ex.getResponseBodyAsString();
+                }
                 log.error("[NOTIFY-SERVICE][TO-URL] Failed MsgId: {} -> Tpp: {}. Reason: {}",
-                    message.getMessageId(), tppDTO.getEntityId(), error.getMessage(), error);
+                    message.getMessageId(), tppDTO.getEntityId(), detail, error);
             });
     }
 
