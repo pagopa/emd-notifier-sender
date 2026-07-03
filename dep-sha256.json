@@ -771,13 +771,6 @@
       "sha256": "fY569fMDCePmh-AtnWID-nW_nXgb6V3edcA0LS57l8Y="
     },
     {
-      "id": "org.springframework.boot:spring-boot-persistence:jar:4.0.7",
-      "artifactId": "spring-boot-persistence",
-      "groupId": "org.springframework.boot",
-      "version": "4.0.7",
-      "sha256": "IBzQiMX928_37OND9C7uDKu6tkCD0znzXl607bzb1Ls="
-    },
-    {
       "id": "org.springframework:spring-messaging:jar:6.1.12",
       "artifactId": "spring-messaging",
       "groupId": "org.springframework",
