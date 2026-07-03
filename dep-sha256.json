@@ -1338,11 +1338,11 @@
       "sha256": "Bp8UUHZ2KCqMS4cbJzMqpEkcFjOewOhvTYbUWpU7UfU="
     },
     {
-      "id": "io.netty:netty-handler:jar:4.2.15.Final",
+      "id": "io.netty:netty-handler:jar:4.1.135.Final",
       "artifactId": "netty-handler",
       "groupId": "io.netty",
-      "version": "4.2.15.Final",
-      "sha256": "mbWeS-pyIg0q7VLfi6832XQxsGreCxNSJs33MWiXXqs="
+      "version": "4.1.135.Final",
+      "sha256": "JF504EtvTo75iFMVJBLjvxSZzm_PFTKbeYyM42w1N-I="
     },
     {
       "id": "io.netty:netty-resolver:jar:4.1.112.Final",
@@ -1357,13 +1357,6 @@
       "groupId": "io.netty",
       "version": "4.1.112.Final",
       "sha256": "55zOobh6Y0jU69Pfs3oszNm3y2XDN19szawIbHtc5Ic="
-    },
-    {
-      "id": "io.netty:netty-codec-base:jar:4.2.15.Final",
-      "artifactId": "netty-codec-base",
-      "groupId": "io.netty",
-      "version": "4.2.15.Final",
-      "sha256": "LG051ycGKLjPwxZvvXqT1ZWVjlnEYbwy3bODyMkb-BE="
     },
     {
       "id": "io.netty:netty-handler-proxy:jar:4.1.112.Final",
