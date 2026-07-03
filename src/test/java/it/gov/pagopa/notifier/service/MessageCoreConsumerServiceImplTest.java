@@ -12,7 +12,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
 })
 class MessageCoreConsumerServiceImplTest {
 
-    @MockBean
+    @MockitoBean
     MessageServiceImpl messageService;
     @Autowired
     MessageCoreConsumerServiceImpl messageConsumerServiceImpl;

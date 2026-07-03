@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
@@ -28,18 +28,18 @@ import static org.mockito.Mockito.verify;
 @ContextConfiguration(classes = MessageServiceImpl.class)
 class MessageServiceTest {
 
-    @MockBean
+    @MockitoBean
     CitizenConnectorImpl citizenService;
-    @MockBean
+    @MockitoBean
     TppConnectorImpl tppService;
-    @MockBean
+    @MockitoBean
     MessageCoreProducerServiceImpl messageCoreProducerService;
-    @MockBean
+    @MockitoBean
     NotifyServiceImpl sendNotificationService;
-    @MockBean
+    @MockitoBean
     MessageRepository messageRepository;
 
-    @MockBean
+    @MockitoBean
     MessageMapperDTOToObject messageMapperDTOToObject;
 
     @Autowired
