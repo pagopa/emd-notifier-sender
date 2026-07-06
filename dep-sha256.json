@@ -1555,11 +1555,11 @@
       "sha256": "QjDUNIEkHkk4KoPaL6nVmAxXAmaPxapamANGzgPTCCg="
     },
     {
-      "id": "io.netty:netty-handler:jar:4.1.118.Final",
+      "id": "io.netty:netty-handler:jar:4.2.15.Final",
       "artifactId": "netty-handler",
       "groupId": "io.netty",
-      "version": "4.1.118.Final",
-      "sha256": "JuP4pehZ_WLPPBPcbXXk4Yh58ACl0K1_WPhnlnXSPa4="
+      "version": "4.2.15.Final",
+      "sha256": "mbWeS-pyIg0q7VLfi6832XQxsGreCxNSJs33MWiXXqs="
     },
     {
       "id": "io.netty:netty-resolver:jar:4.2.15.Final",
@@ -1994,6 +1994,34 @@
       "groupId": "com.google.j2objc",
       "version": "3.1",
       "sha256": "hNOhUFGEhfgUDqmbiphWVnSWKfZDPJK4DHWzaro7CZs="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-starter-webflux-test:jar:4.1.0",
+      "artifactId": "spring-boot-starter-webflux-test",
+      "groupId": "org.springframework.boot",
+      "version": "4.1.0",
+      "sha256": "b22wIoC9HlyFPwZjiXb1-yQR9gTFd5yZsARCC3GatAc="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-starter-jackson-test:jar:4.1.0",
+      "artifactId": "spring-boot-starter-jackson-test",
+      "groupId": "org.springframework.boot",
+      "version": "4.1.0",
+      "sha256": "FXvp0JX9ZrGBONDez8AnxLGiK-TrTN6vm8Ris93Bj0k="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-webflux-test:jar:4.1.0",
+      "artifactId": "spring-boot-webflux-test",
+      "groupId": "org.springframework.boot",
+      "version": "4.1.0",
+      "sha256": "dFzkzzHxXIah4af0LKHLGxgcfzVjkv1cYpYTn4d0HSc="
+    },
+    {
+      "id": "org.springframework.boot:spring-boot-webtestclient:jar:4.1.0",
+      "artifactId": "spring-boot-webtestclient",
+      "groupId": "org.springframework.boot",
+      "version": "4.1.0",
+      "sha256": "CdY0RXJcwWKRw3MC2KOMYKUnTXqhmYh4zqPOOTx4RVo="
     }
   ]
 }
