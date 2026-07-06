@@ -11,8 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.webflux.test.autoconfigure.WebFluxTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -20,8 +19,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@WebFluxTest(value = {
-        ServiceExceptionHandlerTest.TestController.class}, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebFluxTest(value = {ServiceExceptionHandlerTest.TestController.class})
 @ContextConfiguration(classes = {ServiceExceptionHandler.class,
         ServiceExceptionHandlerTest.TestController.class, ErrorManager.class})
 class ServiceExceptionHandlerTest {
@@ -77,7 +75,8 @@ class ServiceExceptionHandlerTest {
                 .exchange()
                 .expectStatus().is5xxServerError()
                 .expectBody()
-                .json("{\"code\":\"DUMMY_CODE\",\"message\":\"DUMMY_MESSAGE\"}", false);
+                .jsonPath("$.code").isEqualTo("DUMMY_CODE")
+                .jsonPath("$.message").isEqualTo("DUMMY_MESSAGE");
 
         ErrorManagerTest.checkStackTraceSuppressedLog(memoryAppender, "A ServiceException occurred handling request GET /test: HttpStatus 500 INTERNAL_SERVER_ERROR - DUMMY_CODE: DUMMY_MESSAGE at it.gov.pagopa.common.web.exception.ServiceExceptionHandlerTest\\$TestController.test\\(ServiceExceptionHandlerTest.java:[0-9]+\\)");
 
@@ -92,7 +91,8 @@ class ServiceExceptionHandlerTest {
                 .exchange()
                 .expectStatus().is5xxServerError()
                 .expectBody()
-                .json("{\"stringCode\":\"RESPONSE\",\"longCode\":0}", false);
+                .jsonPath("$.stringCode").isEqualTo("RESPONSE")
+                .jsonPath("$.longCode").isEqualTo(0);
 
         ErrorManagerTest.checkLog(memoryAppender,
                 "Something went wrong handling request GET /test/customBody: HttpStatus 500 INTERNAL_SERVER_ERROR - DUMMY_CODE: DUMMY_MESSAGE",
