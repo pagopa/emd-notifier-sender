@@ -207,8 +207,8 @@ public class MessageSenderFlowIT extends BaseIT {
                 .withPath("/emd/citizen/list/" + TEST_FISCAL_CODE + "/enabled/tpp")
                 .withMethod("GET"))
             .respond(response()
-                .withStatusCode(500)
-                .withBody("Internal Server Error"));
+                .withStatusCode(503)
+                .withBody("Service Unavailable"));
 
         MessageDTO messageDTO = createTestMessageDTO(TEST_MESSAGE_ID, TEST_FISCAL_CODE, Channel.SEND, WorkflowType.ANALOG);
         long retryCount = 0L;
