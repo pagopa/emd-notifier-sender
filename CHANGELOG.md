@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/pagopa/emd-notifier-sender/compare/v1.3.1...v1.3.2) (2026-06-19)
+
+
+### Bug Fixes
+
+* [MMC-737] add log on send message error attempt ([#90](https://github.com/pagopa/emd-notifier-sender/issues/90)) ([34b9ace](https://github.com/pagopa/emd-notifier-sender/commit/34b9ace79e33bcf7b4384395a487c426292f4069))
+
 ## [1.3.1](https://github.com/pagopa/emd-notifier-sender/compare/v1.3.0...v1.3.1) (2026-05-05)
 
 
