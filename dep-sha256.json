@@ -953,11 +953,11 @@
       "sha256": "OFKCsAWBjPrM2-i9JCmBHn5kF4LyuIkyprj_UdZo9hY="
     },
     {
-      "id": "org.projectlombok:lombok:jar:1.18.30",
+      "id": "org.projectlombok:lombok:jar:1.18.46",
       "artifactId": "lombok",
       "groupId": "org.projectlombok",
-      "version": "1.18.30",
-      "sha256": "FBUbR1gtVwtN4WoUfs4729GazkruW946VXjIfbnsuZg="
+      "version": "1.18.46",
+      "sha256": "AfexoBXjPiti1fXzcFMwY1erFBX9GB_Lp3lPXRmMESY="
     },
     {
       "id": "org.apache.httpcomponents.client5:httpclient5:jar:5.6.1",
@@ -1030,18 +1030,18 @@
       "sha256": "ydtSEAzmyKrJXMOQdflXINLlYbEfgFG4HBIa1O_9cAQ="
     },
     {
-      "id": "net.minidev:json-smart:jar:2.5.2",
+      "id": "net.minidev:json-smart:jar:2.6.0",
       "artifactId": "json-smart",
       "groupId": "net.minidev",
-      "version": "2.5.2",
-      "sha256": "T73tsBBc7cf3ZrlcKX0uiPtqVg2kjzu6oMxTjqi3v3E="
+      "version": "2.6.0",
+      "sha256": "GuS1YUWK-1QL6OxcbbtPLnFaMZp65khUmYqvkkdw1hs="
     },
     {
-      "id": "net.minidev:accessors-smart:jar:2.5.2",
+      "id": "net.minidev:accessors-smart:jar:2.6.0",
       "artifactId": "accessors-smart",
       "groupId": "net.minidev",
-      "version": "2.5.2",
-      "sha256": "m4p7xDhh1hVsAhFm2UH7fd2-RGPi-l7ogHfksBRSqDY="
+      "version": "2.6.0",
+      "sha256": "IiyfVHuyCpn8SGQDo5g1LRMG-2cbOKvX7KtkAd8XDmE="
     },
     {
       "id": "org.ow2.asm:asm:jar:9.7.1",
@@ -1191,11 +1191,11 @@
       "sha256": "b_t3lgdaIEkV7cS7nlTcQgGDzstSDXUwBPZg8VN2PI4="
     },
     {
-      "id": "org.xmlunit:xmlunit-core:jar:2.10.0",
+      "id": "org.xmlunit:xmlunit-core:jar:2.12.0",
       "artifactId": "xmlunit-core",
       "groupId": "org.xmlunit",
-      "version": "2.10.0",
-      "sha256": "P4mwpinT2cymbhX43eXglHhS-kQXK8d-om7fluPk_Pg="
+      "version": "2.12.0",
+      "sha256": "sml-UuOoJOCHSzaYsMT2dsc2MBvCjoKFtnq1OFYE1P4="
     },
     {
       "id": "io.projectreactor:reactor-test:jar:3.8.6",
@@ -1380,18 +1380,18 @@
       "sha256": "ZQe2-aKifMTMiN8LlN65_6dU6JW7ZtAqYlf4Yjl2MYU="
     },
     {
-      "id": "org.testcontainers:junit-jupiter:jar:1.21.3",
+      "id": "org.testcontainers:junit-jupiter:jar:1.21.4",
       "artifactId": "junit-jupiter",
       "groupId": "org.testcontainers",
-      "version": "1.21.3",
-      "sha256": "Q2Mqrndt7Otwf-WlziVpGOvxLCKC8W3VEM1TVzVszdA="
+      "version": "1.21.4",
+      "sha256": "kt8qb9Z8MKy1s1IRGFWAM_cRx5c_q19FlyEf8_0T9BY="
     },
     {
-      "id": "org.testcontainers:testcontainers:jar:1.21.3",
+      "id": "org.testcontainers:testcontainers:jar:1.21.4",
       "artifactId": "testcontainers",
       "groupId": "org.testcontainers",
-      "version": "1.21.3",
-      "sha256": "75NN2sb0J1nXHDA6KERUSlbPOBszQ3FJlV09jJkr7F0="
+      "version": "1.21.4",
+      "sha256": "6oGpyjN7uufug_NyuS1VFAx6uXa85z_xt58t0VHKlhA="
     },
     {
       "id": "org.apache.commons:commons-compress:jar:1.24.0",
@@ -1436,25 +1436,25 @@
       "sha256": "ZtT4GaBipRodVie__CP6xV0Wd_Dgof66FEqr3WcKZLs="
     },
     {
-      "id": "org.testcontainers:mongodb:jar:1.21.3",
+      "id": "org.testcontainers:mongodb:jar:1.21.4",
       "artifactId": "mongodb",
       "groupId": "org.testcontainers",
-      "version": "1.21.3",
-      "sha256": "lXk-RQKuDz7fvf3BuhCdstUFGQTOtCy3MOwSRWOwMhY="
+      "version": "1.21.4",
+      "sha256": "JSZwaFzR99i9xAbIbjAqpl9Pp8DG3nCoe0ZMwROCSJ4="
     },
     {
-      "id": "org.testcontainers:kafka:jar:1.21.3",
+      "id": "org.testcontainers:kafka:jar:1.21.4",
       "artifactId": "kafka",
       "groupId": "org.testcontainers",
-      "version": "1.21.3",
-      "sha256": "QUSvTudIHr8lySTYMVRQ9xflH_BPuXG2USF41WbyWBw="
+      "version": "1.21.4",
+      "sha256": "24kdiGpYCRqEM7yiJ3HK2O8O1IoTpU6nhXLP9OllRXk="
     },
     {
-      "id": "org.testcontainers:mockserver:jar:1.21.3",
+      "id": "org.testcontainers:mockserver:jar:1.21.4",
       "artifactId": "mockserver",
       "groupId": "org.testcontainers",
-      "version": "1.21.3",
-      "sha256": "r8P461k6AdFYNqmIQtbaZ4eHkgjLHSKmaf8oeO3V9kg="
+      "version": "1.21.4",
+      "sha256": "ooQffPgRnBkw9AkWAZ4Y1_cE4f2KWui4Ay1elM_9xD8="
     },
     {
       "id": "org.mock-server:mockserver-client-java:jar:7.1.0",
@@ -1772,11 +1772,11 @@
       "sha256": "tf2jFZ8GV1zHGnxb0-RftR5TWqiK71FLVRA7v-Q1kjg="
     },
     {
-      "id": "commons-io:commons-io:jar:2.14.0",
+      "id": "commons-io:commons-io:jar:2.22.0",
       "artifactId": "commons-io",
       "groupId": "commons-io",
-      "version": "2.14.0",
-      "sha256": "410d9yMlaO1Lgdmp7ZSgFZs_9s8ZFcwh7vXLVdexV6I="
+      "version": "2.22.0",
+      "sha256": "K5p7H3JvuGIW29LIMh6r4CIdvVsb6BwY4ctTgRsQR1g="
     },
     {
       "id": "org.apache.commons:commons-text:jar:1.15.0",
