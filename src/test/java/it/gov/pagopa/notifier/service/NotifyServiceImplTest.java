@@ -171,7 +171,7 @@ class NotifyServiceImplTest {
             assert request.getPath() != null;
             if (request.getPath().equals(AUTHENTICATION_URL)) {
                 return new MockResponse()
-                    .setBody("{\"access_token\":\"accessToken\"}")
+                    .setBody("{\"access_token\":\"accessToken\", \"token_type\":\"Bearer\", \"expires_in\":3600}")
                     .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
             } else if (request.getPath().equals(MESSAGE_URL)) {
                 return new MockResponse()
