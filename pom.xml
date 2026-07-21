@@ -131,7 +131,7 @@
 		<dependency>
 			<groupId>org.mock-server</groupId>
 			<artifactId>mockserver-client-java</artifactId>
-			<version>7.1.0</version>
+			<version>7.4.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -176,7 +176,7 @@
 			<dependency>
 				<groupId>io.netty</groupId>
 				<artifactId>netty-handler</artifactId>
-				<version>4.2.15.Final</version>
+				<version>4.2.16.Final</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.security</groupId>

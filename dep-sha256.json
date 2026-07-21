@@ -435,13 +435,6 @@
       "sha256": "c1A-cBo3f6_q8ztxubiRCo14hMu6iKsnlxszs3U7Zao="
     },
     {
-      "id": "org.hdrhistogram:HdrHistogram:jar:2.2.2",
-      "artifactId": "HdrHistogram",
-      "groupId": "org.hdrhistogram",
-      "version": "2.2.2",
-      "sha256": "ItHUMWxOwTpotVnpjIJW1pBxWTcx2pYTZkD4ZPoU-tg="
-    },
-    {
       "id": "org.springframework.boot:spring-boot-starter-validation:jar:4.1.0",
       "artifactId": "spring-boot-starter-validation",
       "groupId": "org.springframework.boot",
@@ -561,25 +554,11 @@
       "sha256": "pYqExCceUN9Mlu2RbMt-SKhp-O2c3Noa1dPUwzsCFKM="
     },
     {
-      "id": "org.xerial.snappy:snappy-java:jar:1.1.10.7",
-      "artifactId": "snappy-java",
-      "groupId": "org.xerial.snappy",
-      "version": "1.1.10.7",
-      "sha256": "THZss_hVQV7nNLI5KUmgtvEqYIeTNKdFGN6vYnDTLjY="
-    },
-    {
       "id": "com.github.spotbugs:spotbugs-annotations:jar:4.9.8",
       "artifactId": "spotbugs-annotations",
       "groupId": "com.github.spotbugs",
       "version": "4.9.8",
       "sha256": "b2nW_pxVpU3LMOh9j6LV9SJGr1DXo0RSRtlTnvIhvhw="
-    },
-    {
-      "id": "com.google.code.findbugs:jsr305:jar:3.0.2",
-      "artifactId": "jsr305",
-      "groupId": "com.google.code.findbugs",
-      "version": "3.0.2",
-      "sha256": "dmrSoHg_JoeWLIrXTO7MOKKLn3Ki0IXuQ4t4E-ko0Mc="
     },
     {
       "id": "com.azure.spring:spring-cloud-azure-starter-data-cosmos:jar:7.3.0",
@@ -1457,18 +1436,18 @@
       "sha256": "ooQffPgRnBkw9AkWAZ4Y1_cE4f2KWui4Ay1elM_9xD8="
     },
     {
-      "id": "org.mock-server:mockserver-client-java:jar:7.1.0",
+      "id": "org.mock-server:mockserver-client-java:jar:7.4.0",
       "artifactId": "mockserver-client-java",
       "groupId": "org.mock-server",
-      "version": "7.1.0",
-      "sha256": "mcOy94yZmNiw0O1Ab1BHsj9oDyw86-dsbxwk-zMQRFA="
+      "version": "7.4.0",
+      "sha256": "BEM5NUSG9zEIi2fCH5r5XV97wjAW0S-gR7l-tokLOO8="
     },
     {
-      "id": "org.mock-server:mockserver-core:jar:7.1.0",
+      "id": "org.mock-server:mockserver-core:jar:7.4.0",
       "artifactId": "mockserver-core",
       "groupId": "org.mock-server",
-      "version": "7.1.0",
-      "sha256": "6q4_5zOCixQtA6fs7-mRuq-TTfVj7vJzukvQTCT8334="
+      "version": "7.4.0",
+      "sha256": "6zs157ePVG7HRjrT3tPzV777Vwe1m-ncScvOdZdXdxs="
     },
     {
       "id": "com.lmax:disruptor:jar:4.0.0",
@@ -1555,11 +1534,11 @@
       "sha256": "QjDUNIEkHkk4KoPaL6nVmAxXAmaPxapamANGzgPTCCg="
     },
     {
-      "id": "io.netty:netty-handler:jar:4.2.15.Final",
+      "id": "io.netty:netty-handler:jar:4.2.16.Final",
       "artifactId": "netty-handler",
       "groupId": "io.netty",
-      "version": "4.2.15.Final",
-      "sha256": "mbWeS-pyIg0q7VLfi6832XQxsGreCxNSJs33MWiXXqs="
+      "version": "4.2.16.Final",
+      "sha256": "olnKSW2gWsGYH5XNhWIR-JSjKAVqYSnpzXDbvV30Afc="
     },
     {
       "id": "io.netty:netty-resolver:jar:4.2.15.Final",
@@ -1688,6 +1667,27 @@
       "sha256": "MxUuqD7FDSJwb9rzsHrLzXFvmmjtyr3XxNAoQ8vc3PY="
     },
     {
+      "id": "commons-beanutils:commons-beanutils:jar:1.11.0",
+      "artifactId": "commons-beanutils",
+      "groupId": "commons-beanutils",
+      "version": "1.11.0",
+      "sha256": "nkS6aOyaPyEob6Kou7ADtzXA9pEBu0MUS3n0-KqnRwk="
+    },
+    {
+      "id": "commons-collections:commons-collections:jar:3.2.2",
+      "artifactId": "commons-collections",
+      "groupId": "commons-collections",
+      "version": "3.2.2",
+      "sha256": "7urpF5FxRKaKdB1MDf9mqlxcX9hVk_8he87T_Iyng7g="
+    },
+    {
+      "id": "org.hdrhistogram:HdrHistogram:jar:2.2.2",
+      "artifactId": "HdrHistogram",
+      "groupId": "org.hdrhistogram",
+      "version": "2.2.2",
+      "sha256": "ItHUMWxOwTpotVnpjIJW1pBxWTcx2pYTZkD4ZPoU-tg="
+    },
+    {
       "id": "com.fasterxml.jackson.core:jackson-core:jar:2.21.4",
       "artifactId": "jackson-core",
       "groupId": "com.fasterxml.jackson.core",
@@ -1709,6 +1709,13 @@
       "sha256": "0axLmLcDBOVkSEI1if3l53WxAIiWQ60erWLMeBFjNoQ="
     },
     {
+      "id": "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.21.4",
+      "artifactId": "jackson-dataformat-yaml",
+      "groupId": "com.fasterxml.jackson.dataformat",
+      "version": "2.21.4",
+      "sha256": "BV60wAirEvDLY-k6ZFRGPQMv3g_KhZQ9afjcdGlInks="
+    },
+    {
       "id": "net.javacrumbs.json-unit:json-unit-core:jar:5.1.2",
       "artifactId": "json-unit-core",
       "groupId": "net.javacrumbs.json-unit",
@@ -1716,11 +1723,11 @@
       "sha256": "GEYH7-bTFBUPKwNzovmj9AwgcVlNlI_crWcVtN13TWY="
     },
     {
-      "id": "com.networknt:json-schema-validator:jar:3.0.4",
+      "id": "com.networknt:json-schema-validator:jar:3.0.5",
       "artifactId": "json-schema-validator",
       "groupId": "com.networknt",
-      "version": "3.0.4",
-      "sha256": "_2wk9cuIsBkQnuak54k45xPw_f6FWKxlvJgDQ8BfhgU="
+      "version": "3.0.5",
+      "sha256": "D8HZjpwKd0ROUpoVAMNkI3sSl5wt3guPyJdWUGOrHEE="
     },
     {
       "id": "com.ethlo.time:itu:jar:1.14.0",
@@ -1742,6 +1749,48 @@
       "groupId": "org.snakeyaml",
       "version": "3.0.1",
       "sha256": "C2OMiAYRIhXgLljpXL2emmnUvVQJkfR1U9BTkZmUzJQ="
+    },
+    {
+      "id": "com.github.java-json-tools:json-patch:jar:1.13",
+      "artifactId": "json-patch",
+      "groupId": "com.github.java-json-tools",
+      "version": "1.13",
+      "sha256": "H3lNJWlltT7zfnC1VQXi7QDdwBhNROLo4f3OWjysx94="
+    },
+    {
+      "id": "com.github.java-json-tools:msg-simple:jar:1.2",
+      "artifactId": "msg-simple",
+      "groupId": "com.github.java-json-tools",
+      "version": "1.2",
+      "sha256": "vvQRG5k6Wz5hSNj1hWIczqwqGInNvDREixFjLg2Kmo8="
+    },
+    {
+      "id": "com.github.java-json-tools:btf:jar:1.3",
+      "artifactId": "btf",
+      "groupId": "com.github.java-json-tools",
+      "version": "1.3",
+      "sha256": "Z8PkYutQgH9OCl9N7jBLvxfNmGpC7l6wsvTJv2TRMNk="
+    },
+    {
+      "id": "com.github.java-json-tools:jackson-coreutils:jar:2.0",
+      "artifactId": "jackson-coreutils",
+      "groupId": "com.github.java-json-tools",
+      "version": "2.0",
+      "sha256": "FrOqvTqeslZV3aQz41-b2cfBqnmRQncC9fEfAAgT27A="
+    },
+    {
+      "id": "com.graphql-java:graphql-java:jar:25.0",
+      "artifactId": "graphql-java",
+      "groupId": "com.graphql-java",
+      "version": "25.0",
+      "sha256": "Q8_lRlPfe3RY5cy9qmlBNkPxz0OZ7Y24wvRrq1WeUIE="
+    },
+    {
+      "id": "com.graphql-java:java-dataloader:jar:6.0.0",
+      "artifactId": "java-dataloader",
+      "groupId": "com.graphql-java",
+      "version": "6.0.0",
+      "sha256": "HJ7wWDCDgTEsNQ-UPRhcnkUbDu4KyrdLe4D8T1ZiVQE="
     },
     {
       "id": "com.sun.xml.bind:jaxb-impl:jar:4.0.9",
@@ -1791,6 +1840,13 @@
       "groupId": "commons-codec",
       "version": "1.21.0",
       "sha256": "TahRy2q_uYv-nrd8Xl_Ef1QU-ii5TiG3_ZpkZwXcFn8="
+    },
+    {
+      "id": "com.google.code.findbugs:jsr305:jar:3.0.2",
+      "artifactId": "jsr305",
+      "groupId": "com.google.code.findbugs",
+      "version": "3.0.2",
+      "sha256": "dmrSoHg_JoeWLIrXTO7MOKKLn3Ki0IXuQ4t4E-ko0Mc="
     },
     {
       "id": "io.github.classgraph:classgraph:jar:4.8.184",
@@ -1861,6 +1917,13 @@
       "groupId": "io.prometheus",
       "version": "1.5.1",
       "sha256": "OB0Qer5i41PN7-4_AeDuTXFjGuFVulKPCMnFOT2hGD4="
+    },
+    {
+      "id": "org.xerial.snappy:snappy-java:jar:1.1.10.8",
+      "artifactId": "snappy-java",
+      "groupId": "org.xerial.snappy",
+      "version": "1.1.10.8",
+      "sha256": "UEhdBgN_6j1uQMloOG_uymM4zJhy4lVJWT_z6zUs78w="
     },
     {
       "id": "io.opentelemetry:opentelemetry-api:jar:1.62.0",
