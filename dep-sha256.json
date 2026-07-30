@@ -435,13 +435,6 @@
       "sha256": "c1A-cBo3f6_q8ztxubiRCo14hMu6iKsnlxszs3U7Zao="
     },
     {
-      "id": "org.hdrhistogram:HdrHistogram:jar:2.2.2",
-      "artifactId": "HdrHistogram",
-      "groupId": "org.hdrhistogram",
-      "version": "2.2.2",
-      "sha256": "ItHUMWxOwTpotVnpjIJW1pBxWTcx2pYTZkD4ZPoU-tg="
-    },
-    {
       "id": "org.springframework.boot:spring-boot-starter-validation:jar:4.1.0",
       "artifactId": "spring-boot-starter-validation",
       "groupId": "org.springframework.boot",
@@ -561,13 +554,6 @@
       "sha256": "pYqExCceUN9Mlu2RbMt-SKhp-O2c3Noa1dPUwzsCFKM="
     },
     {
-      "id": "org.xerial.snappy:snappy-java:jar:1.1.10.7",
-      "artifactId": "snappy-java",
-      "groupId": "org.xerial.snappy",
-      "version": "1.1.10.7",
-      "sha256": "THZss_hVQV7nNLI5KUmgtvEqYIeTNKdFGN6vYnDTLjY="
-    },
-    {
       "id": "com.github.spotbugs:spotbugs-annotations:jar:4.9.8",
       "artifactId": "spotbugs-annotations",
       "groupId": "com.github.spotbugs",
@@ -575,53 +561,46 @@
       "sha256": "b2nW_pxVpU3LMOh9j6LV9SJGr1DXo0RSRtlTnvIhvhw="
     },
     {
-      "id": "com.google.code.findbugs:jsr305:jar:3.0.2",
-      "artifactId": "jsr305",
-      "groupId": "com.google.code.findbugs",
-      "version": "3.0.2",
-      "sha256": "dmrSoHg_JoeWLIrXTO7MOKKLn3Ki0IXuQ4t4E-ko0Mc="
-    },
-    {
-      "id": "com.azure.spring:spring-cloud-azure-starter-data-cosmos:jar:7.3.0",
+      "id": "com.azure.spring:spring-cloud-azure-starter-data-cosmos:jar:7.4.0",
       "artifactId": "spring-cloud-azure-starter-data-cosmos",
       "groupId": "com.azure.spring",
-      "version": "7.3.0",
-      "sha256": "IOB3zloQ1CoGY88rKJ4NNQOJ3PcysL1EAKiuluk9788="
+      "version": "7.4.0",
+      "sha256": "iIG_38V-aQODuYp2MZIOqDYfa3ShuUW36j2FCpfmR4o="
     },
     {
-      "id": "com.azure.spring:spring-cloud-azure-starter:jar:7.3.0",
+      "id": "com.azure.spring:spring-cloud-azure-starter:jar:7.4.0",
       "artifactId": "spring-cloud-azure-starter",
       "groupId": "com.azure.spring",
-      "version": "7.3.0",
-      "sha256": "cadbjAIAbEs31Mlw_Z8rPSZRJTFrxWMWpPkIJ_5nJ7A="
+      "version": "7.4.0",
+      "sha256": "cyooMsXp1Uu4PuymJB-FZcQu1jWmniLWAu6SsQePgfI="
     },
     {
-      "id": "com.azure.spring:spring-cloud-azure-autoconfigure:jar:7.3.0",
+      "id": "com.azure.spring:spring-cloud-azure-autoconfigure:jar:7.4.0",
       "artifactId": "spring-cloud-azure-autoconfigure",
       "groupId": "com.azure.spring",
-      "version": "7.3.0",
-      "sha256": "FUvqj7BL2m1w6hp80w2v4Q7G_7q6vVxOwWgjAA1ZqgI="
+      "version": "7.4.0",
+      "sha256": "mNkUFuOHn6Aiwud71rOoEuyKPX9NAc97fbnYi0H55ac="
     },
     {
-      "id": "com.azure.spring:spring-cloud-azure-service:jar:7.3.0",
+      "id": "com.azure.spring:spring-cloud-azure-service:jar:7.4.0",
       "artifactId": "spring-cloud-azure-service",
       "groupId": "com.azure.spring",
-      "version": "7.3.0",
-      "sha256": "dSkZTvDR7fd0eZwgbfNMB8PSbLvwt_7GMW4utkazatI="
+      "version": "7.4.0",
+      "sha256": "3Jcvp6VdqmlvdTrTKxU7qHr0loTJJOcV8zkkI0pt_24="
     },
     {
-      "id": "com.azure.spring:spring-cloud-azure-core:jar:7.3.0",
+      "id": "com.azure.spring:spring-cloud-azure-core:jar:7.4.0",
       "artifactId": "spring-cloud-azure-core",
       "groupId": "com.azure.spring",
-      "version": "7.3.0",
-      "sha256": "AgDEsQ8V0r-NgNY2Ctphda-S7trN1kb1ONSZR45KwDc="
+      "version": "7.4.0",
+      "sha256": "DEI8ZTSeheZO63xgmLv_co80SbhOjmcEpqCmcoecwZg="
     },
     {
-      "id": "com.azure:azure-identity:jar:1.18.3",
+      "id": "com.azure:azure-identity:jar:1.18.4",
       "artifactId": "azure-identity",
       "groupId": "com.azure",
-      "version": "1.18.3",
-      "sha256": "iKWBuYzXwMfv0jqXfpuswcoZTNtFhnrrBjNyhEnlqJg="
+      "version": "1.18.4",
+      "sha256": "_ZR6sdaxqFGdN36FCfNP33AhWqoR6Egm2-AX6WKssqA="
     },
     {
       "id": "com.microsoft.azure:msal4j:jar:1.23.1",
@@ -645,11 +624,11 @@
       "sha256": "t-PUbIe60utAmw5wSRa82BIGFo41cxLf3dDiU2ec2eA="
     },
     {
-      "id": "com.azure:azure-core-amqp:jar:2.11.4",
+      "id": "com.azure:azure-core-amqp:jar:2.12.0",
       "artifactId": "azure-core-amqp",
       "groupId": "com.azure",
-      "version": "2.11.4",
-      "sha256": "FK69aDiEeMtTS-nvZyuiA4TsQXrojegNjzFwGqFyOQg="
+      "version": "2.12.0",
+      "sha256": "ZyNi7qfh3pQJ_QdrEsX3UNLo2hjrkGD9dWqia2eyDaw="
     },
     {
       "id": "com.microsoft.azure:qpid-proton-j-extensions:jar:1.2.6",
@@ -666,11 +645,11 @@
       "sha256": "4bU9yaHlSyOv9uzmk7vzsqslAEVCAx7EkBgymwOIiOo="
     },
     {
-      "id": "com.azure:azure-core-management:jar:1.19.4",
+      "id": "com.azure:azure-core-management:jar:1.19.5",
       "artifactId": "azure-core-management",
       "groupId": "com.azure",
-      "version": "1.19.4",
-      "sha256": "nDDmrK6lKIuzeJlekJxnXCzwUfvu_GUZu466GucaS8M="
+      "version": "1.19.5",
+      "sha256": "7GLhdugP2uVB6Xu9mZ4MoF25wZHoy6Y32y7SKddVbfc="
     },
     {
       "id": "org.springframework.boot:spring-boot-jackson2:jar:4.1.0",
@@ -680,11 +659,11 @@
       "sha256": "gPbQ-uvMyy_i3CedZ9y8Gr7lYWx6P0G0YZxzxnb2xVA="
     },
     {
-      "id": "com.azure:azure-spring-data-cosmos:jar:7.3.0",
+      "id": "com.azure:azure-spring-data-cosmos:jar:7.4.0",
       "artifactId": "azure-spring-data-cosmos",
       "groupId": "com.azure",
-      "version": "7.3.0",
-      "sha256": "1LPzQ61xuWOFe5fw4cOv1NG_mSL_jhrM2QwqSzPxJH0="
+      "version": "7.4.0",
+      "sha256": "bXsz9v946r6O2d2k4JEVCTy_7MZciaq-FQ_UOe9fQV0="
     },
     {
       "id": "org.springframework:spring-beans:jar:7.0.8",
@@ -736,18 +715,18 @@
       "sha256": "2dkmIkxzi9YVJxjAeBNOOuoQV9tNakUsN60SCJPg5NY="
     },
     {
-      "id": "com.azure:azure-cosmos:jar:4.80.0",
+      "id": "com.azure:azure-cosmos:jar:4.81.0",
       "artifactId": "azure-cosmos",
       "groupId": "com.azure",
-      "version": "4.80.0",
-      "sha256": "HLerHUfWukYM-zEqjWK-3wlvQK3XXdjsSQYCwXXPv-w="
+      "version": "4.81.0",
+      "sha256": "fO6gcTmbSz8yOY9ckBPJW2dJA11qW-qVVDVepwyugPk="
     },
     {
-      "id": "com.azure:azure-core:jar:1.58.0",
+      "id": "com.azure:azure-core:jar:1.58.1",
       "artifactId": "azure-core",
       "groupId": "com.azure",
-      "version": "1.58.0",
-      "sha256": "oTLl6TazlVQZrCyhkQc7MX-a3qXnK32I5c0LZvj2MOk="
+      "version": "1.58.1",
+      "sha256": "ezORJukq95sH_Plv4W-luiooVLuM5-A6xHdrlHT-ffU="
     },
     {
       "id": "com.azure:azure-json:jar:1.5.1",
@@ -764,11 +743,11 @@
       "sha256": "CLRYSBtlZVRgUhWrCxZfaOYCU1nlK-pHNtAyMo1Aujs="
     },
     {
-      "id": "com.azure:azure-core-http-netty:jar:1.16.4",
+      "id": "com.azure:azure-core-http-netty:jar:1.16.5",
       "artifactId": "azure-core-http-netty",
       "groupId": "com.azure",
-      "version": "1.16.4",
-      "sha256": "OWC1gAgxMYidSONxlGWe-ahm0zUCB1QW7RMwsv_uO7U="
+      "version": "1.16.5",
+      "sha256": "YQkbpWNOcR45ZyHt_MpcZ4K-HB6G8uz4VutXqiAmDAw="
     },
     {
       "id": "io.netty:netty-transport-native-kqueue:jar:osx-x86_64:4.2.15.Final",
@@ -1457,18 +1436,18 @@
       "sha256": "ooQffPgRnBkw9AkWAZ4Y1_cE4f2KWui4Ay1elM_9xD8="
     },
     {
-      "id": "org.mock-server:mockserver-client-java:jar:7.1.0",
+      "id": "org.mock-server:mockserver-client-java:jar:7.5.0",
       "artifactId": "mockserver-client-java",
       "groupId": "org.mock-server",
-      "version": "7.1.0",
-      "sha256": "mcOy94yZmNiw0O1Ab1BHsj9oDyw86-dsbxwk-zMQRFA="
+      "version": "7.5.0",
+      "sha256": "lwobMFJqBga7q870rtytvD158mP84Gp8WwBiuoQ56DE="
     },
     {
-      "id": "org.mock-server:mockserver-core:jar:7.1.0",
+      "id": "org.mock-server:mockserver-core:jar:7.5.0",
       "artifactId": "mockserver-core",
       "groupId": "org.mock-server",
-      "version": "7.1.0",
-      "sha256": "6q4_5zOCixQtA6fs7-mRuq-TTfVj7vJzukvQTCT8334="
+      "version": "7.5.0",
+      "sha256": "7COkUmtmwFx9yFMWbGtV4F6EBk5wCp6oD2LTJ_qYb4k="
     },
     {
       "id": "com.lmax:disruptor:jar:4.0.0",
@@ -1555,11 +1534,11 @@
       "sha256": "QjDUNIEkHkk4KoPaL6nVmAxXAmaPxapamANGzgPTCCg="
     },
     {
-      "id": "io.netty:netty-handler:jar:4.2.15.Final",
+      "id": "io.netty:netty-handler:jar:4.2.16.Final",
       "artifactId": "netty-handler",
       "groupId": "io.netty",
-      "version": "4.2.15.Final",
-      "sha256": "mbWeS-pyIg0q7VLfi6832XQxsGreCxNSJs33MWiXXqs="
+      "version": "4.2.16.Final",
+      "sha256": "olnKSW2gWsGYH5XNhWIR-JSjKAVqYSnpzXDbvV30Afc="
     },
     {
       "id": "io.netty:netty-resolver:jar:4.2.15.Final",
@@ -1667,18 +1646,18 @@
       "sha256": "VyTWoPJ9uQ1Fr4hPRSC85YHynuviGEDQfK4itnC7jrs="
     },
     {
-      "id": "org.bouncycastle:bcpkix-jdk18on:jar:1.84",
+      "id": "org.bouncycastle:bcpkix-jdk18on:jar:1.85",
       "artifactId": "bcpkix-jdk18on",
       "groupId": "org.bouncycastle",
-      "version": "1.84",
-      "sha256": "yH8W7Z5exhvJQVHp82RqxE5QzUSBIc6ENn-kt-x-wbs="
+      "version": "1.85",
+      "sha256": "yfgrLU6ZxLvfzPaE5SzAbqBqC1Z7_Q0I-cWj9BcFWZY="
     },
     {
-      "id": "org.bouncycastle:bcutil-jdk18on:jar:1.84",
+      "id": "org.bouncycastle:bcutil-jdk18on:jar:1.85",
       "artifactId": "bcutil-jdk18on",
       "groupId": "org.bouncycastle",
-      "version": "1.84",
-      "sha256": "s3ThaWNCH7nPsBzCDXrY_S-LgYjj7vDsColl4kX3YZo="
+      "version": "1.85",
+      "sha256": "WQ9V7V1oUpI5iYpKXE9zC2439F0c-j--UfhIWr4yxC0="
     },
     {
       "id": "com.nimbusds:nimbus-jose-jwt:jar:10.9.1",
@@ -1686,6 +1665,27 @@
       "groupId": "com.nimbusds",
       "version": "10.9.1",
       "sha256": "MxUuqD7FDSJwb9rzsHrLzXFvmmjtyr3XxNAoQ8vc3PY="
+    },
+    {
+      "id": "commons-beanutils:commons-beanutils:jar:1.11.0",
+      "artifactId": "commons-beanutils",
+      "groupId": "commons-beanutils",
+      "version": "1.11.0",
+      "sha256": "nkS6aOyaPyEob6Kou7ADtzXA9pEBu0MUS3n0-KqnRwk="
+    },
+    {
+      "id": "commons-collections:commons-collections:jar:3.2.2",
+      "artifactId": "commons-collections",
+      "groupId": "commons-collections",
+      "version": "3.2.2",
+      "sha256": "7urpF5FxRKaKdB1MDf9mqlxcX9hVk_8he87T_Iyng7g="
+    },
+    {
+      "id": "org.hdrhistogram:HdrHistogram:jar:2.2.2",
+      "artifactId": "HdrHistogram",
+      "groupId": "org.hdrhistogram",
+      "version": "2.2.2",
+      "sha256": "ItHUMWxOwTpotVnpjIJW1pBxWTcx2pYTZkD4ZPoU-tg="
     },
     {
       "id": "com.fasterxml.jackson.core:jackson-core:jar:2.21.4",
@@ -1709,18 +1709,25 @@
       "sha256": "0axLmLcDBOVkSEI1if3l53WxAIiWQ60erWLMeBFjNoQ="
     },
     {
-      "id": "net.javacrumbs.json-unit:json-unit-core:jar:5.1.2",
-      "artifactId": "json-unit-core",
-      "groupId": "net.javacrumbs.json-unit",
-      "version": "5.1.2",
-      "sha256": "GEYH7-bTFBUPKwNzovmj9AwgcVlNlI_crWcVtN13TWY="
+      "id": "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.21.4",
+      "artifactId": "jackson-dataformat-yaml",
+      "groupId": "com.fasterxml.jackson.dataformat",
+      "version": "2.21.4",
+      "sha256": "BV60wAirEvDLY-k6ZFRGPQMv3g_KhZQ9afjcdGlInks="
     },
     {
-      "id": "com.networknt:json-schema-validator:jar:3.0.4",
+      "id": "net.javacrumbs.json-unit:json-unit-core:jar:6.0.1",
+      "artifactId": "json-unit-core",
+      "groupId": "net.javacrumbs.json-unit",
+      "version": "6.0.1",
+      "sha256": "8TqoCdmRdoBz4ntqDDsnvVPkR9fVgzT1VtCVyKqrrTY="
+    },
+    {
+      "id": "com.networknt:json-schema-validator:jar:3.0.6",
       "artifactId": "json-schema-validator",
       "groupId": "com.networknt",
-      "version": "3.0.4",
-      "sha256": "_2wk9cuIsBkQnuak54k45xPw_f6FWKxlvJgDQ8BfhgU="
+      "version": "3.0.6",
+      "sha256": "9vcnNwu8U95tEyFxC36QKId0BC5p47tpktaAEEj1aAA="
     },
     {
       "id": "com.ethlo.time:itu:jar:1.14.0",
@@ -1742,6 +1749,48 @@
       "groupId": "org.snakeyaml",
       "version": "3.0.1",
       "sha256": "C2OMiAYRIhXgLljpXL2emmnUvVQJkfR1U9BTkZmUzJQ="
+    },
+    {
+      "id": "com.github.java-json-tools:json-patch:jar:1.13",
+      "artifactId": "json-patch",
+      "groupId": "com.github.java-json-tools",
+      "version": "1.13",
+      "sha256": "H3lNJWlltT7zfnC1VQXi7QDdwBhNROLo4f3OWjysx94="
+    },
+    {
+      "id": "com.github.java-json-tools:msg-simple:jar:1.2",
+      "artifactId": "msg-simple",
+      "groupId": "com.github.java-json-tools",
+      "version": "1.2",
+      "sha256": "vvQRG5k6Wz5hSNj1hWIczqwqGInNvDREixFjLg2Kmo8="
+    },
+    {
+      "id": "com.github.java-json-tools:btf:jar:1.3",
+      "artifactId": "btf",
+      "groupId": "com.github.java-json-tools",
+      "version": "1.3",
+      "sha256": "Z8PkYutQgH9OCl9N7jBLvxfNmGpC7l6wsvTJv2TRMNk="
+    },
+    {
+      "id": "com.github.java-json-tools:jackson-coreutils:jar:2.0",
+      "artifactId": "jackson-coreutils",
+      "groupId": "com.github.java-json-tools",
+      "version": "2.0",
+      "sha256": "FrOqvTqeslZV3aQz41-b2cfBqnmRQncC9fEfAAgT27A="
+    },
+    {
+      "id": "com.graphql-java:graphql-java:jar:25.0",
+      "artifactId": "graphql-java",
+      "groupId": "com.graphql-java",
+      "version": "25.0",
+      "sha256": "Q8_lRlPfe3RY5cy9qmlBNkPxz0OZ7Y24wvRrq1WeUIE="
+    },
+    {
+      "id": "com.graphql-java:java-dataloader:jar:6.0.0",
+      "artifactId": "java-dataloader",
+      "groupId": "com.graphql-java",
+      "version": "6.0.0",
+      "sha256": "HJ7wWDCDgTEsNQ-UPRhcnkUbDu4KyrdLe4D8T1ZiVQE="
     },
     {
       "id": "com.sun.xml.bind:jaxb-impl:jar:4.0.9",
@@ -1793,11 +1842,18 @@
       "sha256": "TahRy2q_uYv-nrd8Xl_Ef1QU-ii5TiG3_ZpkZwXcFn8="
     },
     {
-      "id": "io.github.classgraph:classgraph:jar:4.8.184",
+      "id": "com.google.code.findbugs:jsr305:jar:3.0.2",
+      "artifactId": "jsr305",
+      "groupId": "com.google.code.findbugs",
+      "version": "3.0.2",
+      "sha256": "dmrSoHg_JoeWLIrXTO7MOKKLn3Ki0IXuQ4t4E-ko0Mc="
+    },
+    {
+      "id": "io.github.classgraph:classgraph:jar:4.8.186",
       "artifactId": "classgraph",
       "groupId": "io.github.classgraph",
-      "version": "4.8.184",
-      "sha256": "blZOKc7JWjkiaKYJ8JBx1WGZOD2QascOkXU6eZjRo-g="
+      "version": "4.8.186",
+      "sha256": "_eKGLk79J53-F_jismMp_sM2mZsLUHsN5cY3vKRRqSM="
     },
     {
       "id": "io.prometheus:prometheus-metrics-core:jar:1.5.1",
@@ -1861,6 +1917,13 @@
       "groupId": "io.prometheus",
       "version": "1.5.1",
       "sha256": "OB0Qer5i41PN7-4_AeDuTXFjGuFVulKPCMnFOT2hGD4="
+    },
+    {
+      "id": "org.xerial.snappy:snappy-java:jar:1.1.10.8",
+      "artifactId": "snappy-java",
+      "groupId": "org.xerial.snappy",
+      "version": "1.1.10.8",
+      "sha256": "UEhdBgN_6j1uQMloOG_uymM4zJhy4lVJWT_z6zUs78w="
     },
     {
       "id": "io.opentelemetry:opentelemetry-api:jar:1.62.0",
