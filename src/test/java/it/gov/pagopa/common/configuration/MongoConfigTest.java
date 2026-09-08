@@ -6,7 +6,7 @@ import org.bson.types.Decimal128;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer;
+import org.springframework.boot.mongodb.autoconfigure.MongoClientSettingsBuilderCustomizer;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
@@ -21,12 +21,12 @@ import static org.assertj.core.api.Assertions.assertThat;
         MongoConfig.class
 })
 @TestPropertySource(properties = {
-        "spring.data.mongodb.config.connectionPool.maxSize=50",
-        "spring.data.mongodb.config.connectionPool.minSize=5",
-        "spring.data.mongodb.config.connectionPool.maxWaitTimeMS=1000",
-        "spring.data.mongodb.config.connectionPool.maxConnectionLifeTimeMS=60000",
-        "spring.data.mongodb.config.connectionPool.maxConnectionIdleTimeMS=30000",
-        "spring.data.mongodb.config.connectionPool.maxConnecting=2"
+        "spring.mongodb.config.connectionPool.maxSize=50",
+        "spring.mongodb.config.connectionPool.minSize=5",
+        "spring.mongodb.config.connectionPool.maxWaitTimeMS=1000",
+        "spring.mongodb.config.connectionPool.maxConnectionLifeTimeMS=60000",
+        "spring.mongodb.config.connectionPool.maxConnectionIdleTimeMS=30000",
+        "spring.mongodb.config.connectionPool.maxConnecting=2"
 })
 class MongoConfigTest {
 
@@ -35,7 +35,7 @@ class MongoConfigTest {
 
 
     @Test
-     void testConnectionPoolSettings() {
+    void testConnectionPoolSettings() {
         assertThat(mongoDbCustomProperties).isNotNull();
         assertThat(mongoDbCustomProperties.getConnectionPool()).isNotNull();
 

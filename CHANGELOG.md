@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.3](https://github.com/pagopa/emd-notifier-sender/compare/v1.3.2...v1.3.3) (2026-07-06)
+
+
+### Bug Fixes
+
+* **deps-dev:** bump org.mock-server:mockserver-client-java from 5.15.0 to 7.1.0 ([#98](https://github.com/pagopa/emd-notifier-sender/issues/98)) ([2351810](https://github.com/pagopa/emd-notifier-sender/commit/23518106a6996c5981b2c16382898a388eb354cf))
+* **deps:** bump org.springframework.cloud:spring-cloud-dependencies from 2023.0.2 to 2025.1.2 ([#97](https://github.com/pagopa/emd-notifier-sender/issues/97)) ([5ca9edf](https://github.com/pagopa/emd-notifier-sender/commit/5ca9edf1d4b18b368632a745902b4e3162d1f7b6))
+* **deps:** bump the non-major-updates group with 9 updates ([#96](https://github.com/pagopa/emd-notifier-sender/issues/96)) ([bc5276d](https://github.com/pagopa/emd-notifier-sender/commit/bc5276d2e4010e2aa600d28a3cd568625e724476))
+
 ## [1.3.2](https://github.com/pagopa/emd-notifier-sender/compare/v1.3.1...v1.3.2) (2026-06-19)
 
 
