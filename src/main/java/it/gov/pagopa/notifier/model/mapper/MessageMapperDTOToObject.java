@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 public class MessageMapperDTOToObject {
 
     public Message map(MessageDTO messageDTO, String idPsp, String entityId, MessageState messageState){
+        // L'_id viene generato automaticamente da Mongo: l'idempotenza è garantita dall'indice
+        // unique compound (messageId, entityId), che solleva DuplicateKeyException in caso di redelivery.
         return Message.builder()
                 .associatedPayment(messageDTO.getAssociatedPayment())
                 .content(messageDTO.getContent())
