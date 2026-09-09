@@ -1555,11 +1555,11 @@
       "sha256": "QjDUNIEkHkk4KoPaL6nVmAxXAmaPxapamANGzgPTCCg="
     },
     {
-      "id": "io.netty:netty-handler:jar:4.2.15.Final",
+      "id": "io.netty:netty-handler:jar:4.2.17.Final",
       "artifactId": "netty-handler",
       "groupId": "io.netty",
-      "version": "4.2.15.Final",
-      "sha256": "mbWeS-pyIg0q7VLfi6832XQxsGreCxNSJs33MWiXXqs="
+      "version": "4.2.17.Final",
+      "sha256": "TfEcdSC1VsXiyEuTkYJpnUj8uwnpemu14cC2g1In0SY="
     },
     {
       "id": "io.netty:netty-resolver:jar:4.2.15.Final",
