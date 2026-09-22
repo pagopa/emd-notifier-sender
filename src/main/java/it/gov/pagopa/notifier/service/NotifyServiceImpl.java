@@ -299,7 +299,7 @@ public class NotifyServiceImpl implements NotifyService {
             // Con flatMap, il salvataggio su DB è concatenato nella reactive chain principale:
             // Spring attenderà il completamento dell'intera catena prima di terminare il Pod.
             .flatMap(response -> {
-                log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent. TPP responded.", message.getMessageId());
+                log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent for tpp: {}. TPP responded.", message.getMessageId(), tppDTO.getEntityId());
 
                 if (log.isDebugEnabled()) {
                     log.debug("[NOTIFY-SERVICE][TO-URL] Response MsgId {}: {}", message.getMessageId(), LogUtils.maskSensitiveData(response));
@@ -307,8 +307,8 @@ public class NotifyServiceImpl implements NotifyService {
 
                 message.setMessageState(MessageState.SENT);
                 return messageRepository.save(message)
-                    .doOnSuccess(saved -> log.info("[NOTIFY-SERVICE][TO-URL] DB Saved SENT. MsgId: {}", saved.getMessageId()))
-                    .doOnError(e -> log.error("[NOTIFY-SERVICE][TO-URL] DB Save Failed. MsgId: {}", message.getMessageId(), e))
+                    .doOnSuccess(saved -> log.info("[NOTIFY-SERVICE][TO-URL] DB Saved SENT. MsgId: {} for tpp: {}", saved.getMessageId(), tppDTO.getEntityId()))
+                    .doOnError(e -> log.error("[NOTIFY-SERVICE][TO-URL] DB Save Failed. MsgId: {} for tpp: {}", message.getMessageId(), tppDTO.getEntityId(), e))
                     .onErrorResume(e -> Mono.just(message))
                     .thenReturn(response);
             })
