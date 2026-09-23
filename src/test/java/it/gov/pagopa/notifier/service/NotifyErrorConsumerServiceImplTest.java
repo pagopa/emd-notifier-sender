@@ -3,6 +3,7 @@ package it.gov.pagopa.notifier.service;
 import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.common.utils.MemoryAppender;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
@@ -65,8 +67,8 @@ class NotifyErrorConsumerServiceImplTest {
 
     @Test
     void processCommand_Ko(){
-        when(notificationService.sendNotify(any(), any(),anyLong())).thenReturn(Mono.empty());
-        notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block();
+        assertThrows(UncommittableError.class,
+                () -> notifyErrorConsumerService.execute(NOTIFIER_ERROR_PAYLOAD,QUEUE_NOTIFIER_NO_RETRY_ERROR,null).block());
         Mockito.verify(notificationService,times(0)).sendNotify(MESSAGE, TPP_DTO, RETRY);
     }
 

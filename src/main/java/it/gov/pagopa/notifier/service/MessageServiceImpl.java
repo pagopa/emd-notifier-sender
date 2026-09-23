@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.common.configuration.MongoRetrySpecs;
+import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.notifier.connector.citizen.CitizenConnectorImpl;
 import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.dto.MessageDTO;
@@ -68,7 +69,9 @@ public class MessageServiceImpl implements MessageService {
         return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
             .doOnNext(ids -> log.debug("[MESSAGE-SERVICE][PROCESS-MESSAGE] Retrieved consent IDs for message ID {}: {}", messageId, ids))
             .flatMap(tppIdList -> processTppList(tppIdList, messageDTO, retry))
-            .onErrorResume(e -> handleError(e, messageDTO, retry));
+            .onErrorResume(e -> e instanceof UncommittableError
+                    ? Mono.error(e)
+                    : handleError(e, messageDTO, retry));
     }
 
     /**
@@ -150,19 +153,18 @@ public class MessageServiceImpl implements MessageService {
         Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), MessageState.IN_PROCESS);
         return messageRepository.insert(message)
             .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
-            .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
-            .flatMap(savedMessage -> notify(savedMessage, tppDTO, retry))
-            // DUPLICATO: documento già presente (redelivery Kafka). No-op: niente notifica, niente re-enqueue.
+            // Only the insert is idempotent: a later notification failure must not be
+            // misclassified as a duplicate or a failed database write.
             .onErrorResume(DuplicateKeyException.class, e -> {
-                log.warn("[MESSAGE-SERVICE][SEND-NOTIFICATIONS][DUPLICATE] Message ID: {} for entity ID: {} already exists (duplicate key). Discarding as duplicate.", message.getMessageId(), tppDTO.getEntityId());
+                log.warn("[MESSAGE-SERVICE][SEND-NOTIFICATIONS][DUPLICATE] Message ID: {} for entity ID: {} already exists.", message.getMessageId(), tppDTO.getEntityId());
                 return Mono.empty();
             })
-            // Altri errori di persistenza (throttling esaurito, ecc.): non inviamo; il messaggio
-            // resterà non processato e verrà ritentato dal flusso di retry a monte.
-            .onErrorResume(e -> {
-                log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Error persisting message ID: {} for entity ID: {}. Error: {}", message.getMessageId(), tppDTO.getEntityId(), e.getMessage());
-                return Mono.empty();
-            });
+            .onErrorMap(e -> {
+                log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Insert failed for message ID: {} and entity ID: {}. Offset must not be committed.", message.getMessageId(), tppDTO.getEntityId(), e);
+                return new UncommittableError("Cannot persist message " + message.getMessageId(), e instanceof Exception ex ? ex : new RuntimeException(e));
+            })
+            .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
+            .flatMap(savedMessage -> notify(savedMessage, tppDTO, retry));
     }
 
     /** Sends the notification for a persisted message to the given TPP. */

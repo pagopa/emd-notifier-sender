@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.stream.function.StreamBridge;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.QUEUE_MESSAGE_CORE;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith({MockitoExtension.class})
@@ -21,10 +22,19 @@ class MessageCoreProducerTest {
 
     @Test
     void testStreamBridgeSendCalled() {
+        when(streamBridge.send(eq("messageSender-out-0"), any(), eq(QUEUE_MESSAGE_CORE))).thenReturn(true);
         messageErrorProducer.scheduleMessage(QUEUE_MESSAGE_CORE);
 
         verify(streamBridge, times(1)).send(eq("messageSender-out-0"), any(), eq(QUEUE_MESSAGE_CORE));
 
+    }
+
+    @Test
+    void testStreamBridgeRefused_RetryNotCommitted() {
+        when(streamBridge.send(eq("messageSender-out-0"), any(), eq(QUEUE_MESSAGE_CORE))).thenReturn(false);
+
+        assertThrows(IllegalStateException.class,
+                () -> messageErrorProducer.scheduleMessage(QUEUE_MESSAGE_CORE));
     }
 }
 

@@ -3,6 +3,7 @@ package it.gov.pagopa.notifier.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
+import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.dto.NotifyErrorQueuePayload;
 import it.gov.pagopa.notifier.dto.TppDTO;
@@ -85,7 +86,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
 
         if (retry == null){
             log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", notificationId);
-            return Mono.just("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Message %s not processed due to missing headers".formatted(notificationId));
+            return Mono.error(new UncommittableError("Missing retry header for notification " + notificationId));
         }
 
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Attempting to send message ID: {} to TPP: {} at retry attempt: {}", notificationId, entityId, retry);

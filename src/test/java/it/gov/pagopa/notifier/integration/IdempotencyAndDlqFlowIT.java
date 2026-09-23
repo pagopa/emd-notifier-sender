@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bson.Document;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.dto.TokenDTO;
 import it.gov.pagopa.notifier.dto.TokenSection;
@@ -11,19 +12,19 @@ import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.enums.WorkflowType;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.repository.MessageRepository;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.MediaType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -35,14 +36,13 @@ import org.testcontainers.utility.DockerImageName;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.Period;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -65,8 +65,6 @@ import static org.mockserver.model.JsonBody.json;
 })
 class IdempotencyAndDlqFlowIT extends BaseIT {
 
-  private static final Logger log = LoggerFactory.getLogger(IdempotencyAndDlqFlowIT.class);
-
   @Container
   static MockServerContainer mockServer = new MockServerContainer(
       // Pin alla versione del client mockserver-client-java (5.15.0) nel pom:
@@ -79,6 +77,8 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
   @Autowired
   private MessageRepository messageRepository;
   @Autowired
+  private ReactiveMongoTemplate mongoTemplate;
+  @Autowired
   private ObjectMapper objectMapper;
   @Autowired
   private StreamBridge streamBridge;
@@ -86,6 +86,8 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
   private static final String TEST_FISCAL_CODE = "RSSMRA80A01H501U";
   private static final String TEST_TPP_ID = "TPP001";
   private static final String TEST_MESSAGE_ID = "MSG-IDEMPOTENT-001";
+  private static final String MESSAGE_TOPIC = "test-courtesy-message";
+  private static final String MESSAGE_GROUP = "test-courtesy-consumer-group";
 
   @DynamicPropertySource
   static void registerMockServerProperties(DynamicPropertyRegistry registry) {
@@ -99,6 +101,16 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
     mockServerClient = new MockServerClient(mockServer.getHost(), mockServer.getServerPort());
     mockServerClient.reset();
     messageRepository.deleteAll().block();
+    // MongoDB Testcontainers does not inherit the Cosmos collection indexes.
+    mongoTemplate.indexOps(Message.class).ensureIndex(new Index()
+        .on("messageId", Sort.Direction.ASC).on("entityId", Sort.Direction.ASC)
+        .unique().named("messageId_1_entityId_1")).block();
+    assertThat(mongoTemplate.indexOps(Message.class).getIndexInfo().collectList().block())
+        .anySatisfy(index -> {
+          assertThat(index.getName()).isEqualTo("messageId_1_entityId_1");
+          assertThat(index.isUnique()).isTrue();
+          assertThat(index.getIndexFields()).hasSize(2);
+        });
     Thread.sleep(2000); // attesa che i consumer siano pronti
   }
 
@@ -146,6 +158,76 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
     assertThat(finalDocs.get(0).getMessageState()).isEqualTo(MessageState.SENT);
     assertThat(finalDocs.get(0).getEntityId())
         .isEqualTo("ENTITY_" + TEST_TPP_ID);
+  }
+
+  @Test
+  void compoundIndex_rejectsSameMessageAndEntity_butAllowsAnotherEntity() {
+    messageRepository.insert(Message.builder().messageId("MSG-INDEX-001")
+        .entityId("ENTITY_A").build()).block();
+    messageRepository.insert(Message.builder().messageId("MSG-INDEX-001")
+        .entityId("ENTITY_B").build()).block();
+
+    assertThatThrownBy(() -> messageRepository.insert(Message.builder()
+        .messageId("MSG-INDEX-001").entityId("ENTITY_A").build()).block())
+        .isInstanceOf(DuplicateKeyException.class);
+    assertThat(messageRepository.findAll().filter(message ->
+        "MSG-INDEX-001".equals(message.getMessageId())).collectList().block()).hasSize(2);
+  }
+
+  @Test
+  void insertFailure_doesNotCommitOffset_andRecoversAfterMongoIsRestored() throws Exception {
+    String messageId = "MSG-MONGO-RECOVERY-001";
+    setupCitizenConnectorMock(TEST_FISCAL_CODE, List.of(TEST_TPP_ID));
+    setupTppConnectorMock(List.of(TEST_TPP_ID));
+    setupTokenMock();
+    setupMessageUrlMock();
+
+    // A Mongo validator rejects only this message's inserts (not reads or other messages).
+    // collMod acts on the actual collection used by the repository, not a guessed name.
+    String collection = mongoTemplate.getCollectionName(Message.class);
+    mongoTemplate.executeCommand(new Document("collMod", collection)
+        .append("validator", new Document("messageId", new Document("$ne", messageId)))
+        .append("validationAction", "error")).block();
+
+    try (AdminClient admin = AdminClient.create(Map.of(
+        AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()))) {
+      TopicPartition partition = new TopicPartition(MESSAGE_TOPIC, 0);
+      long offsetBefore = committedOffset(admin, partition);
+      try {
+        sendMessageToKafka(createTestMessageDTO(messageId, TEST_FISCAL_CODE), 0L);
+        await().atMost(Duration.ofSeconds(20)).untilAsserted(() ->
+            mockServerClient.verify(request().withPath("/emd/tpp/list").withMethod("POST"),
+                org.mockserver.verify.VerificationTimes.atLeast(1)));
+
+        // Allow the commit buffer to flush: even after a DB rejection, no ack is legal.
+        Thread.sleep(1500);
+        assertThat(committedOffset(admin, partition)).isEqualTo(offsetBefore);
+        assertThat(messageRepository.findByMessageIdAndEntityId(messageId, "ENTITY_" + TEST_TPP_ID).block())
+            .isNull();
+        mockServerClient.verify(request().withPath("/tpp/messages").withMethod("POST"),
+            org.mockserver.verify.VerificationTimes.exactly(0));
+      } finally {
+        mongoTemplate.executeCommand(new Document("collMod", collection)
+            .append("validator", new Document())).block();
+      }
+
+      await().atMost(Duration.ofSeconds(30)).pollInterval(Duration.ofMillis(500))
+          .untilAsserted(() -> {
+            Message saved = messageRepository.findByMessageIdAndEntityId(
+                messageId, "ENTITY_" + TEST_TPP_ID).block();
+            assertThat(saved).isNotNull();
+            assertThat(saved.getMessageState()).isEqualTo(MessageState.SENT);
+            assertThat(committedOffset(admin, partition)).isGreaterThan(offsetBefore);
+          });
+      mockServerClient.verify(request().withPath("/tpp/messages").withMethod("POST"),
+          org.mockserver.verify.VerificationTimes.exactly(1));
+    }
+  }
+
+  private long committedOffset(AdminClient admin, TopicPartition partition) throws Exception {
+    var offset = admin.listConsumerGroupOffsets(MESSAGE_GROUP).partitionsToOffsetAndMetadata()
+        .get().get(partition);
+    return offset == null ? -1 : offset.offset();
   }
 
   @Test

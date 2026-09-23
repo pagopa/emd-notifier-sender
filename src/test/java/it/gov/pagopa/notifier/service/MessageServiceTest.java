@@ -1,5 +1,6 @@
 package it.gov.pagopa.notifier.service;
 
+import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.notifier.connector.citizen.CitizenConnectorImpl;
 import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.custom.CitizenInvocationException;
@@ -18,8 +19,11 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
@@ -47,9 +51,8 @@ class MessageServiceTest {
     MessageServiceImpl messageService;
 
     @Test
-    void sendMessage_PersistError_SkipsWithoutNotify()  {
-        // Errore di persistenza generico (non duplicate): non notifichiamo e non ri-accodiamo;
-        // il messaggio verrà ritentato dal flusso a monte.
+    void sendMessage_PersistError_NeverCompletesSuccessfully()  {
+        // L'insert fallito deve arrivare al consumer come errore non committabile.
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));
 
@@ -62,10 +65,34 @@ class MessageServiceTest {
         Mockito.when(messageRepository.insert(Mockito.<Message>any()))
                 .thenReturn(Mono.<Message>error(new RuntimeException("Mocked persist error")));
 
-       messageService.processMessage(MESSAGE_DTO,0).block();
-       verify(messageCoreProducerService,times(0)).enqueueMessage(MESSAGE_DTO,0);
+       assertThrows(UncommittableError.class, () -> messageService.processMessage(MESSAGE_DTO,0).block());
+       verify(messageCoreProducerService,times(0)).enqueueMessage(any(),anyLong());
        verify(sendNotificationService,times(0)).sendNotify(MESSAGE,TPP_DTO,0);
 
+    }
+
+    @Test
+    void sendMessage_PartialInsertFailure_DoesNotCommitWholeMessage() {
+        var secondTpp = Mockito.mock(it.gov.pagopa.notifier.dto.TppDTO.class);
+        Mockito.when(secondTpp.getIdPsp()).thenReturn("otherPsp");
+        Mockito.when(secondTpp.getEntityId()).thenReturn("otherEntity");
+        Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
+                .thenReturn(Mono.just(TPP_ID_STRING_LIST));
+        Mockito.when(tppService.filterEnabledList(any()))
+                .thenReturn(Mono.just(List.of(TPP_DTO, secondTpp)));
+        Mockito.when(messageMapperDTOToObject.map(any(), any(), any(), any()))
+                .thenReturn(MESSAGE);
+        Mockito.when(sendNotificationService.sendNotify(any(), any(), anyLong()))
+                .thenReturn(Mono.empty());
+        AtomicInteger inserts = new AtomicInteger();
+        Mockito.when(messageRepository.insert(Mockito.<Message>any()))
+                .thenReturn(Mono.defer(() -> inserts.incrementAndGet() == 2
+                        ? Mono.error(new IllegalStateException("Second insert failed"))
+                        : Mono.just(MESSAGE)));
+
+        assertThrows(UncommittableError.class,
+                () -> messageService.processMessage(MESSAGE_DTO, 0).block());
+        verify(messageCoreProducerService,times(0)).enqueueMessage(any(),anyLong());
     }
 
     @Test
@@ -147,6 +174,17 @@ class MessageServiceTest {
         messageService.processMessage(MESSAGE_DTO,0).block();
         verify(messageCoreProducerService,times(1)).enqueueMessage(MESSAGE_DTO,1);
 
+    }
+
+    @Test
+    void sendMessage_Ko_CitizenRetryPublicationFailed() {
+        Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
+                .thenReturn(Mono.error(new CitizenInvocationException()));
+        Mockito.when(messageCoreProducerService.enqueueMessage(any(),anyLong()))
+                .thenReturn(Mono.error(new UncommittableError("Retry not published")));
+
+        assertThrows(UncommittableError.class,
+                () -> messageService.processMessage(MESSAGE_DTO,0).block());
     }
 
     @Test

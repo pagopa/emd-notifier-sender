@@ -14,6 +14,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.concurrent.Queues;
 import reactor.util.context.Context;
+import reactor.util.retry.Retry;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -139,27 +140,23 @@ public abstract class BaseKafkaConsumer<T, R> {
             return Mono.just(defaultAck);
         }
 
-        Map<String, Object> ctx=new HashMap<>();
-        ctx.put(CONTEXT_KEY_START_TIME, System.currentTimeMillis());
-        ctx.put(CONTEXT_KEY_MSG_ID,  CommonUtilities.readMessagePayload(message));
-
-        return execute(message, ctx)
-                .map(r -> new KafkaAcknowledgeResult<>(message, r))
-                .defaultIfEmpty(defaultAck)
-
-                .onErrorResume(e -> {
-                    if(e instanceof UncommittableError) {
-                        return Mono.error(e);
-                    } else {
-                        return Mono.just(defaultAck);
-                    }
+        return Mono.defer(() -> {
+                    Map<String, Object> ctx = new HashMap<>();
+                    ctx.put(CONTEXT_KEY_START_TIME, System.currentTimeMillis());
+                    ctx.put(CONTEXT_KEY_MSG_ID, CommonUtilities.readMessagePayload(message));
+                    return execute(message, ctx)
+                            .map(r -> new KafkaAcknowledgeResult<>(message, r))
+                            .switchIfEmpty(Mono.error(new UncommittableError("Empty Kafka processing result; offset must not be committed")))
+                            .doOnNext(r -> doFinally(message, r.result, ctx));
                 })
-                .doOnNext(r -> doFinally(message, r.result, ctx))
-
-                .onErrorResume(e -> {
-                    log.info("Retrying after reactive pipeline error: ", e);
-                    return executeAcknowledgeAware(message);
-                });
+                .onErrorMap(e -> e instanceof UncommittableError ? e
+                        : new UncommittableError("Kafka message processing failed", e instanceof Exception ex ? ex : new RuntimeException(e)))
+                .retryWhen(Retry.backoff(Long.MAX_VALUE, Duration.ofSeconds(1))
+                        .maxBackoff(Duration.ofSeconds(30))
+                        .jitter(0.5)
+                        .filter(UncommittableError.class::isInstance)
+                        .doBeforeRetry(signal -> log.error("[KAFKA_COMMIT][{}] Processing failed; offset is not committed (attempt {}). Retrying.",
+                                getFlowName(), signal.totalRetries() + 1, signal.failure())));
     }
 
     /** to perform some operation at the end of business logic execution, thus before to wait for commit. As default, it will perform an INFO logging with performance time */
@@ -195,7 +192,11 @@ public abstract class BaseKafkaConsumer<T, R> {
 
     /** It will read and deserialize {@link Message#getPayload()} using the given {@link #getObjectReader()} */
     protected T deserializeMessage(Message<String> message) {
-        return CommonUtilities.deserializeMessage(message, getObjectReader(), onDeserializationError(message));
+        T result = CommonUtilities.deserializeMessage(message, getObjectReader(), onDeserializationError(message));
+        if (result == null) {
+            throw new UncommittableError("Cannot deserialize Kafka message; offset must not be committed");
+        }
+        return result;
     }
 
 }

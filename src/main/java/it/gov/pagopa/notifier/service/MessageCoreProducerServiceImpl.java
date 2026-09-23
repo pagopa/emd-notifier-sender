@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
 
+import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import it.gov.pagopa.notifier.event.producer.MessageCoreProducer;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
 
@@ -47,23 +49,23 @@ public class MessageCoreProducerServiceImpl implements MessageCoreProducerServic
      * <p>Flow:</p>
      * <ol>
      *   <li>Check if retry count exceeds maximum allowed attempts.</li>
-     *   <li>If exceeded, log and stop: the message is an upstream processing failure not yet persisted,
-     *       so there is nothing to update — it is simply abandoned after exhausting retries.</li>
+     *   <li>If exceeded, fail without committing the source offset: dropping an unpersisted
+     *       message is not an acceptable terminal outcome.</li>
      *   <li>Otherwise, compute exponential backoff delay: {@code min(initialDelay * 2^(retry-1), maxDelay)}.</li>
      *   <li>Schedule message via {@link MessageCoreProducer#scheduleMessage(Message)} after the delay.</li>
      * </ol>
      *
      * @param messageDTO the message to be enqueued
      * @param retry the current retry attempt count (incremented after each failure)
-     * @return {@code Mono<Void>} completes when the message is enqueued or abandoned
+     * @return {@code Mono<Void>} completes when the retry is published; fails if retry attempts are exhausted
      */
     @Override
     public Mono<Void> enqueueMessage(MessageDTO messageDTO, long retry) {
         String messageId = messageDTO.getMessageId();
 
         if (retry > maxTry) {
-            log.info("[MESSAGE-CORE-PRODUCER-SERVICE][ENQUEUE-MESSAGE] Message ID: {} exceeds max retry attempts ({}). Message will not be retried.", messageId, maxTry);
-            return Mono.empty();
+            log.error("[MESSAGE-CORE-PRODUCER-SERVICE][ENQUEUE-MESSAGE] Message ID: {} exceeds max retry attempts ({}). Source offset must not be committed.", messageId, maxTry);
+            return Mono.error(new UncommittableError("Message " + messageId + " exhausted retries before persistence"));
         }
 
         // Backoff esponenziale: initialDelay * 2^(retry-1), con cap a maxDelay.
@@ -73,9 +75,12 @@ public class MessageCoreProducerServiceImpl implements MessageCoreProducerServic
         // di questo Mono prima di committare l'offset Kafka, garantendo che il messaggio
         // sia pubblicato su Kafka prima che l'offset venga committed.
         long delaySeconds = Math.min(initialDelaySeconds * (1L << (retry - 1)), maxDelaySeconds);
-        log.info("[MESSAGE-CORE-PRODUCER-SERVICE][ENQUEUE-MESSAGE] Enqueuing message ID: {} with retry attempt: {}, backoff delay: {}s", messageId, retry, delaySeconds);
+        // Spread retries across pods without exceeding the configured backoff cap.
+        long delayMillis = (long) (Duration.ofSeconds(delaySeconds).toMillis()
+                * ThreadLocalRandom.current().nextDouble(0.8, 1.0));
+        log.info("[MESSAGE-CORE-PRODUCER-SERVICE][ENQUEUE-MESSAGE] Enqueuing message ID: {} with retry attempt: {}, backoff delay: {}ms", messageId, retry, delayMillis);
 
-        return Mono.delay(Duration.ofSeconds(delaySeconds))
+        return Mono.delay(Duration.ofMillis(delayMillis))
                 .publishOn(Schedulers.boundedElastic())
                 .flatMap(tick -> Mono.fromRunnable(() -> {
                     log.debug("[MESSAGE-CORE-PRODUCER-SERVICE][ENQUEUE-MESSAGE] Sending message ID: {} with retry attempt: {} to message queue.", messageId, retry);

@@ -3,6 +3,7 @@ package it.gov.pagopa.notifier.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
+import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -84,7 +85,7 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
 
         if (retry == null) {
             log.warn("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] No retry header found. Message {} will not be processed.", messageId);
-            return Mono.just("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Message %s not processed due to missing headers".formatted(messageId));
+            return Mono.error(new UncommittableError("Missing retry header for message " + messageId));
         }
 
         log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Processing attempt {} for message ID: {}", retry, messageId);
