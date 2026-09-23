@@ -11,11 +11,6 @@ concurrency:
   group: ci-cd
   cancel-in-progress: false
 
-permissions:
-  contents: write
-  pull-requests: write
-  packages: write
-
 jobs:
 
   #
@@ -26,6 +21,9 @@ jobs:
     name: 🚀 Semantic Release
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       new_release_published: ${{ steps.semantic.outputs.new_release_published }}
       new_release_version: ${{ steps.semantic.outputs.new_release_version }}
@@ -109,6 +107,9 @@ jobs:
     needs: release
     if: needs.release.outputs.new_release_published == 'true'
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
     outputs:
       image: ghcr.io/${{ github.repository }}:v${{ needs.release.outputs.new_release_version }}@${{ steps.build.outputs.digest }}
     steps:
