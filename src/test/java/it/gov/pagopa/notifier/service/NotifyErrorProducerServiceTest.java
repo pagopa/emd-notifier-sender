@@ -7,7 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -26,13 +26,13 @@ import static org.mockito.Mockito.times;
         "app.retry.initial-delay-seconds=0",
         "app.retry.max-delay-seconds=0"
 })
- class NotifyErrorProducerServiceTest {
+class NotifyErrorProducerServiceTest {
 
     @Autowired
     NotifyErrorProducerServiceImpl notifyErrorProducerService;
-    @MockBean
+    @MockitoBean
     MessageRepository messageRepository;
-    @MockBean
+    @MockitoBean
     NotifyErrorProducer notifyErrorProducer;
 
     @Test
