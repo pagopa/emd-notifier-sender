@@ -186,8 +186,8 @@ public class NotifyServiceImpl implements NotifyService {
    * </ol>
    */
     public Mono<Void> sendNotify(Message message, TppDTO tppDTO, long retry) {
-        log.info("[NOTIFY-SERVICE][SEND-NOTIFY] Starting notification process for message ID: {} to TPP: {} at retry: {}",
-                message.getMessageId(), tppDTO.getTppId(), retry);
+        log.info("[NOTIFY-SERVICE][SEND-NOTIFY] Starting notification process for message ID: {} to TPP: {} - with entity ID: {} at retry: {}",
+                message.getMessageId(), tppDTO.getTppId(), tppDTO.getEntityId(), retry);
 
         return getToken(tppDTO, message.getMessageId(), retry)
                 .flatMap(token -> toUrl(message, tppDTO, token, retry))
@@ -214,7 +214,7 @@ public class NotifyServiceImpl implements NotifyService {
      */
     private Mono<TokenDTO> getToken(TppDTO tppDTO, String messageId, long retry) {
 
-        log.info("[NOTIFY-SERVICE][GET-TOKEN] Requesting token for message ID: {} to TPP: {} at retry: {}", messageId, tppDTO.getTppId(), retry);
+        log.info("[NOTIFY-SERVICE][GET-TOKEN] Requesting token for message ID: {} to TPP: {}  with entity ID: {} at retry: {}", messageId, tppDTO.getTppId(), tppDTO.getEntityId(), retry);
 
         String urlWithTenant = tppDTO.getAuthenticationUrl();
 
@@ -240,7 +240,7 @@ public class NotifyServiceImpl implements NotifyService {
             .bodyToMono(TokenDTO.class)
             .retryWhen(WebClientRetrySpecs.connectFailureOnly())
             .doOnSuccess(token -> {
-                log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} at retry: {}",messageId,tppDTO.getTppId(),retry);
+                log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} with entity ID: {} at retry: {}", messageId, tppDTO.getTppId(), tppDTO.getEntityId(), retry);
             })
             .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getEntityId(), error.getMessage()));
     }
