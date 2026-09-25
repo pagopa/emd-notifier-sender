@@ -126,11 +126,28 @@ class NotifyServiceImplTest {
 
         Mockito.when(messageRepository.save(any()))
             .thenReturn(Mono.error(new RuntimeException("Mocked save error")));
+        when(errorProducerService.enqueueNotify(any(), any(), anyLong())).thenReturn(Mono.just("enqueued"));
 
         sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY).block();
 
         verify(messageTemplateService, times(1)).renderTemplate(any(), any());
         verify(messageRepository, times(1)).save(any());
+        verify(errorProducerService).enqueueNotify(any(), any(), anyLong());
+    }
+
+    @Test
+    void testSaveFailureAndRetryPublicationFailurePropagates() {
+        TPP_DTO.setAuthenticationUrl(mockWebServer.url(AUTHENTICATION_URL).toString());
+        TPP_DTO.setMessageUrl(mockWebServer.url(MESSAGE_URL).toString());
+        when(messageTemplateService.renderTemplate(any(), any()))
+            .thenReturn(Mono.just("{\"mocked\":\"json_body\"}"));
+        when(messageRepository.save(any())).thenReturn(Mono.error(new RuntimeException("DB unavailable")));
+        when(errorProducerService.enqueueNotify(any(), any(), anyLong()))
+            .thenReturn(Mono.error(new IllegalStateException("Retry not published")));
+
+        StepVerifier.create(sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY))
+            .expectError(IllegalStateException.class)
+            .verify();
     }
 
     @Test

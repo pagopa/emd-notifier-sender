@@ -8,7 +8,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
-import reactor.core.publisher.Flux;
 
 import java.util.function.Consumer;
 
@@ -22,7 +21,7 @@ class MessageCoreConsumerTest {
     MessageCoreConsumerService messageCoreConsumerService;
     @InjectMocks
     MessageCoreConsumer messageCoreConsumer;
-    private Consumer<Flux<Message<String>>> consumerCommands;
+    private Consumer<Message<String>> consumerCommands;
     @BeforeEach
     public void setUp(){
         consumerCommands = messageCoreConsumer.consumerMessage(messageCoreConsumerService);
@@ -32,9 +31,8 @@ class MessageCoreConsumerTest {
 
     @Test
     void consumerCommands(){
-        Flux<Message<String>> flux = Flux.just(QUEUE_MESSAGE_STRING_CORE);
-        consumerCommands.accept(flux);
-        verify(messageCoreConsumerService).execute(flux);
+        consumerCommands.accept(QUEUE_MESSAGE_STRING_CORE);
+        verify(messageCoreConsumerService).execute(QUEUE_MESSAGE_STRING_CORE);
     }
 
 

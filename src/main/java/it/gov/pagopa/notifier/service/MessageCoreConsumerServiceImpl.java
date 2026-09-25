@@ -11,11 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -35,20 +32,12 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     private final MessageServiceImpl messageCoreService;
     public MessageCoreConsumerServiceImpl(ObjectMapper objectMapper,
                                           @Value("${spring.application.name}") String applicationName,
-                                          @Value("${spring.cloud.stream.kafka.bindings.consumerMessage-in-0.consumer.ackTime}") long commitDelay,
-                                          @Value("${app.message-core.build-delay-duration}") long delayMinusCommit,
-                                          @Value("${app.kafka.consumer.concurrency:${KAFKA_COMMANDS_MAX_POLL_SIZE:10}}") int concurrency,
                                           MessageServiceImpl messageCoreService) {
-        super(applicationName, Duration.ofMillis(commitDelay), Duration.ofMillis(delayMinusCommit), concurrency);
+        super(applicationName);
         this.messageCoreService = messageCoreService;
         this.objectReader = objectMapper.readerFor(MessageDTO.class);
     }
 
-    @Override
-    protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
-        afterCommits2subscribe
-                .subscribe(r -> log.info("[MESSAGE-CORE-COMMANDS] Processed offsets committed successfully"));
-    }
     @Override
     protected ObjectReader getObjectReader() {
         return objectReader;

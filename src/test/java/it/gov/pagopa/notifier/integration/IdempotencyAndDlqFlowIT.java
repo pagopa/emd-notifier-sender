@@ -11,6 +11,7 @@ import it.gov.pagopa.notifier.enums.Channel;
 import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.enums.WorkflowType;
 import it.gov.pagopa.notifier.model.Message;
+import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -67,9 +69,8 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
 
   @Container
   static MockServerContainer mockServer = new MockServerContainer(
-      // Pin alla versione del client mockserver-client-java (5.15.0) nel pom:
-      // il tag "latest" punta a una major incompatibile (7.x).
-      DockerImageName.parse("mockserver/mockserver:mockserver-5.15.0")
+      // Keep server and mockserver-client-java on the same version.
+      DockerImageName.parse("mockserver/mockserver:mockserver-7.1.0")
   );
 
   private MockServerClient mockServerClient;
@@ -82,6 +83,8 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
   private ObjectMapper objectMapper;
   @Autowired
   private StreamBridge streamBridge;
+  @Autowired
+  private MessageMapperDTOToObject messageMapper;
 
   private static final String TEST_FISCAL_CODE = "RSSMRA80A01H501U";
   private static final String TEST_TPP_ID = "TPP001";
@@ -161,6 +164,29 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
   }
 
   @Test
+  void redeliveryOfPersistedInProcessMessageResumesNotification() throws Exception {
+    String messageId = "MSG-IN-PROCESS-REDELIVERY-001";
+    setupCitizenConnectorMock(TEST_FISCAL_CODE, List.of(TEST_TPP_ID));
+    setupTppConnectorMock(List.of(TEST_TPP_ID));
+    setupTokenMock();
+    setupMessageUrlMock();
+
+    MessageDTO dto = createTestMessageDTO(messageId, TEST_FISCAL_CODE);
+    messageRepository.insert(messageMapper.map(dto, "PSP_TEST", "ENTITY_" + TEST_TPP_ID,
+        MessageState.IN_PROCESS)).block();
+    sendMessageToKafka(dto, 0L);
+
+    await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> {
+      Message saved = messageRepository.findByMessageIdAndEntityId(
+          messageId, "ENTITY_" + TEST_TPP_ID).block();
+      assertThat(saved).isNotNull();
+      assertThat(saved.getMessageState()).isEqualTo(MessageState.SENT);
+    });
+    mockServerClient.verify(request().withPath("/tpp/messages").withMethod("POST"),
+        org.mockserver.verify.VerificationTimes.exactly(1));
+  }
+
+  @Test
   void compoundIndex_rejectsSameMessageAndEntity_butAllowsAnotherEntity() {
     messageRepository.insert(Message.builder().messageId("MSG-INDEX-001")
         .entityId("ENTITY_A").build()).block();
@@ -199,7 +225,7 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
             mockServerClient.verify(request().withPath("/emd/tpp/list").withMethod("POST"),
                 org.mockserver.verify.VerificationTimes.atLeast(1)));
 
-        // Allow the commit buffer to flush: even after a DB rejection, no ack is legal.
+        // Even after a DB rejection, no ack is legal.
         Thread.sleep(1500);
         assertThat(committedOffset(admin, partition)).isEqualTo(offsetBefore);
         assertThat(messageRepository.findByMessageIdAndEntityId(messageId, "ENTITY_" + TEST_TPP_ID).block())
@@ -346,7 +372,10 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
     String messageJson = objectMapper.writeValueAsString(messageDTO);
     boolean sent = streamBridge.send(
         "messageSender-out-0",
-        MessageBuilder.withPayload(messageJson).setHeader(ERROR_MSG_HEADER_RETRY, retryCount).build());
+        MessageBuilder.withPayload(messageJson)
+            .setHeader(ERROR_MSG_HEADER_RETRY, retryCount)
+            .setHeader(KafkaHeaders.PARTITION, 0)
+            .build());
     if (!sent) {
       throw new IllegalStateException("Failed to send message to Kafka");
     }

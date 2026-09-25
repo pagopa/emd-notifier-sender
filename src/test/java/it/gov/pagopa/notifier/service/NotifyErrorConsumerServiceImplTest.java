@@ -17,10 +17,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
@@ -78,15 +76,6 @@ class NotifyErrorConsumerServiceImplTest {
         Assertions.assertNotNull(objectReader);
     }
 
-    @Test
-    void givenMessagesWhenAfterCommitsThenSuccessfully() {
-        Flux<List<String>> afterCommits2Subscribe = Flux.just(List.of("TEXT1","TEXT2","TEXT3"));
-        notifyErrorConsumerService.subscribeAfterCommits(afterCommits2Subscribe);
-        Assertions.assertEquals(
-                ("[NOTIFIER-ERROR-COMMANDS] Processed offsets committed successfully"),
-                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
-        );
-    }
 
     @Test
     void onDeserializationError(){

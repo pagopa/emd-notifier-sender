@@ -5,6 +5,7 @@ import it.gov.pagopa.notifier.connector.citizen.CitizenConnectorImpl;
 import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.custom.CitizenInvocationException;
 import it.gov.pagopa.notifier.custom.TppInvocationException;
+import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.dao.DuplicateKeyException;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
@@ -119,8 +121,7 @@ class MessageServiceTest {
 
     @Test
     void sendMessage_Duplicate_SkippedOnDuplicateKey()  {
-        // IDEMPOTENZA "insert-and-catch": insert() su un _id già esistente (redelivery Kafka)
-        // genera DuplicateKeyException. Va trattato come no-op: niente notifica, niente re-enqueue.
+        // A completed message is safe to skip on Kafka redelivery.
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));
 
@@ -131,12 +132,48 @@ class MessageServiceTest {
                 .thenReturn(MESSAGE);
 
         Mockito.when(messageRepository.insert(Mockito.<Message>any()))
-                .thenReturn(Mono.<Message>error(new org.springframework.dao.DuplicateKeyException("duplicate _id")));
+                .thenReturn(Mono.error(new DuplicateKeyException("duplicate natural key")));
+        Message existing = Mockito.mock(Message.class);
+        Mockito.when(existing.getMessageState()).thenReturn(MessageState.SENT);
+        Mockito.when(messageRepository.findByMessageIdAndEntityId(any(), any()))
+                .thenReturn(Mono.just(existing));
 
         messageService.processMessage(MESSAGE_DTO,0).block();
 
         verify(sendNotificationService,times(0)).sendNotify(any(),any(),anyLong());
         verify(messageCoreProducerService,times(0)).enqueueMessage(any(),anyLong());
+    }
+
+    @Test
+    void sendMessage_DuplicateInProcess_ResumesNotification() {
+        Mockito.when(citizenService.getCitizenConsentsEnabled(any())).thenReturn(Mono.just(TPP_ID_STRING_LIST));
+        Mockito.when(tppService.filterEnabledList(any())).thenReturn(Mono.just(TPP_DTO_LIST));
+        Mockito.when(messageMapperDTOToObject.map(any(), any(), any(), any())).thenReturn(MESSAGE);
+        Mockito.when(messageRepository.insert(Mockito.<Message>any()))
+                .thenReturn(Mono.error(new DuplicateKeyException("duplicate natural key")));
+        Message existing = Mockito.mock(Message.class);
+        Mockito.when(existing.getMessageState()).thenReturn(MessageState.IN_PROCESS);
+        Mockito.when(messageRepository.findByMessageIdAndEntityId(any(), any()))
+                .thenReturn(Mono.just(existing));
+        Mockito.when(sendNotificationService.sendNotify(existing, TPP_DTO, 0)).thenReturn(Mono.empty());
+
+        messageService.processMessage(MESSAGE_DTO, 0).block();
+
+        verify(sendNotificationService).sendNotify(existing, TPP_DTO, 0);
+    }
+
+    @Test
+    void sendMessage_UnrelatedDuplicateWithoutMatchingRecord_DoesNotAcknowledge() {
+        Mockito.when(citizenService.getCitizenConsentsEnabled(any())).thenReturn(Mono.just(TPP_ID_STRING_LIST));
+        Mockito.when(tppService.filterEnabledList(any())).thenReturn(Mono.just(TPP_DTO_LIST));
+        Mockito.when(messageMapperDTOToObject.map(any(), any(), any(), any())).thenReturn(MESSAGE);
+        Mockito.when(messageRepository.insert(Mockito.<Message>any()))
+                .thenReturn(Mono.error(new DuplicateKeyException("other index")));
+        Mockito.when(messageRepository.findByMessageIdAndEntityId(any(), any()))
+                .thenReturn(Mono.empty());
+
+        assertThrows(UncommittableError.class, () -> messageService.processMessage(MESSAGE_DTO, 0).block());
+        verify(sendNotificationService, times(0)).sendNotify(any(), any(), anyLong());
     }
 
     @Test

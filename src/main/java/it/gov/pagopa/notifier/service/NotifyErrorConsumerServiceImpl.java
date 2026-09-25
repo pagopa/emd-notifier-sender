@@ -11,11 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -32,19 +29,10 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
     private final NotifyServiceImpl sendMessageService;
     public NotifyErrorConsumerServiceImpl(ObjectMapper objectMapper,
                                               NotifyServiceImpl sendMessageService,
-                                              @Value("${spring.application.name}") String applicationName,
-                                              @Value("${spring.cloud.stream.kafka.bindings.consumerNotify-in-0.consumer.ackTime}") long commitDelay,
-                                              @Value("${app.message-core.build-delay-duration}") long delayMinusCommit,
-                                              @Value("${app.kafka.consumer.concurrency:${KAFKA_COMMANDS_MAX_POLL_SIZE:10}}") int concurrency) {
-        super(applicationName, Duration.ofMillis(commitDelay), Duration.ofMillis(delayMinusCommit), concurrency);
+                                              @Value("${spring.application.name}") String applicationName) {
+        super(applicationName);
         this.objectReader = objectMapper.readerFor(NotifyErrorQueuePayload.class);
         this.sendMessageService = sendMessageService;
-    }
-  
-    @Override
-    protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
-        afterCommits2subscribe
-                .subscribe(r -> log.info("[NOTIFIER-ERROR-COMMANDS] Processed offsets committed successfully"));
     }
     @Override
     protected ObjectReader getObjectReader() {

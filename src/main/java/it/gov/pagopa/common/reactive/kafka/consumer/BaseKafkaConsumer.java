@@ -6,25 +6,20 @@ import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.common.reactive.utils.PerformanceLogger;
 import it.gov.pagopa.common.utils.CommonUtilities;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.concurrent.Queues;
 import reactor.util.context.Context;
 import reactor.util.retry.Retry;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
+import java.time.Duration;
 
 /**
- * Base class to extend in order to configure a timed commit behavior when using KafkaBinder.
+ * Base class for processing and acknowledging one record at a time on the Kafka listener thread.
  * Other than extend this class, you should:
  * <ol>
  *     <li>Turn off the autoCommit (spring.cloud.stream.kafka.bindings.BINDINGNAME.consumer.autoCommitOffset=false)</li>
@@ -42,29 +37,8 @@ public abstract class BaseKafkaConsumer<T, R> {
     protected static final String CONTEXT_KEY_MSG_ID = "MSG_ID";
 
     private final String applicationName;
-    private final Duration commitDelay;
-    private final Duration delayMinusCommit;
-    private final int concurrency;
-
-    private static final Collector<KafkaAcknowledgeResult<?>, ?, Map<Integer, Pair<Long, KafkaAcknowledgeResult<?>>>> kafkaAcknowledgeResultMapCollector =
-            Collectors.groupingBy(KafkaAcknowledgeResult::partition
-                    , Collectors.teeing(
-                            Collectors.minBy(Comparator.comparing(KafkaAcknowledgeResult::offset)),
-                            Collectors.maxBy(Comparator.comparing(KafkaAcknowledgeResult::offset)),
-                            (min, max) -> Pair.of(
-                                    min.map(KafkaAcknowledgeResult::offset).orElse(null),
-                                    max.orElse(null))
-                    ));
-
-    protected BaseKafkaConsumer(String applicationName, Duration commitDelay, Duration delayMinusCommit) {
-        this(applicationName, commitDelay, delayMinusCommit, Queues.SMALL_BUFFER_SIZE);
-    }
-
-    protected BaseKafkaConsumer(String applicationName, Duration commitDelay, Duration delayMinusCommit, int concurrency) {
+    protected BaseKafkaConsumer(String applicationName) {
         this.applicationName = applicationName;
-        this.commitDelay = commitDelay;
-        this.delayMinusCommit = delayMinusCommit;
-        this.concurrency = concurrency;
     }
 
     record KafkaAcknowledgeResult<T> (Acknowledgment ack, Integer partition, Long offset, T result){
@@ -86,50 +60,17 @@ public abstract class BaseKafkaConsumer<T, R> {
         return (Long) CommonUtilities.getHeaderValue(message, KafkaHeaders.OFFSET);
     }
 
-    /** It will ask the superclass to handle the messages, then sequentially it will acknowledge them */
-    public final void execute(Flux<Message<String>> messagesFlux) {
-        Flux<List<R>> processUntilCommits =
-                messagesFlux
-                        .delayElements(getDelayMinusCommit())
-                        .flatMapSequential(this::executeAcknowledgeAware, getConcurrency())
-                        .buffer(getCommitDelay())
-                        .map(p -> {
-                                    Map<Integer, Pair<Long, KafkaAcknowledgeResult<?>>> partition2Offsets = p.stream()
-                                            .collect(kafkaAcknowledgeResultMapCollector);
-
-                                    log.info("[KAFKA_COMMIT][{}] Committing {} messages: {}", getFlowName(), p.size(),
-                                            partition2Offsets.entrySet().stream()
-                                                    .map(e->"partition %d: %d - %d".formatted(e.getKey(),e.getValue().getKey(), e.getValue().getValue().offset()))
-                                                    .collect(Collectors.joining(";")));
-
-                                    partition2Offsets.forEach((partition, offsets) -> Optional.ofNullable(offsets.getValue().ack()).ifPresent(Acknowledgment::acknowledge));
-
-                                    return p.stream()
-                                            .map(KafkaAcknowledgeResult::result)
-                                            .filter(Objects::nonNull)
-                                            .toList();
-                                }
-                        );
-
-        subscribeAfterCommits(processUntilCommits);
+    /** Process and acknowledge one record before the Kafka listener can move to the next one. */
+    public final void execute(Message<String> message) {
+        KafkaAcknowledgeResult<R> processed = executeAcknowledgeAware(message).block();
+        if (processed == null || processed.ack() == null) {
+            throw new UncommittableError("Kafka processing produced no result or acknowledgment");
+        }
+        processed.ack().acknowledge();
+        log.info("[KAFKA_COMMIT][{}] Acknowledged partition {} offset {} after processing",
+                getFlowName(), processed.partition(), processed.offset());
     }
 
-    /** Concurrency level used to process polled messages */
-    protected int getConcurrency() {
-        return concurrency;
-    }
-
-    /** The {@link Duration} to wait before to commit processed messages */
-    protected Duration getCommitDelay() {
-        return commitDelay;
-    }
-    /** The {@link Duration} to wait before to process the next  messages */
-    protected Duration getDelayMinusCommit() {
-        return delayMinusCommit;
-    }
-
-    /** {@link Flux} to which subscribe in order to start its execution and eventually perform some logic on results */
-    protected abstract void subscribeAfterCommits(Flux<List<R>> afterCommits2subscribe);
 
     private Mono<KafkaAcknowledgeResult<R>> executeAcknowledgeAware(Message<String> message) {
         KafkaAcknowledgeResult<R> defaultAck = new KafkaAcknowledgeResult<>(message, null);

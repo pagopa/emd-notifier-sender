@@ -6,7 +6,6 @@ import it.gov.pagopa.notifier.service.MessageCoreConsumerServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
-import reactor.core.publisher.Flux;
 
 import java.util.function.Consumer;
 
@@ -23,10 +22,10 @@ public class MessageCoreConsumer {
      * Delegates message processing to execute of  {@link MessageCoreConsumerServiceImpl}.
      *
      * @param consumerService the service that processes the consumed messages
-     * @return a Consumer that processes a Flux of Messages containing String payloads
+     * @return a Consumer that processes one message before returning to Kafka
      */
     @Bean
-    public Consumer<Flux<Message<String>>> consumerMessage(MessageCoreConsumerService consumerService) {
+    public Consumer<Message<String>> consumerMessage(MessageCoreConsumerService consumerService) {
         return consumerService::execute;
     }
 

@@ -9,15 +9,13 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -29,17 +27,55 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class KafkaCommitAfterPersistenceTest {
 
     @Test
-    void doesNotCommitLaterOffsetWhileEarlierDatabaseWriteHasFailed() throws InterruptedException {
+    void listenerWaitsForPersistenceBeforeAcknowledgingOrReadingNextRecord() throws Exception {
         Acknowledgment firstAck = mock(Acknowledgment.class);
         Acknowledgment secondAck = mock(Acknowledgment.class);
         Sinks.One<String> databaseWrite = Sinks.one();
-        CountDownLatch secondStarted = new CountDownLatch(1);
-        CountDownLatch firstRetried = new CountDownLatch(1);
-        CountDownLatch committed = new CountDownLatch(1);
-        AtomicInteger firstAttempts = new AtomicInteger();
+        CountDownLatch firstStarted = new CountDownLatch(1);
+        AtomicInteger secondStarted = new AtomicInteger();
 
-        BaseKafkaConsumer<String, String> consumer = new BaseKafkaConsumer<>(
-                "test", Duration.ofMillis(20), Duration.ZERO, 2) {
+        BaseKafkaConsumer<String, String> consumer = new BaseKafkaConsumer<>("test") {
+            private final ObjectReader reader = new ObjectMapper().readerFor(String.class);
+
+            @Override protected ObjectReader getObjectReader() { return reader; }
+            @Override protected Consumer<Throwable> onDeserializationError(Message<String> message) {
+                return error -> {};
+            }
+            @Override protected Mono<String> execute(String payload, Message<String> message, Map<String, Object> ctx) {
+                if ("first".equals(payload)) {
+                    firstStarted.countDown();
+                    return databaseWrite.asMono();
+                }
+                secondStarted.incrementAndGet();
+                return Mono.just("stored");
+            }
+        };
+
+        CompletableFuture<Void> listener = CompletableFuture.runAsync(() -> {
+            consumer.execute(message("first", 4477, firstAck));
+            consumer.execute(message("second", 4478, secondAck));
+        });
+        assertTrue(firstStarted.await(2, TimeUnit.SECONDS));
+        verifyNoInteractions(firstAck, secondAck);
+        org.junit.jupiter.api.Assertions.assertEquals(0, secondStarted.get());
+
+        databaseWrite.tryEmitValue("stored");
+        listener.get(3, TimeUnit.SECONDS);
+        verify(firstAck).acknowledge();
+        verify(secondAck).acknowledge();
+        org.junit.jupiter.api.Assertions.assertEquals(1, secondStarted.get());
+    }
+
+    @Test
+    void doesNotCommitLaterOffsetWhileEarlierDatabaseWriteHasFailed() throws Exception {
+        Acknowledgment firstAck = mock(Acknowledgment.class);
+        Acknowledgment secondAck = mock(Acknowledgment.class);
+        Sinks.One<String> databaseWrite = Sinks.one();
+        CountDownLatch firstRetried = new CountDownLatch(1);
+        AtomicInteger firstAttempts = new AtomicInteger();
+        AtomicInteger secondStarted = new AtomicInteger();
+
+        BaseKafkaConsumer<String, String> consumer = new BaseKafkaConsumer<>("test") {
             private final ObjectReader reader = new ObjectMapper().readerFor(String.class);
 
             @Override
@@ -55,7 +91,7 @@ class KafkaCommitAfterPersistenceTest {
             @Override
             protected Mono<String> execute(String payload, Message<String> message, Map<String, Object> ctx) {
                 if ("second".equals(payload)) {
-                    secondStarted.countDown();
+                    secondStarted.incrementAndGet();
                     return Mono.just("stored");
                 }
                 return Mono.defer(() -> {
@@ -67,21 +103,22 @@ class KafkaCommitAfterPersistenceTest {
                 });
             }
 
-            @Override
-            protected void subscribeAfterCommits(Flux<List<String>> results) {
-                results.subscribe(ignored -> committed.countDown());
-            }
         };
 
-        consumer.execute(Flux.just(message("first", 1, firstAck), message("second", 2, secondAck)));
+        CompletableFuture<Void> listener = CompletableFuture.runAsync(() -> {
+            consumer.execute(message("first", 1, firstAck));
+            consumer.execute(message("second", 2, secondAck));
+        });
 
-        assertTrue(secondStarted.await(2, TimeUnit.SECONDS));
         assertTrue(firstRetried.await(4, TimeUnit.SECONDS));
         verifyNoInteractions(firstAck, secondAck);
+        org.junit.jupiter.api.Assertions.assertEquals(0, secondStarted.get());
 
         databaseWrite.tryEmitValue("stored");
-        assertTrue(committed.await(3, TimeUnit.SECONDS));
+        listener.get(3, TimeUnit.SECONDS);
+        verify(firstAck).acknowledge();
         verify(secondAck).acknowledge();
+        org.junit.jupiter.api.Assertions.assertEquals(1, secondStarted.get());
     }
 
     private static Message<String> message(String payload, long offset, Acknowledgment ack) {

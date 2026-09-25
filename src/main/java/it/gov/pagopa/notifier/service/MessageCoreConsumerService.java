@@ -2,20 +2,19 @@ package it.gov.pagopa.notifier.service;
 
 
 import org.springframework.messaging.Message;
-import reactor.core.publisher.Flux;
 
 /**
  * <p>Service for consuming and processing messages from the message core queue.</p>
  *
- * <p>Handles reactive message stream processing and delegates to domain logic.</p>
+ * <p>Processes each Kafka record before returning to the listener.</p>
  */
 public interface MessageCoreConsumerService {
 
     /**
-     * <p>Processes a reactive stream of messages from the message broker.</p>
+     * <p>Processes one message from the broker.</p>
      *
-     * @param messageFlux the reactive stream of messages to process
+     * @param message the message to process
      */
-    void execute(Flux<Message<String>> messageFlux);
+    void execute(Message<String> message);
 
 }

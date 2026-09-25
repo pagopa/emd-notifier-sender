@@ -60,6 +60,8 @@ spring:
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_MESSAGE_CORE:emd-courtesy-message}
           group: ${KAFKA_MESSAGE_CORE_GROUP_IN:consumerOutcomeGroup}
+          consumer:
+            concurrency: ${KAFKA_CONSUMER_CONCURRENCY:3}
         messageSender-out-0:
           binder: kafka-message-core-out
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
@@ -98,6 +100,7 @@ spring:
                 metadata.max.idle.ms: ${KAFKA_ONBOARDING_METADATA_MAX_IDLE_MS:${KAFKA_METADATA_MAX_IDLE_MS:180000}}
           notifySender-out-0:
             producer:
+              sync: true
               configuration:
                 connections.max.idle.ms: ${KAFKA_ONBOARDING_CONNECTION_MAX_IDLE_TIME:180000}
                 retry.backoff.ms: ${KAFKA_ONBOARDING_KAFKA_RETRY_MS:${KAFKA_RETRY_MS:10000}}
@@ -109,7 +112,6 @@ spring:
               startOffset: ${KAFKA_COMMANDS_REQUEST_START_OFFSET:${KAFKA_CONSUMER_CONFIG_START_OFFSET:earliest}}
               autoCommitOffset: false
               ackMode: MANUAL_IMMEDIATE
-              ackTime: ${KAFKA_COMMANDS_ACK_MILLIS:500}
               standardHeaders: ${KAFKA_COMMANDS_STANDARD_HEADERS:${KAFKA_CONSUMER_CONFIG_STANDARD_HEADERS:both}}
               configuration:
                 max.poll:
@@ -124,7 +126,6 @@ spring:
               startOffset: ${KAFKA_COMMANDS_REQUEST_START_OFFSET:${KAFKA_CONSUMER_CONFIG_START_OFFSET:earliest}}
               autoCommitOffset: false
               ackMode: MANUAL_IMMEDIATE
-              ackTime: ${KAFKA_COMMANDS_ACK_MILLIS:500}
               standardHeaders: ${KAFKA_COMMANDS_STANDARD_HEADERS:${KAFKA_CONSUMER_CONFIG_STANDARD_HEADERS:both}}
               configuration:
                 max.poll:
@@ -139,11 +140,6 @@ spring:
 app:
   message-core:
     build-delay-duration: ${BENEFICIARY_RULE_BUILD_DELAY_DURATION:500}
-  kafka:
-    consumer:
-      # Messaggi elaborati in parallelo per pod. Tenere <= max.poll.records per non saturare MongoDB.
-      # Totale writes simultanee su DB = concurrency * numero_pod
-      concurrency: ${KAFKA_CONSUMER_CONCURRENCY:${KAFKA_COMMANDS_MAX_POLL_SIZE:10}}
   retry:
     max-retry: ${ERROR_MESSAGE_MAX_RETRY:3}
     # Delay iniziale del backoff esponenziale: min(initialDelay * 2^(retry-1), maxDelay)

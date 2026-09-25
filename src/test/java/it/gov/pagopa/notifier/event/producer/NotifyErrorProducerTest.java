@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.stream.function.StreamBridge;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.QUEUE_NOTIFIER_ERROR;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith({MockitoExtension.class})
@@ -21,9 +22,16 @@ class NotifyErrorProducerTest {
 
     @Test
     void testStreamBridgeSendCalled() {
+        when(streamBridge.send(eq("notifySender-out-0"), any(), eq(QUEUE_NOTIFIER_ERROR))).thenReturn(true);
         notifyErrorProducer.scheduleMessage(QUEUE_NOTIFIER_ERROR);
 
         verify(streamBridge, times(1)).send(eq("notifySender-out-0"), any(), eq(QUEUE_NOTIFIER_ERROR));
+    }
+
+    @Test
+    void rejectedRetryPublicationFails() {
+        when(streamBridge.send(eq("notifySender-out-0"), any(), eq(QUEUE_NOTIFIER_ERROR))).thenReturn(false);
+        assertThrows(IllegalStateException.class, () -> notifyErrorProducer.scheduleMessage(QUEUE_NOTIFIER_ERROR));
     }
 }
 
