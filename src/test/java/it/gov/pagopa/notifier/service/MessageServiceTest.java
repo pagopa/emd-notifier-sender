@@ -200,6 +200,29 @@ class MessageServiceTest {
     }
 
     @Test
+    void emptyConsentResponse_MustPublishRetryBeforeCompleting() {
+        Mockito.when(citizenService.getCitizenConsentsEnabled(any())).thenReturn(Mono.empty());
+        Mockito.when(messageCoreProducerService.enqueueMessage(MESSAGE_DTO, 1)).thenReturn(Mono.empty());
+
+        messageService.processMessage(MESSAGE_DTO, 0).block();
+
+        verify(messageCoreProducerService).enqueueMessage(MESSAGE_DTO, 1);
+        verify(tppService, times(0)).filterEnabledList(any());
+    }
+
+    @Test
+    void emptyTppResponse_WithFailedRetryPublication_MustNotComplete() {
+        Mockito.when(citizenService.getCitizenConsentsEnabled(any())).thenReturn(Mono.just(TPP_ID_STRING_LIST));
+        Mockito.when(tppService.filterEnabledList(any())).thenReturn(Mono.empty());
+        Mockito.when(messageCoreProducerService.enqueueMessage(MESSAGE_DTO, 1))
+                .thenReturn(Mono.error(new UncommittableError("Retry publication failed")));
+
+        assertThrows(UncommittableError.class, () -> messageService.processMessage(MESSAGE_DTO, 0).block());
+        verify(messageCoreProducerService).enqueueMessage(MESSAGE_DTO, 1);
+        verify(messageRepository, times(0)).insert(Mockito.<Message>any());
+    }
+
+    @Test
     void sendMessage_Ko_CitizenException()  {
 
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))

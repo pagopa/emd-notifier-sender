@@ -102,6 +102,8 @@ spring:
             producer:
               sync: true
               configuration:
+                acks: all
+                enable.idempotence: true
                 connections.max.idle.ms: ${KAFKA_ONBOARDING_CONNECTION_MAX_IDLE_TIME:180000}
                 retry.backoff.ms: ${KAFKA_ONBOARDING_KAFKA_RETRY_MS:${KAFKA_RETRY_MS:10000}}
                 linger.ms: ${KAFKA_ONBOARDING_LINGER_MS:${KAFKA_LINGER_MS:2}}

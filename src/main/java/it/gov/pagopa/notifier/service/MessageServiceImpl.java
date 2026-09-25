@@ -67,6 +67,7 @@ public class MessageServiceImpl implements MessageService {
         log.info("[MESSAGE-SERVICE][PROCESS-MESSAGE] Start processing message ID: {} at retry attempt {}", messageId, retry);
 
         return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
+            .switchIfEmpty(Mono.error(new IllegalStateException("Empty consent response for message " + messageId)))
             .doOnNext(ids -> log.debug("[MESSAGE-SERVICE][PROCESS-MESSAGE] Retrieved consent IDs for message ID {}: {}", messageId, ids))
             .flatMap(tppIdList -> processTppList(tppIdList, messageDTO, retry))
             .onErrorResume(e -> e instanceof UncommittableError
@@ -100,6 +101,7 @@ public class MessageServiceImpl implements MessageService {
         log.info("[MESSAGE-SERVICE][PROCESS-TPP-LIST] Consent list found for message ID: {} at retry attempt {}: {}", messageId, retry, tppIdList);
 
         return tppConnector.filterEnabledList(new TppIdList(tppIdList, messageDTO.getRecipientId()))
+            .switchIfEmpty(Mono.error(new IllegalStateException("Empty TPP response for message " + messageId)))
             .doOnNext(tppDTOList -> log.debug("[MESSAGE-SERVICE][PROCESS-TPP-LIST] Retrieved TPP DTOs for message ID {}: {}", messageId, tppDTOList))
             .flatMap(tppDTOList -> sendNotifications(tppDTOList, messageDTO, retry));
     }

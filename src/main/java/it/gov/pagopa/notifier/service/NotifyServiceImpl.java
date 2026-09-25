@@ -194,6 +194,7 @@ public class NotifyServiceImpl implements NotifyService {
                 message.getMessageId(), tppDTO.getTppId(), retry);
 
         return getToken(tppDTO, message.getMessageId(), retry)
+                .switchIfEmpty(Mono.error(new IllegalStateException("Empty token response for message " + message.getMessageId())))
                 .flatMap(token -> toUrl(message, tppDTO, token, retry))
                 .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(message,tppDTO,retry + 1))
                 .then();
@@ -279,6 +280,7 @@ public class NotifyServiceImpl implements NotifyService {
                 message.getMessageId(), tppDTO);
         }
         return messageTemplateService.renderTemplate(tppDTO.getMessageTemplate(), dataModel)
+            .switchIfEmpty(Mono.error(new IllegalStateException("Empty template for message " + message.getMessageId())))
             .flatMap(jsonBody -> {
                 if (log.isDebugEnabled()) {
                     log.debug("[NOTIFY-SERVICE][TO-URL] Payload MsgId {}: {}", message.getMessageId(), LogUtils.maskSensitiveData(jsonBody));
