@@ -25,7 +25,9 @@ public class MessageCoreProducer {
   public void scheduleMessage(Message<MessageDTO> message) {
     String messageId = message.getPayload().getMessageId();
     log.info("[MESSAGE-CORE-PRODUCER][SCHEDULE-MESSAGE] Sending message ID: {} to messageSenderQueue.", messageId);
-    streamBridge.send("messageSender-out-0", binder, message);
+    if (!streamBridge.send("messageSender-out-0", binder, message)) {
+      throw new IllegalStateException("Kafka retry message was not accepted for " + messageId);
+    }
   }
 }
 

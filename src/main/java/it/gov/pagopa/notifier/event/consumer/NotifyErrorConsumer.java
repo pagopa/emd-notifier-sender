@@ -6,7 +6,6 @@ import it.gov.pagopa.notifier.service.NotifyErrorConsumerServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
-import reactor.core.publisher.Flux;
 
 import java.util.function.Consumer;
 
@@ -22,10 +21,10 @@ public class NotifyErrorConsumer {
      * Delegates message processing to execute of {@link NotifyErrorConsumerServiceImpl}.
      *
      * @param consumerService the service that handles the consumption logic
-     * @return a Consumer that processes a Flux of notification error messages
+     * @return a Consumer that processes one notification error message before returning
      */
     @Bean
-    public Consumer<Flux<Message<String>>> consumerNotify(NotifyErrorConsumerService consumerService) {
+    public Consumer<Message<String>> consumerNotify(NotifyErrorConsumerService consumerService) {
         return consumerService::execute;
     }
 

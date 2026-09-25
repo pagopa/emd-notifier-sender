@@ -1,5 +1,6 @@
 package it.gov.pagopa.notifier.service;
 
+import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.notifier.event.producer.MessageCoreProducer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +13,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 
@@ -20,7 +22,9 @@ import static org.mockito.Mockito.times;
         MessageCoreProducerServiceImpl.class
 })
 @TestPropertySource(properties = {
-        "app.retry.max-retry=5"
+        "app.retry.max-retry=5",
+        "app.retry.initial-delay-seconds=0",
+        "app.retry.max-delay-seconds=0"
 })
 class MessageCoreProducerServiceTest {
 
@@ -37,8 +41,10 @@ class MessageCoreProducerServiceTest {
     }
 
     @Test
-    void enqueueMessage_K0(){
-        messageCoreProducerService.enqueueMessage(MESSAGE_DTO,RETRY_KO).block();
+    void enqueueMessage_KO_OffsetMustNotBeCommitted(){
+        assertThrows(UncommittableError.class,
+                () -> messageCoreProducerService.enqueueMessage(MESSAGE_DTO,RETRY_KO).block());
+
         Mockito.verify(messageErrorProducer,times(0)).scheduleMessage(any());
     }
 

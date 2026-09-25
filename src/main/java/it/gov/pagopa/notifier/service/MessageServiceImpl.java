@@ -1,5 +1,7 @@
 package it.gov.pagopa.notifier.service;
 
+import it.gov.pagopa.common.configuration.MongoRetrySpecs;
+import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.notifier.connector.citizen.CitizenConnectorImpl;
 import it.gov.pagopa.notifier.connector.tpp.TppConnectorImpl;
 import it.gov.pagopa.notifier.dto.MessageDTO;
@@ -10,11 +12,10 @@ import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuples;
 
 import java.util.List;
 
@@ -66,9 +67,12 @@ public class MessageServiceImpl implements MessageService {
         log.info("[MESSAGE-SERVICE][PROCESS-MESSAGE] Start processing message ID: {} at retry attempt {}", messageId, retry);
 
         return citizenConnector.getCitizenConsentsEnabled(messageDTO.getRecipientId())
+            .switchIfEmpty(Mono.error(new IllegalStateException("Empty consent response for message " + messageId)))
             .doOnNext(ids -> log.debug("[MESSAGE-SERVICE][PROCESS-MESSAGE] Retrieved consent IDs for message ID {}: {}", messageId, ids))
             .flatMap(tppIdList -> processTppList(tppIdList, messageDTO, retry))
-            .onErrorResume(e -> handleError(e, messageDTO, retry));
+            .onErrorResume(e -> e instanceof UncommittableError
+                    ? Mono.error(e)
+                    : handleError(e, messageDTO, retry));
     }
 
     /**
@@ -97,6 +101,7 @@ public class MessageServiceImpl implements MessageService {
         log.info("[MESSAGE-SERVICE][PROCESS-TPP-LIST] Consent list found for message ID: {} at retry attempt {}: {}", messageId, retry, tppIdList);
 
         return tppConnector.filterEnabledList(new TppIdList(tppIdList, messageDTO.getRecipientId()))
+            .switchIfEmpty(Mono.error(new IllegalStateException("Empty TPP response for message " + messageId)))
             .doOnNext(tppDTOList -> log.debug("[MESSAGE-SERVICE][PROCESS-TPP-LIST] Retrieved TPP DTOs for message ID {}: {}", messageId, tppDTOList))
             .flatMap(tppDTOList -> sendNotifications(tppDTOList, messageDTO, retry));
     }
@@ -108,9 +113,7 @@ public class MessageServiceImpl implements MessageService {
      * <p>Flow:</p>
      * <ol>
      *   <li>Returns empty if TPP list is empty</li>
-     *   <li>For each TPP, creates and saves {@code Message} with {@code MessageState.IN_PROCESS}</li>
-     *   <li>If save fails, marks message as "REFUSE" and skips TPP</li>
-     *   <li>Delegates successful saves to {@link NotifyServiceImpl#sendNotify(Message, TppDTO, long)}</li>
+     *   <li>For each TPP, creates the {@code Message} and delegates to {@link #persistAndNotify(MessageDTO, TppDTO, long)}</li>
      * </ol>
      *
      * @param tppDTOList list of TPP configurations
@@ -130,28 +133,53 @@ public class MessageServiceImpl implements MessageService {
 
         return Flux.fromIterable(tppDTOList)
             .doOnNext(tpp -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Processing TPP: {} for message ID: {}", tpp.getTppId(), messageId))
-            .flatMap(tppDTO -> {
-                Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), MessageState.IN_PROCESS);
-                return messageRepository.save(message)
-                    .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
-                    .map(savedMessage -> Tuples.of(savedMessage, tppDTO))
-                    .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Error saving message ID: {} for entity ID: {}. Error: {}", message.getMessageId(), tppDTO.getEntityId(), e.getMessage()))
-                    .onErrorReturn(Tuples.of(Message.builder().id("REFUSE").messageId(messageDTO.getMessageId()).build(), tppDTO));
-            })
-            .flatMap(tuple -> {
-                Message savedMessage = tuple.getT1();
-                TppDTO tppDTO = tuple.getT2();
-                if(!savedMessage.getId().equals("REFUSE")){
-                    log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", savedMessage.getMessageId(), retry, tppDTO.getTppId());
-
-                    return sendNotificationService.sendNotify(savedMessage, tppDTO, 0)
-                        .doOnSuccess(v -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Successfully sent notification to TPP: {} for message ID: {}", tppDTO.getTppId(), savedMessage.getMessageId()))
-                        .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Failed sending to TPP: {} for message ID: {}. Error: {}", tppDTO.getTppId(), savedMessage.getMessageId(), e.getMessage()));
-                }
-                log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Message ID: {} for entity ID: {}. Will not processed (REFUSE state)", savedMessage.getMessageId(), tppDTO.getEntityId());
-                return Mono.empty();
-            })
+            .flatMap(tppDTO -> persistAndNotify(messageDTO, tppDTO, retry))
             .then();
+    }
+
+    /**
+     * <p>Persists a brand-new {@code IN_PROCESS} message for the given TPP and triggers the notification.</p>
+     *
+     * <p><b>Idempotency ("insert-and-catch"):</b> idempotency is enforced by the unique
+     * compound index on the natural key {@code (messageId, entityId)}. We use
+     * {@link MessageRepository#insert(Object)} (NOT {@code save()}, which would silently
+     * upsert/overwrite): if a document with the same natural key already exists, Mongo/CosmosDB
+     * raises a {@link DuplicateKeyException} (error 11000). On redelivery, completed
+     * messages are skipped, but an IN_PROCESS message must resume notification: the
+     * previous consumer might have crashed after the insert. The {@code _id} is generated by Mongo.</p>
+     *
+     * <p>Throttling (error 16500) is still retried via {@link MongoRetrySpecs#cosmosDbThrottling()};
+     * the duplicate-key error (11000) is not throttling, so it is not retried and surfaces here.</p>
+     */
+    private Mono<Void> persistAndNotify(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
+        Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), MessageState.IN_PROCESS);
+        return messageRepository.insert(message)
+            .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
+            // Only the insert is idempotent: a later notification failure must not be
+            // misclassified as a duplicate or a failed database write.
+            .onErrorResume(DuplicateKeyException.class, e -> {
+                log.warn("[MESSAGE-SERVICE][SEND-NOTIFICATIONS][DUPLICATE] Message ID: {} for entity ID: {} already exists.", message.getMessageId(), tppDTO.getEntityId());
+                return messageRepository.findByMessageIdAndEntityId(message.getMessageId(), message.getEntityId())
+                    .switchIfEmpty(Mono.error(new UncommittableError(
+                        "Duplicate insert without matching message " + message.getMessageId())))
+                    .flatMap(existing -> existing.getMessageState() == MessageState.IN_PROCESS
+                        ? Mono.just(existing)
+                        : Mono.empty());
+            })
+            .onErrorMap(e -> {
+                log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Insert failed for message ID: {} and entity ID: {}. Offset must not be committed.", message.getMessageId(), tppDTO.getEntityId(), e);
+                return new UncommittableError("Cannot persist message " + message.getMessageId(), e instanceof Exception ex ? ex : new RuntimeException(e));
+            })
+            .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
+            .flatMap(savedMessage -> notify(savedMessage, tppDTO, retry));
+    }
+
+    /** Sends the notification for a persisted message to the given TPP. */
+    private Mono<Void> notify(Message savedMessage, TppDTO tppDTO, long retry) {
+        log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", savedMessage.getMessageId(), retry, tppDTO.getTppId());
+        return sendNotificationService.sendNotify(savedMessage, tppDTO, 0)
+            .doOnSuccess(v -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Successfully sent notification to TPP: {} for message ID: {}", tppDTO.getTppId(), savedMessage.getMessageId()))
+            .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Failed sending to TPP: {} for message ID: {}. Error: {}", tppDTO.getTppId(), savedMessage.getMessageId(), e.getMessage()));
     }
 
     /**
