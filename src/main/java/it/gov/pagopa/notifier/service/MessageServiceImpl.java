@@ -129,7 +129,7 @@ public class MessageServiceImpl implements MessageService {
         log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending notifications for message ID: {} at retry attempt {}", messageId, retry);
 
         return Flux.fromIterable(tppDTOList)
-            .doOnNext(tpp -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Processing TPP: {} for message ID: {}", tpp.getTppId(), messageId))
+            .doOnNext(tpp -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Processing TPP: {} - with entity ID:{} for message ID: {}", tpp.getTppId(), tpp.getEntityId(), messageId))
             .flatMap(tppDTO -> {
                 Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), MessageState.IN_PROCESS);
                 return messageRepository.save(message)
@@ -142,11 +142,11 @@ public class MessageServiceImpl implements MessageService {
                 Message savedMessage = tuple.getT1();
                 TppDTO tppDTO = tuple.getT2();
                 if(!savedMessage.getId().equals("REFUSE")){
-                    log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {}", savedMessage.getMessageId(), retry, tppDTO.getTppId());
+                    log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Sending message ID: {} at retry attempt {} to TPP: {} - with entity ID:{}", savedMessage.getMessageId(), retry, tppDTO.getTppId(), tppDTO.getEntityId());
 
                     return sendNotificationService.sendNotify(savedMessage, tppDTO, 0)
-                        .doOnSuccess(v -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Successfully sent notification to TPP: {} for message ID: {}", tppDTO.getTppId(), savedMessage.getMessageId()))
-                        .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Failed sending to TPP: {} for message ID: {}. Error: {}", tppDTO.getTppId(), savedMessage.getMessageId(), e.getMessage()));
+                        .doOnSuccess(v -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Successfully sent notification to TPP: {} - with entity ID: {} for message ID: {}", tppDTO.getTppId(), tppDTO.getEntityId(), savedMessage.getMessageId()))
+                        .doOnError(e -> log.error("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Failed sending to TPP: {} - with entity ID: {} for message ID: {}. Error: {}", tppDTO.getTppId(), tppDTO.getEntityId(), savedMessage.getMessageId(), e.getMessage()));
                 }
                 log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Message ID: {} for entity ID: {}. Will not processed (REFUSE state)", savedMessage.getMessageId(), tppDTO.getEntityId());
                 return Mono.empty();
