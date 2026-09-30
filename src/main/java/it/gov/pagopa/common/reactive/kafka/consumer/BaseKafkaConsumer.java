@@ -62,13 +62,27 @@ public abstract class BaseKafkaConsumer<T, R> {
 
     /** Process and acknowledge one record before the Kafka listener can move to the next one. */
     public final void execute(Message<String> message) {
+        long receivedAt = System.currentTimeMillis();
         KafkaAcknowledgeResult<R> processed = executeAcknowledgeAware(message).block();
         if (processed == null || processed.ack() == null) {
             throw new UncommittableError("Kafka processing produced no result or acknowledgment");
         }
         processed.ack().acknowledge();
-        log.info("[KAFKA_COMMIT][{}] Acknowledged partition {} offset {} after processing",
-                getFlowName(), processed.partition(), processed.offset());
+        long acknowledgedAt = System.currentTimeMillis();
+        Object timestampHeader = message.getHeaders().get(KafkaHeaders.RECEIVED_TIMESTAMP);
+        // Kafka timestamps are epoch milliseconds. Missing/future timestamps must not look like zero latency.
+        String queueWaitMs = "unknown";
+        String ageAtAckMs = "unknown";
+        if (timestampHeader instanceof Number timestamp && timestamp.longValue() > 0
+                && timestamp.longValue() <= receivedAt) {
+            queueWaitMs = Long.toString(receivedAt - timestamp.longValue());
+            ageAtAckMs = Long.toString(acknowledgedAt - timestamp.longValue());
+        }
+         log.info("[KAFKA_COMMIT][{}] Acknowledged partition {} offset {} after processing topic={} group={} partition={} offset={} queueWaitMs={} ageAtAckMs={} processingMs={}",
+                getFlowName(), processed.partition(), processed.offset(),
+                message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_TOPIC, "unknown"),
+                message.getHeaders().getOrDefault(KafkaHeaders.GROUP_ID, "unknown"),
+                processed.partition(), processed.offset(), queueWaitMs, ageAtAckMs, acknowledgedAt - receivedAt);
     }
 
 
