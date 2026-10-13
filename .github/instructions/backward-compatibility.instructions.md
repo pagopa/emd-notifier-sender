@@ -5,14 +5,15 @@ excludeAgent: "cloud-agent"
 
 # Code review: retrocompatibilita
 
-Nella review rispondi in italiano e applica [la policy](backward-compatibility.md) al diff della PR e ai commit disponibili rispetto ai parent. Non dichiarare verificati commit non esaminati. Non modificare codice.
+Review in italiano secondo [la policy](backward-compatibility.md): diff PR e commit disponibili rispetto ai parent. Non attestare commit non esaminati. Non modificare codice.
 
 ## Metodo e segnalazioni
 
-- Leggi la policy e verifica codice, contratti, migrazioni, configurazioni, test e implementazioni collegate. Header, flag o dichiarazioni non provano conformita.
-- Segnala problemi introdotti/aggravati dal diff. Escludi superfici estranee; refactoring a contratti invariati non richiedono versioni.
-- Indica ID, file e riga pertinente, evidenza, impatto e correzione minima. Ordina per gravita senza duplicati.
-- Distingui violazioni, aspetti non verificabili e prove obbligatorie mancanti. Non inventare comportamenti o esiti; non dichiarare conformita senza prove. Una breaking change approvata resta incompatibile.
+- Leggi la policy; verifica codice, contratti, migrazioni, configurazioni, test e implementazioni collegate. Header e flag non provano conformita.
+- Segnala solo problemi introdotti/aggravati dal diff; refactoring a contratti invariati non richiedono versioni.
+- Titolo con etichetta esatta della policy OBBLIGATORIO per ogni segnalazione, es. `[BC-REST]`, `[BC-DB]`, `[BC-MSG]`, anche per aspetti non verificabili e prove mancanti.
+- Indica file, riga pertinente, evidenza, impatto e correzione minima. Ordina per gravita senza duplicati.
+- Distingui violazioni, aspetti non verificabili e prove obbligatorie mancanti. Non inventare esiti/comportamenti ne attestare conformita senza prove. Breaking change approvate restano incompatibili.
 
 ## BC-SCOPE: perimetro esterno
 
@@ -24,15 +25,15 @@ Verifica significato e unita dei dati, default, NULL, validazioni, errori, ordin
 
 ## BC-REST: interfacce REST
 
-Modifiche strutturali o semantiche richiedono versione via header HTTP (es. `X-API-Version`) che selezioni la logica. Path/query/body non bastano. Preserva versioni supportate e comportamento senza header; verifica versioni sconosciute, specifiche, gateway, proxy e cache. I nomi degli header di versione sono esempi.
+Modifiche strutturali/semantiche richiedono versione via header HTTP (es. `X-API-Version`) che selezioni la logica. Path/query/body non bastano. Preserva versioni supportate e comportamento senza header; verifica versioni sconosciute, specifiche, gateway, proxy e cache. Header di versione esemplificativi.
 
-## BC-DB: schema dei database
+## BC-DB: schema DB
 
-Nel percorso retrocompatibile ammetti solo nuovi campi NULLABLE, non rimozioni, rinomine o cambi di tipo; un default non giustifica NOT NULL. Verifica campi assenti, SQL posizionale, SELECT *, mapping, validatori, vincoli, viste, trigger, indici e permessi. Controlla lock, backfill e leggibilita/scrivibilita dei dati per versioni coesistenti e di rollback.
+Retrocompatibilita: solo nuovi campi NULLABLE, non rimozioni, rinomine o cambi di tipo; un default non giustifica NOT NULL. Verifica campi assenti, SQL posizionale, SELECT *, mapping, validatori, vincoli, viste, trigger, indici e permessi. Controlla lock, backfill e leggibilita/scrivibilita dei dati per versioni coesistenti e di rollback.
 
 ## BC-MSG: Kafka e Azure Service Bus
 
-Ogni modifica strutturale o semantica richiede versione nei metadati (es. `X-Msg-Version`), scritta dal producer e letta dal consumer. Verifica messaggi precedenti, header assente/sconosciuto, backlog, retry, dead-letter e replay. I producer nuovi non devono inviare formati incompatibili ai consumer vecchi: verifica formato o routing e sequenza di aggiornamento. Controlla partizionamento, TTL, retention e duplicazione degli effetti.
+Modifiche strutturali/semantiche richiedono versione nei metadati (es. `X-Msg-Version`), scritta dal producer e letta dal consumer. Verifica messaggi precedenti, header assente/sconosciuto, backlog, retry, dead-letter e replay. Producer nuovi devono restare compatibili con consumer vecchi: verifica formato/routing e ordine di aggiornamento. Controlla partizionamento, TTL, retention e duplicazione degli effetti.
 
 ## BC-FEATURES: logiche on-demand
 
@@ -40,7 +41,7 @@ Quando richiesto dalla policy, verifica `X-Features` multi-valore in tutti gli i
 
 ## BC-FLAGS: feature flag
 
-Sono facoltativi, ma disattivi di default anche nelle configurazioni e nei fallback. Verifica varianti, combinazioni e attivazione coordinata. Disattivarli non annulla dati o messaggi prodotti. Non sostituiscono versionamento o X-Features obbligatori.
+Facoltativi, disattivi di default anche in configurazioni e fallback. Verifica varianti, combinazioni e attivazione coordinata. Disattivarli non annulla dati o messaggi prodotti. Non sostituiscono versionamento o X-Features obbligatori.
 
 ## BC-RELEASE: distribuzione e dismissione
 
@@ -48,4 +49,4 @@ Verifica versioni ammesse, vincoli contro combinazioni vietate e rollout/rollbac
 
 ## BC-EVIDENCE: prove di conformita
 
-Verifica impatto nella PR e prove: regressione, contratti vecchi/nuovi, integrazione, varianti, coesistenza, migrazioni, rollback e limiti operativi. Distingui test eseguiti da proposti. Per lacune indica prova mancante, responsabile e azione prima del rilascio. La review non sostituisce test e controlli di rilascio.
+Verifica impatto PR e prove: regressione, contratti vecchi/nuovi, integrazione, varianti, coesistenza, migrazioni, rollback e limiti operativi. Distingui test eseguiti/proposti. Per lacune indica prova mancante, responsabile e azione pre-rilascio. Review non sostitutiva di test e controlli di rilascio.
