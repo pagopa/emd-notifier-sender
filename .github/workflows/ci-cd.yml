@@ -1,0 +1,267 @@
+name: 🚀 Continuous Integration/Delivery
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+concurrency:
+  group: ci-cd
+  cancel-in-progress: false
+
+jobs:
+
+  #
+  # Release Management phase: calculates the version, updates pom.xml,
+  # generates the changelog, tags the commit and publishes the GitHub release.
+  #
+  release:
+    name: 🚀 Semantic Release
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
+
+    steps:
+      - name: Checkout the source code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          token: ${{ secrets.EMD_BOT_RW_TOKEN }}
+          fetch-depth: 0
+
+      - name: Install Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # 6.4.0
+        with:
+          node-version: "24.11.0"
+
+      - name: Calculate the new version (dry-run)
+        id: semantic
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # 6.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.EMD_BOT_RW_TOKEN }}
+        with:
+          semantic_version: 25.0.3
+          branch: main
+          extra_plugins: |
+            @semantic-release/release-notes-generator@14.1.0
+            @semantic-release/changelog@6.0.3
+            @semantic-release/git@10.0.1
+          dry_run: true
+
+      - name: Set up JDK 21
+        if: steps.semantic.outputs.new_release_published == 'true'
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Maven packages
+        if: steps.semantic.outputs.new_release_published == 'true'
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Update pom.xml with the new version
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          mvn versions:set -DnewVersion=${{ steps.semantic.outputs.new_release_version }} -DgenerateBackupPoms=false --no-transfer-progress
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add pom.xml
+          if [ -n "$(git diff --cached)" ]; then
+            git commit -m "chore: update pom.xml to version ${{ steps.semantic.outputs.new_release_version }} [skip ci]"
+            git push origin main
+          else
+            echo "ℹ️ No changes detected in pom.xml, skipping commit and push"
+          fi
+
+      - name: Calculate the new version (w/o dry_run) and put tag
+        if: steps.semantic.outputs.new_release_published == 'true'
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # 6.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.EMD_BOT_RW_TOKEN }}
+        with:
+          semantic_version: 25.0.3
+          branch: main
+          extra_plugins: |
+            @semantic-release/release-notes-generator@14.1.0
+            @semantic-release/changelog@6.0.3
+            @semantic-release/git@10.0.1
+          dry_run: false
+
+  #
+  # Continuous Integration phase: build, package, containerization.
+  # Runs only if semantic-release published a new version.
+  #
+  continuous_integration:
+    name: 🐳 Build and Push
+    needs: release
+    if: needs.release.outputs.new_release_published == 'true'
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ghcr.io/${{ github.repository }}:v${{ needs.release.outputs.new_release_version }}@${{ steps.build.outputs.digest }}
+    steps:
+      - name: 🔖 Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: v${{ needs.release.outputs.new_release_version }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Maven packages
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: 📦 Build jar with Maven
+        run: mvn -B clean package -DskipTests
+
+      - name: 🏷️ Set Docker tags
+        id: meta
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f #5.8.0
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=v${{ needs.release.outputs.new_release_version }}
+
+      - name: 🛃 Log in to Github Container registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef #3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN  }}
+
+      - name: 📦 Build and push Docker image
+        id: build
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 #6.18.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          labels: |
+            maintainer=https://pagopa.it
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+
+  #
+  # Javadoc publishing: generates and deploys the Javadoc site to GitHub Pages.
+  # Runs only if semantic-release published a new version.
+  #
+  deploy_javadoc:
+    name: 📚 Publish Javadoc
+    needs: release
+    if: needs.release.outputs.new_release_published == 'true'
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: 🔖 Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: v${{ needs.release.outputs.new_release_version }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Maven packages
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Setup Maven Settings
+        run: |
+          mkdir -p ~/.m2
+          echo '<settings><servers><server><id>github</id><username></username><password>${{ secrets.GITHUB_TOKEN }}</password></server></servers></settings>' > ~/.m2/settings.xml
+
+      - name: Generate Javadoc with Maven
+        run: mvn -B clean javadoc:javadoc -DadditionalJOption=-Xdoclint:none --no-transfer-progress
+
+      - name: Upload artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: target/site/apidocs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  #
+  # Deploy to UAT and run non-regression tests.
+  # Runs only if semantic-release published a new version and continuous_integration succeeded.
+  #
+  continuous_delivery:
+    name: continuous_delivery
+    needs: [ release, continuous_integration ]
+    if: needs.release.outputs.new_release_published == 'true'
+
+    runs-on: [self-hosted-job, uat]
+
+    environment: uat
+
+    permissions:
+      contents: read
+
+    steps:
+
+      #
+      # Deploy release to UAT via update of the mdc-deploy-aks repo and ArgoCD
+      #
+      - name: Update mdc-deploy-aks
+        uses: pagopa/mil-actions/update-deploy-aks@73bd024abeec34d2dc0ac43999301015e817a472
+        with:
+          gh_token: ${{ secrets.EMD_BOT_RW_TOKEN }}
+          author: mdc-gh-bot
+          deploy_aks_repo: pagopa/mdc-deploy-aks
+          env: uat
+          level: top
+          app: emd-notifier-sender
+          image: ${{ needs.continuous_integration.outputs.image }}
+          domain: mdc
+          argo_cd_server: ${{ vars.ARGO_CD_SERVER }}
+          argo_cd_username: ${{ secrets.ARGO_CD_USERNAME }}
+          argo_cd_password: ${{ secrets.ARGO_CD_PASSWORD }}
+          argo_cd_timeout: 600 # 10 minutes
+
+      #
+      # Runs non-regression tests
+      #
+      - name: Trigger Test Workflow
+        uses: pagopa/mil-actions/trigger-remote-workflow@73bd024abeec34d2dc0ac43999301015e817a472
+        with:
+          remote_gh_token: ${{ secrets.EMD_BOT_RW_TOKEN }}
+          remote_repo: pagopa/emd-testing
+          remote_workflow: run-test.yml

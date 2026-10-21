@@ -190,8 +190,8 @@ public class NotifyServiceImpl implements NotifyService {
    * </ol>
    */
     public Mono<Void> sendNotify(Message message, TppDTO tppDTO, long retry) {
-        log.info("[NOTIFY-SERVICE][SEND-NOTIFY] Starting notification process for message ID: {} to TPP: {} at retry: {}",
-                message.getMessageId(), tppDTO.getTppId(), retry);
+        log.info("[NOTIFY-SERVICE][SEND-NOTIFY] Starting notification process for message ID: {} to TPP: {} - with entity ID: {} at retry: {}",
+                message.getMessageId(), tppDTO.getTppId(), tppDTO.getEntityId(), retry);
 
         return getToken(tppDTO, message.getMessageId(), retry)
                 .switchIfEmpty(Mono.error(new IllegalStateException("Empty token response for message " + message.getMessageId())))
@@ -219,7 +219,7 @@ public class NotifyServiceImpl implements NotifyService {
      */
     private Mono<TokenDTO> getToken(TppDTO tppDTO, String messageId, long retry) {
 
-        log.info("[NOTIFY-SERVICE][GET-TOKEN] Requesting token for message ID: {} to TPP: {} at retry: {}", messageId, tppDTO.getTppId(), retry);
+        log.info("[NOTIFY-SERVICE][GET-TOKEN] Requesting token for message ID: {} to TPP: {}  with entity ID: {} at retry: {}", messageId, tppDTO.getTppId(), tppDTO.getEntityId(), retry);
 
         String urlWithTenant = tppDTO.getAuthenticationUrl();
 
@@ -245,7 +245,7 @@ public class NotifyServiceImpl implements NotifyService {
             .bodyToMono(TokenDTO.class)
             .retryWhen(WebClientRetrySpecs.connectFailureOnly())
             .doOnSuccess(token -> {
-                log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} at retry: {}",messageId,tppDTO.getTppId(),retry);
+                log.info("[NOTIFY-SERVICE][GET-TOKEN] Token successfully obtained for message for message ID: {} to TPP: {} with entity ID: {} at retry: {}", messageId, tppDTO.getTppId(), tppDTO.getEntityId(), retry);
             })
             .doOnError(error -> log.error("[NOTIFY-SERVICE][GET-TOKEN] Error getting token from {}: {}", tppDTO.getEntityId(), error.getMessage()));
     }
@@ -305,7 +305,7 @@ public class NotifyServiceImpl implements NotifyService {
             // Con flatMap, il salvataggio su DB è concatenato nella reactive chain principale:
             // Spring attenderà il completamento dell'intera catena prima di terminare il Pod.
             .flatMap(response -> {
-                log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent. TPP responded.", message.getMessageId());
+                log.info("[NOTIFY-SERVICE][TO-URL] Message {} sent for tpp: {}. TPP responded.", message.getMessageId(), tppDTO.getEntityId());
 
                 if (log.isDebugEnabled()) {
                     log.debug("[NOTIFY-SERVICE][TO-URL] Response MsgId {}: {}", message.getMessageId(), LogUtils.maskSensitiveData(response));

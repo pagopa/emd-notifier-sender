@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.4](https://github.com/pagopa/emd-notifier-sender/compare/v1.3.3...v1.3.4) (2026-09-30)
+
+
+### Bug Fixes
+
+* MMC-1121 Add github action for ci-cd ([#115](https://github.com/pagopa/emd-notifier-sender/issues/115)) ([caac02a](https://github.com/pagopa/emd-notifier-sender/commit/caac02a7fbe6ae66aae34aa0543ac5aedfb03213))
+
 ## [1.3.3](https://github.com/pagopa/emd-notifier-sender/compare/v1.3.2...v1.3.3) (2026-07-06)
 
 
