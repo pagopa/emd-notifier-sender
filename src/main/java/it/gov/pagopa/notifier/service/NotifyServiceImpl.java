@@ -314,8 +314,8 @@ public class NotifyServiceImpl implements NotifyService {
                 message.setMessageState(MessageState.SENT);
                 return messageRepository.save(message)
                     .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
-                    .doOnSuccess(saved -> log.info("[NOTIFY-SERVICE][TO-URL] DB Saved SENT. MsgId: {}", saved.getMessageId()))
-                    .doOnError(e -> log.error("[NOTIFY-SERVICE][TO-URL] DB Save Failed. MsgId: {}", message.getMessageId(), e))
+                        .doOnSuccess(saved -> log.info("[NOTIFY-SERVICE][TO-URL] DB Saved SENT. MsgId: {} for tpp: {}", saved.getMessageId(), tppDTO.getEntityId()))
+                        .doOnError(e -> log.error("[NOTIFY-SERVICE][TO-URL] DB Save Failed. MsgId: {} for tpp: {}", message.getMessageId(), tppDTO.getEntityId(), e))
                     .thenReturn(response);
             })
             .doOnError(error -> {
