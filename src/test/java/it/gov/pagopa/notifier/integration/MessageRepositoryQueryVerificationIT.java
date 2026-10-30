@@ -349,7 +349,7 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         )
         .assertNext(count -> {
           log.info("Remaining message count after delete: {}", count);
-          assert count == 2L;
+          assertThat(count).isEqualTo(2L);
         })
         .verifyComplete();
 
