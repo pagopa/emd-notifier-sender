@@ -15,6 +15,8 @@ import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -127,11 +129,11 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         )
         .assertNext(message -> {
           log.info("Found message: {}", message);
-          assert message.getRecipientId().equals(TEST_RECIPIENT_1);
-          assert message.getEntityId().equals(TEST_ENTITY_1);
-          assert message.getMessageId().equals(TEST_MESSAGE_ID_1);
-          assert message.getMessageState().equals(MessageState.IN_PROCESS);
-          assert message.getChannel().equals(Channel.SEND);
+          assertThat(message.getRecipientId()).isEqualTo(TEST_RECIPIENT_1);
+          assertThat(message.getEntityId()).isEqualTo(TEST_ENTITY_1);
+          assertThat(message.getMessageId()).isEqualTo(TEST_MESSAGE_ID_1);
+          assertThat(message.getMessageState()).isEqualTo(MessageState.IN_PROCESS);
+          assertThat(message.getChannel()).isEqualTo(Channel.SEND);
         })
         .verifyComplete();
 
@@ -194,11 +196,11 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         )
         .assertNext(message -> {
           log.info("Found message: {}", message);
-          assert message.getMessageId().equals(TEST_MESSAGE_ID_1);
-          assert message.getEntityId().equals(TEST_ENTITY_1);
-          assert message.getRecipientId().equals(TEST_RECIPIENT_1);
-          assert message.getSenderDescription().equals("Test Sender 1");
-          assert message.getContent().equals("Test message content 1");
+          assertThat(message.getMessageId()).isEqualTo(TEST_MESSAGE_ID_1);
+          assertThat(message.getEntityId()).isEqualTo(TEST_ENTITY_1);
+          assertThat(message.getRecipientId()).isEqualTo(TEST_RECIPIENT_1);
+          assertThat(message.getSenderDescription()).isEqualTo("Test Sender 1");
+          assertThat(message.getContent()).isEqualTo("Test message content 1");
         })
         .verifyComplete();
 
@@ -238,13 +240,13 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         )
         .assertNext(message -> {
           log.info("Found message: {}", message);
-          assert message.getMessageId().equals(TEST_MESSAGE_ID_1);
-          assert message.getMessageRegistrationDate().equals("2025-10-15T15:00:00");
+          assertThat(message.getMessageId()).isEqualTo(TEST_MESSAGE_ID_1);
+          assertThat(message.getMessageRegistrationDate()).isEqualTo("2025-10-15T15:00:00");
         })
         .assertNext(message -> {
           log.info("Found message: {}", message);
-          assert message.getMessageId().equals(TEST_MESSAGE_ID_2);
-          assert message.getMessageRegistrationDate().equals("2025-10-20T00:00:00");
+          assertThat(message.getMessageId()).isEqualTo(TEST_MESSAGE_ID_2);
+          assertThat(message.getMessageRegistrationDate()).isEqualTo("2025-10-20T00:00:00");
         })
         .verifyComplete();
 
@@ -260,8 +262,8 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         )
         .assertNext(message -> {
           log.info("Found message: {}", message);
-          assert message.getMessageId().equals(TEST_MESSAGE_ID_3);
-          assert message.getMessageRegistrationDate().equals("2025-10-25T12:00:00");
+          assertThat(message.getMessageId()).isEqualTo(TEST_MESSAGE_ID_3);
+          assertThat(message.getMessageRegistrationDate()).isEqualTo("2025-10-25T12:00:00");
         })
         .verifyComplete();
 
@@ -329,7 +331,7 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         )
         .assertNext(count -> {
           log.info("Total message count: {}", count);
-          assert count == 3L;
+          assertThat(count).isEqualTo(3L);
         })
         .verifyComplete();
 
