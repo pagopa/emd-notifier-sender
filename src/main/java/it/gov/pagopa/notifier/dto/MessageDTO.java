@@ -29,7 +29,6 @@ public class MessageDTO extends BaseMessage {
                 ", originId='" + getOriginId() + '\'' +
                 ", title='" + getTitle() + '\'' +
                 ", content='" + getContent() + '\'' +
-                ", idPsp='" + getIdPsp() + '\'' +
                 ", channel='" + channel + '\'' +
                 ", associatedPayment='" + getAssociatedPayment() + '\'' +
                 ", analogSchedulingDate='" + getAnalogSchedulingDate() + '\'' +

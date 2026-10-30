@@ -10,14 +10,13 @@ import java.time.LocalDateTime;
 @Service
 public class MessageMapperDTOToObject {
 
-    public Message map(MessageDTO messageDTO, String idPsp, String entityId, MessageState messageState){
+    public Message map(MessageDTO messageDTO, String entityId, MessageState messageState){
         return Message.builder()
                 .associatedPayment(messageDTO.getAssociatedPayment())
                 .content(messageDTO.getContent())
                 .title(messageDTO.getTitle())
                 .content(messageDTO.getContent())
                 .entityId(entityId)
-                .idPsp(idPsp)
                 .messageId(messageDTO.getMessageId())
                 .messageUrl(messageDTO.getMessageUrl())
                 .originId(messageDTO.getOriginId())

@@ -16,7 +16,6 @@ public class MessageDTOFaker {
                 .originId("originId")
                 .content("message")
                 .associatedPayment(true)
-                .idPsp("originId")
                 .channel(Channel.valueOf("SEND"))
                 .build();
 

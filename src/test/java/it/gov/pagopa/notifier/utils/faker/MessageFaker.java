@@ -14,7 +14,6 @@ public class MessageFaker {
                 .recipientId("recipientId")
                 .originId("originId")
                 .entityId("entityId")
-                .idPsp("idPsp")
                 .associatedPayment(true)
                 .messageRegistrationDate("messageRegistrationDate")
                 .channel(Channel.valueOf("SEND"))

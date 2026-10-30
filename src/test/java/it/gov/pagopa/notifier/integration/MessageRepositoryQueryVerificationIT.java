@@ -73,7 +73,6 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .content("Test message content 1")
         .title("Test title 1")
         .associatedPayment(false)
-        .idPsp("PSP-001")
         .build();
 
     Message message2 = Message.builder()
@@ -92,7 +91,6 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .content("Test message content 2")
         .title("Test title 2")
         .associatedPayment(true)
-        .idPsp("PSP-002")
         .build();
 
     Message message3 = Message.builder()
@@ -110,7 +108,6 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .content("Test message content 3")
         .title("Test title 3")
         .associatedPayment(false)
-        .idPsp("PSP-003")
         .build();
 
     // Insert test data
@@ -172,7 +169,6 @@ public class MessageRepositoryQueryVerificationIT extends BaseIT {
         .content("Test message content 4")
         .title("Test title 4")
         .associatedPayment(true)
-        .idPsp("PSP-004")
         .build();
 
     StepVerifier.create(

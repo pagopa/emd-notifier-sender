@@ -10,7 +10,6 @@ import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.model.mapper.MessageMapperDTOToObject;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -131,7 +130,7 @@ public class MessageServiceImpl implements MessageService {
         return Flux.fromIterable(tppDTOList)
             .doOnNext(tpp -> log.debug("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Processing TPP: {} - with entity ID:{} for message ID: {}", tpp.getTppId(), tpp.getEntityId(), messageId))
             .flatMap(tppDTO -> {
-                Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), MessageState.IN_PROCESS);
+                Message message = mapperDTOToObject.map(messageDTO, tppDTO.getEntityId(), MessageState.IN_PROCESS);
                 return messageRepository.save(message)
                     .doOnNext(savedMessage -> log.info("[MESSAGE-SERVICE][SEND-NOTIFICATIONS] Saved IN-PROCESS message ID: {} for entity ID: {}", savedMessage.getMessageId(), savedMessage.getEntityId()))
                     .map(savedMessage -> Tuples.of(savedMessage, tppDTO))
