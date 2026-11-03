@@ -8,7 +8,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
-import reactor.core.publisher.Flux;
 
 import java.util.function.Consumer;
 
@@ -22,7 +21,7 @@ class NotifyErrorConsumerTest {
     NotifyErrorConsumerService notifyErrorConsumerService;
     @InjectMocks
     NotifyErrorConsumer notifyErrorConsumer;
-    private Consumer<Flux<Message<String>>> consumerCommands;
+    private Consumer<Message<String>> consumerCommands;
     @BeforeEach
     public void setUp(){
         consumerCommands = notifyErrorConsumer.consumerNotify(notifyErrorConsumerService);
@@ -31,9 +30,8 @@ class NotifyErrorConsumerTest {
 
     @Test
     void consumerCommands(){
-        Flux<Message<String>> flux = Flux.just(QUEUE_NOTIFIER_STRING_ERROR);
-        consumerCommands.accept(flux);
-        verify(notifyErrorConsumerService).execute(flux);
+        consumerCommands.accept(QUEUE_NOTIFIER_STRING_ERROR);
+        verify(notifyErrorConsumerService).execute(QUEUE_NOTIFIER_STRING_ERROR);
     }
 
 

@@ -3,6 +3,7 @@ package it.gov.pagopa.notifier.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
+import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,11 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -34,19 +32,12 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
     private final MessageServiceImpl messageCoreService;
     public MessageCoreConsumerServiceImpl(ObjectMapper objectMapper,
                                           @Value("${spring.application.name}") String applicationName,
-                                          @Value("${spring.cloud.stream.kafka.bindings.consumerMessage-in-0.consumer.ackTime}") long commitDelay,
-                                          @Value("${app.message-core.build-delay-duration}") long delayMinusCommit,
                                           MessageServiceImpl messageCoreService) {
-        super(applicationName, Duration.ofMillis(commitDelay),Duration.ofMillis(delayMinusCommit));
+        super(applicationName);
         this.messageCoreService = messageCoreService;
         this.objectReader = objectMapper.readerFor(MessageDTO.class);
     }
 
-    @Override
-    protected void subscribeAfterCommits(Flux<List<String>> afterCommits2subscribe) {
-        afterCommits2subscribe
-                .subscribe(r -> log.info("[MESSAGE-CORE-COMMANDS] Processed offsets committed successfully"));
-    }
     @Override
     protected ObjectReader getObjectReader() {
         return objectReader;
@@ -83,7 +74,7 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
 
         if (retry == null) {
             log.warn("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] No retry header found. Message {} will not be processed.", messageId);
-            return Mono.just("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Message %s not processed due to missing headers".formatted(messageId));
+            return Mono.error(new UncommittableError("Missing retry header for message " + messageId));
         }
 
         log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Processing attempt {} for message ID: {}", retry, messageId);

@@ -3,6 +3,7 @@ package it.gov.pagopa.notifier.service;
 import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.common.utils.MemoryAppender;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,13 +17,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
@@ -67,8 +67,8 @@ class MessageCoreConsumerServiceImplTest {
 
     @Test
     void processCommand_Ko(){
-        when(messageService.processMessage(any(), anyLong())).thenReturn(Mono.empty());
-        messageConsumerServiceImpl.execute(MESSAGE_DTO, QUEUE_MESSAGE_NO_RETRY_CORE, null).block();
+        assertThrows(UncommittableError.class,
+                () -> messageConsumerServiceImpl.execute(MESSAGE_DTO, QUEUE_MESSAGE_NO_RETRY_CORE, null).block());
         Mockito.verify(messageService, times(0)).processMessage(MESSAGE_DTO, RETRY);
     }
     @Test
@@ -77,15 +77,6 @@ class MessageCoreConsumerServiceImplTest {
         Assertions.assertNotNull(objectReader);
     }
 
-    @Test
-    void givenMessagesWhenAfterCommitsThenSuccessfully() {
-        Flux<List<String>> afterCommits2Subscribe = Flux.just(List.of("TEXT1","TEXT2","TEXT3"));
-        messageConsumerServiceImpl.subscribeAfterCommits(afterCommits2Subscribe);
-        Assertions.assertEquals(
-                ("[MESSAGE-CORE-COMMANDS] Processed offsets committed successfully"),
-                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
-        );
-    }
 
     @Test
     void onDeserializationError(){

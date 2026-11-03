@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -97,5 +98,16 @@ class CitizenConnectorImplTest {
                         ex instanceof WebClientRequestException ||
                         (ex.getCause() instanceof WebClientRequestException))
                 .verify();
+    }
+
+    @Test
+    void testGetCitizenConsentsEnabled_doesNotRetryThrottling() {
+        mockWebServer.enqueue(new MockResponse().setResponseCode(429));
+
+        StepVerifier.create(citizenConnector.getCitizenConsentsEnabled(FISCAL_CODE))
+                .expectErrorMatches(ex -> ex instanceof WebClientResponseException response
+                        && response.getStatusCode().value() == 429)
+                .verify();
+        assertThat(mockWebServer.getRequestCount()).isEqualTo(1);
     }
 }

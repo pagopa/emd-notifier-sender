@@ -126,11 +126,28 @@ class NotifyServiceImplTest {
 
         Mockito.when(messageRepository.save(any()))
             .thenReturn(Mono.error(new RuntimeException("Mocked save error")));
+        when(errorProducerService.enqueueNotify(any(), any(), anyLong())).thenReturn(Mono.just("enqueued"));
 
         sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY).block();
 
         verify(messageTemplateService, times(1)).renderTemplate(any(), any());
         verify(messageRepository, times(1)).save(any());
+        verify(errorProducerService).enqueueNotify(any(), any(), anyLong());
+    }
+
+    @Test
+    void testSaveFailureAndRetryPublicationFailurePropagates() {
+        TPP_DTO.setAuthenticationUrl(mockWebServer.url(AUTHENTICATION_URL).toString());
+        TPP_DTO.setMessageUrl(mockWebServer.url(MESSAGE_URL).toString());
+        when(messageTemplateService.renderTemplate(any(), any()))
+            .thenReturn(Mono.just("{\"mocked\":\"json_body\"}"));
+        when(messageRepository.save(any())).thenReturn(Mono.error(new RuntimeException("DB unavailable")));
+        when(errorProducerService.enqueueNotify(any(), any(), anyLong()))
+            .thenReturn(Mono.error(new IllegalStateException("Retry not published")));
+
+        StepVerifier.create(sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY))
+            .expectError(IllegalStateException.class)
+            .verify();
     }
 
     @Test
@@ -164,12 +181,41 @@ class NotifyServiceImplTest {
         verify(messageRepository, never()).save(any());
     }
 
+    @Test
+    void emptyTokenResponse_RequiresConfirmedRetry() {
+        TPP_DTO.setAuthenticationUrl(mockWebServer.url("/empty-token").toString());
+        when(errorProducerService.enqueueNotify(any(), any(), anyLong()))
+            .thenReturn(Mono.error(new IllegalStateException("Retry publication failed")));
+
+        StepVerifier.create(sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY))
+            .expectError(IllegalStateException.class)
+            .verify();
+        verify(errorProducerService).enqueueNotify(any(), any(), anyLong());
+        verify(messageRepository, never()).save(any());
+    }
+
+    @Test
+    void emptyTemplate_RequiresConfirmedRetry() {
+        TPP_DTO.setAuthenticationUrl(mockWebServer.url(AUTHENTICATION_URL).toString());
+        when(messageTemplateService.renderTemplate(any(), any())).thenReturn(Mono.empty());
+        when(errorProducerService.enqueueNotify(any(), any(), anyLong()))
+            .thenReturn(Mono.error(new IllegalStateException("Retry publication failed")));
+
+        StepVerifier.create(sendNotificationService.sendNotify(MESSAGE, TPP_DTO, RETRY))
+            .expectError(IllegalStateException.class)
+            .verify();
+        verify(errorProducerService).enqueueNotify(any(), any(), anyLong());
+        verify(messageRepository, never()).save(any());
+    }
+
     static class MyDispatcher extends Dispatcher {
         @NotNull
         @Override
         public MockResponse dispatch(RecordedRequest request) {
             assert request.getPath() != null;
-            if (request.getPath().equals(AUTHENTICATION_URL)) {
+            if (request.getPath().equals("/empty-token")) {
+                return new MockResponse().setResponseCode(204);
+            } else if (request.getPath().equals(AUTHENTICATION_URL)) {
                 return new MockResponse()
                     .setBody("{\"access_token\":\"accessToken\", \"token_type\":\"Bearer\", \"expires_in\":3600}")
                     .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
