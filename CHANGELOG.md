@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.4.0](https://github.com/pagopa/emd-notifier-sender/compare/v1.3.4...v1.4.0) (2026-11-03)
+
+
+### Features
+
+* [MMC-776] kafka scaling improvements ([#104](https://github.com/pagopa/emd-notifier-sender/issues/104)) ([cd1be3d](https://github.com/pagopa/emd-notifier-sender/commit/cd1be3d3c25a4fdf76afd9a4f40811df67c331ea))
+
 ## [1.3.4](https://github.com/pagopa/emd-notifier-sender/compare/v1.3.3...v1.3.4) (2026-09-30)
 
 
