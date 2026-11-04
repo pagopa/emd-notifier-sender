@@ -50,4 +50,17 @@ public class TppConnectorImpl implements TppConnector {
                 .doOnError(ex -> log.error(
                         "[TPP-CONNECTOR] POST /emd/tpp/list failed: {}", ex.getMessage()));
     }
+
+    @Override
+    public Mono<TppDTO> getNotificationConfigByEntityId(String entityId) {
+        return webClient.get()
+                .uri("/emd/tpp/entityId/{entityId}/notification-config", entityId)
+                .header("X-API-Version", "1")
+                .retrieve()
+                .bodyToMono(TppDTO.class)
+                .retryWhen(WebClientRetrySpecs.connectFailureOnly())
+                .doOnError(ex -> log.error(
+                        "[TPP-CONNECTOR] GET notification config for entityId {} failed: {}",
+                        entityId, ex.getMessage()));
+    }
 }

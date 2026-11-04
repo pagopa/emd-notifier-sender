@@ -5,6 +5,7 @@ import it.gov.pagopa.common.configuration.MongoRetrySpecs;
 import it.gov.pagopa.common.configuration.WebClientRetrySpecs;
 import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
 import it.gov.pagopa.notifier.configuration.DeleteProperties;
+import it.gov.pagopa.notifier.connector.tpp.TppConnector;
 import it.gov.pagopa.notifier.dto.*;
 import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.model.Message;
@@ -42,6 +43,7 @@ public class NotifyServiceImpl implements NotifyService {
     private final NotifyErrorProducerService notifyErrorProducerService;
     private final MessageRepository messageRepository;
     private final DeleteProperties deleteProperties;
+    private final TppConnector tppConnector;
 
     // Reads the same property used by Spring Boot Graceful Shutdown
     // (spring.lifecycle.timeout-per-shutdown-phase), ensuring the .block() timeout
@@ -56,12 +58,14 @@ public class NotifyServiceImpl implements NotifyService {
                              MessageRepository messageRepository,
                              DeleteProperties deleteProperties,
                              MessageTemplateService messageTemplateService,
-                             WebClient.Builder webClientBuilder) {
+                             WebClient.Builder webClientBuilder,
+                             TppConnector tppConnector) {
         this.webClient = webClientBuilder.build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
         this.deleteProperties = deleteProperties;
         this.messageTemplateService = messageTemplateService;
+        this.tppConnector = tppConnector;
     }
 
 
@@ -175,6 +179,48 @@ public class NotifyServiceImpl implements NotifyService {
                       return new DeleteResponseDTO(deletedCount, remainingCount.intValue(), elapsedTime);
                   })
           );
+  }
+
+  @Override
+  public Mono<Void> retryFailedMessage(RetryMessageRequestDTO request) {
+      String messageId = request.getMessageId();
+      String entityId = request.getEntityId();
+
+      return messageRepository.claimErroredMessage(messageId, entityId)
+          .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
+          .switchIfEmpty(Mono.defer(() -> messageRepository.existsByMessageIdAndEntityId(messageId, entityId)
+              .flatMap(exists -> Mono.error(new ClientExceptionWithBody(
+                  exists ? HttpStatus.CONFLICT : HttpStatus.NOT_FOUND,
+                  exists ? "MESSAGE_NOT_IN_ERROR" : "MESSAGE_NOT_FOUND",
+                  exists ? "Message is not in ERROR state" : "Message not found")))))
+          .flatMap(message -> tppConnector.getNotificationConfigByEntityId(entityId)
+              .switchIfEmpty(Mono.error(new ClientExceptionWithBody(
+                  HttpStatus.BAD_GATEWAY, "TPP_CONFIG_NOT_FOUND", "TPP configuration not found")))
+              .onErrorMap(error -> error instanceof ClientExceptionWithBody
+                  ? error
+                  : new ClientExceptionWithBody(HttpStatus.BAD_GATEWAY,
+                      "TPP_CONFIG_UNAVAILABLE", "TPP configuration could not be retrieved", error))
+              .flatMap(tppDTO -> {
+                  if (!entityId.equals(tppDTO.getEntityId())) {
+                      return Mono.error(new ClientExceptionWithBody(
+                          HttpStatus.BAD_GATEWAY, "TPP_CONFIG_MISMATCH", "TPP configuration does not match entityId"));
+                  }
+                  return notifyErrorProducerService.publishManualRetry(message, tppDTO)
+                      .onErrorMap(error -> new ClientExceptionWithBody(
+                          HttpStatus.SERVICE_UNAVAILABLE, "RETRY_PUBLISH_FAILED", "Retry message could not be published", error));
+              })
+              .onErrorResume(error -> messageRepository.releaseManualRetryClaim(messageId, entityId)
+                  .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
+                  .doOnNext(released -> {
+                      if (!released) {
+                          log.warn("[NOTIFY-SERVICE][MANUAL-RETRY] Could not restore ERROR state for message {} and entity {}", messageId, entityId);
+                      }
+                  })
+                  .onErrorResume(releaseError -> {
+                      log.error("[NOTIFY-SERVICE][MANUAL-RETRY] Failed to release retry claim for message {} and entity {}", messageId, entityId, releaseError);
+                      return Mono.empty();
+                  })
+                  .then(Mono.error(error))));
   }
 
 

@@ -88,6 +88,12 @@ public class NotifyErrorProducerServiceImpl implements NotifyErrorProducerServic
                 .then(Mono.just("enqueued"));
     }
 
+    @Override
+    public Mono<Void> publishManualRetry(Message message, TppDTO tppDTO) {
+        return Mono.<Void>fromRunnable(() -> notifyErrorProducer.scheduleMessage(createMessage(message, tppDTO, 0)))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
     /**
      * <p>Creates a Spring Kafka message with payload and retry metadata.</p>
      *

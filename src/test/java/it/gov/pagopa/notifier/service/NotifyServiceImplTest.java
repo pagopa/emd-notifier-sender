@@ -1,6 +1,10 @@
 package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.configuration.DeleteProperties;
+import it.gov.pagopa.notifier.connector.tpp.TppConnector;
+import it.gov.pagopa.notifier.dto.RetryMessageRequestDTO;
+import it.gov.pagopa.notifier.enums.MessageState;
+import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.repository.MessageRepository;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
@@ -46,6 +50,9 @@ class NotifyServiceImplTest {
     @Mock
     private DeleteProperties deleteProperties;
 
+    @Mock
+    private TppConnector tppConnector;
+
     @BeforeAll
     static void setUpBefore() throws IOException {
         mockWebServer = new MockWebServer();
@@ -60,7 +67,8 @@ class NotifyServiceImplTest {
             messageRepository,
             deleteProperties,
             messageTemplateService,
-            WebClient.builder()
+            WebClient.builder(),
+            tppConnector
         );
     }
 
@@ -87,6 +95,53 @@ class NotifyServiceImplTest {
         when(deleteProperties.getBatchSize()).thenReturn(10);
         when(deleteProperties.getIntervalMs()).thenReturn(10);
         StepVerifier.create(sendNotificationService.cleanupOldMessages()).expectNextCount(1L).verifyComplete();
+    }
+
+    @Test
+    void retryFailedMessage_claimsAndPublishesWithTppConfig() {
+        String messageId = "message-retry";
+        String entityId = TPP_DTO.getEntityId();
+        Message claimedMessage = Message.builder()
+                .messageId(messageId)
+                .entityId(entityId)
+                .messageState(MessageState.IN_PROCESS)
+                .build();
+        RetryMessageRequestDTO request = new RetryMessageRequestDTO(messageId, entityId);
+
+        when(messageRepository.claimErroredMessage(messageId, entityId)).thenReturn(Mono.just(claimedMessage));
+        when(tppConnector.getNotificationConfigByEntityId(entityId)).thenReturn(Mono.just(TPP_DTO));
+        when(errorProducerService.publishManualRetry(claimedMessage, TPP_DTO)).thenReturn(Mono.empty());
+
+        StepVerifier.create(sendNotificationService.retryFailedMessage(request)).verifyComplete();
+
+        verify(messageRepository).claimErroredMessage(messageId, entityId);
+        verify(tppConnector).getNotificationConfigByEntityId(entityId);
+        verify(errorProducerService).publishManualRetry(claimedMessage, TPP_DTO);
+        verify(messageRepository, never()).releaseManualRetryClaim(anyString(), anyString());
+    }
+
+    @Test
+    void retryFailedMessage_releasesClaimWhenPublishFails() {
+        String messageId = "message-retry";
+        String entityId = TPP_DTO.getEntityId();
+        Message claimedMessage = Message.builder()
+                .messageId(messageId)
+                .entityId(entityId)
+                .messageState(MessageState.IN_PROCESS)
+                .build();
+        RetryMessageRequestDTO request = new RetryMessageRequestDTO(messageId, entityId);
+
+        when(messageRepository.claimErroredMessage(messageId, entityId)).thenReturn(Mono.just(claimedMessage));
+        when(tppConnector.getNotificationConfigByEntityId(entityId)).thenReturn(Mono.just(TPP_DTO));
+        when(errorProducerService.publishManualRetry(claimedMessage, TPP_DTO))
+                .thenReturn(Mono.error(new IllegalStateException("Kafka unavailable")));
+        when(messageRepository.releaseManualRetryClaim(messageId, entityId)).thenReturn(Mono.just(true));
+
+        StepVerifier.create(sendNotificationService.retryFailedMessage(request))
+                .expectError()
+                .verify();
+
+        verify(messageRepository).releaseManualRetryClaim(messageId, entityId);
     }
 
     @Test

@@ -2,7 +2,10 @@ package it.gov.pagopa.notifier.controller;
 
 import it.gov.pagopa.notifier.dto.DeleteRequestDTO;
 import it.gov.pagopa.notifier.dto.DeleteResponseDTO;
+import it.gov.pagopa.notifier.dto.RetryMessageRequestDTO;
+import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
 import it.gov.pagopa.notifier.service.NotifyServiceImpl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -34,5 +37,15 @@ public class NotifierSenderControllerImpl implements NotifierSenderController {
         return notifyService.deleteMessages(deleteRequestDTO)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Override
+    public Mono<ResponseEntity<Void>> retryFailedMessage(String apiVersion, RetryMessageRequestDTO request) {
+        if (!"1".equals(apiVersion)) {
+            return Mono.error(new ClientExceptionWithBody(
+                    HttpStatus.BAD_REQUEST, "UNSUPPORTED_API_VERSION", "Unsupported X-API-Version"));
+        }
+        return notifyService.retryFailedMessage(request)
+                .thenReturn(ResponseEntity.accepted().build());
     }
 }
