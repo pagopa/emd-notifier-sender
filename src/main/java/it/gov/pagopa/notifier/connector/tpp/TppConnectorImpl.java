@@ -60,7 +60,7 @@ public class TppConnectorImpl implements TppConnector {
                 .bodyToMono(TppDTO.class)
                 .retryWhen(WebClientRetrySpecs.connectFailureOnly())
                 .doOnError(ex -> log.error(
-                        "[TPP-CONNECTOR] GET notification config for entityId {} failed: {}",
-                        entityId, ex.getMessage()));
+                        "[TPP-CONNECTOR] GET notification config failed ({})",
+                        ex.getClass().getSimpleName()));
     }
 }

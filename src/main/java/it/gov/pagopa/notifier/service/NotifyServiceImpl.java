@@ -213,11 +213,11 @@ public class NotifyServiceImpl implements NotifyService {
                   .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
                   .doOnNext(released -> {
                       if (!released) {
-                          log.warn("[NOTIFY-SERVICE][MANUAL-RETRY] Could not restore ERROR state for message {} and entity {}", messageId, entityId);
+                          log.warn("[NOTIFY-SERVICE][MANUAL-RETRY] Could not restore ERROR state after failed retry request");
                       }
                   })
                   .onErrorResume(releaseError -> {
-                      log.error("[NOTIFY-SERVICE][MANUAL-RETRY] Failed to release retry claim for message {} and entity {}", messageId, entityId, releaseError);
+                      log.error("[NOTIFY-SERVICE][MANUAL-RETRY] Failed to release retry claim ({})", releaseError.getClass().getSimpleName());
                       return Mono.empty();
                   })
                   .then(Mono.error(error))));
