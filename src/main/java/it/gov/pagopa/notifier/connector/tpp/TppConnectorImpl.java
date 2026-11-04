@@ -54,13 +54,13 @@ public class TppConnectorImpl implements TppConnector {
     @Override
     public Mono<TppDTO> getNotificationConfigByEntityId(String entityId) {
         return webClient.get()
-                .uri("/emd/tpp/entityId/{entityId}/notification-config", entityId)
+                .uri("/emd/tpp/entityId/{entityId}/full", entityId)
                 .header("X-API-Version", "1")
                 .retrieve()
                 .bodyToMono(TppDTO.class)
                 .retryWhen(WebClientRetrySpecs.connectFailureOnly())
                 .doOnError(ex -> log.error(
-                        "[TPP-CONNECTOR] GET notification config failed ({})",
+                        "[TPP-CONNECTOR] GET full TPP failed ({})",
                         ex.getClass().getSimpleName()));
     }
 }

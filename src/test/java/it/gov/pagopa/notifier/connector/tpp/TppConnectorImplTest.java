@@ -69,7 +69,7 @@ class TppConnectorImplTest {
         RecordedRequest request = mockWebServer.takeRequest();
 
         assertThat(result).isEqualTo(TPP_DTO);
-        assertThat(request.getPath()).isEqualTo("/emd/tpp/entityId/" + TPP_DTO.getEntityId() + "/notification-config");
+        assertThat(request.getPath()).isEqualTo("/emd/tpp/entityId/" + TPP_DTO.getEntityId() + "/full");
         assertThat(request.getHeader("X-API-Version")).isEqualTo("1");
     }
 
