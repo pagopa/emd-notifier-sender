@@ -5,6 +5,7 @@ import it.gov.pagopa.notifier.repository.MessageRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -16,6 +17,8 @@ import reactor.core.publisher.Mono;
 import static it.gov.pagopa.notifier.utils.TestUtils.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
+import static org.assertj.core.api.Assertions.assertThat;
+import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.ERROR_MSG_HEADER_RETRY;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = {
@@ -51,5 +54,16 @@ class NotifyErrorProducerServiceTest {
 
         Mockito.verify(notifyErrorProducer,times(0)).scheduleMessage(any());
         Mockito.verify(messageRepository,times(1)).save(any());
+    }
+
+    @Test
+    void publishManualRetry_publishesImmediatelyWithCounterZero() {
+        ArgumentCaptor<org.springframework.messaging.Message> messageCaptor =
+                ArgumentCaptor.forClass(org.springframework.messaging.Message.class);
+
+        notifyErrorProducerService.publishManualRetry(MESSAGE, TPP_DTO).block();
+
+        Mockito.verify(notifyErrorProducer).scheduleMessage(messageCaptor.capture());
+        assertThat(messageCaptor.getValue().getHeaders().get(ERROR_MSG_HEADER_RETRY)).isEqualTo(0L);
     }
 }

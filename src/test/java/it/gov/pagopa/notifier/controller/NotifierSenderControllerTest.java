@@ -1,6 +1,7 @@
 package it.gov.pagopa.notifier.controller;
 
 import it.gov.pagopa.notifier.service.NotifyServiceImpl;
+import it.gov.pagopa.notifier.dto.RetryMessageRequestDTO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -41,6 +42,30 @@ class NotifierSenderControllerTest {
                     String resultResponse = response.getResponseBody();
                     Assertions.assertNotNull(resultResponse);
                 });
+    }
+
+    @Test
+    void retryFailedMessage_returnsAcceptedAfterPublish() {
+        Mockito.when(notifyService.retryFailedMessage(any())).thenReturn(Mono.empty());
+
+        webTestClient.post()
+                .uri("/emd/notifier-sender/messages/retry")
+                .header("X-API-Version", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(new RetryMessageRequestDTO("message-1", "entity-1"))
+                .exchange()
+                .expectStatus().isAccepted();
+    }
+
+    @Test
+    void retryFailedMessage_rejectsUnsupportedApiVersion() {
+        webTestClient.post()
+                .uri("/emd/notifier-sender/messages/retry")
+                .header("X-API-Version", "99")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(new RetryMessageRequestDTO("message-1", "entity-1"))
+                .exchange()
+                .expectStatus().isBadRequest();
     }
 
 

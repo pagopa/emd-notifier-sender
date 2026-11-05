@@ -23,16 +23,10 @@ public class NotifyErrorProducer {
   }
 
   public void scheduleMessage(org.springframework.messaging.Message<NotifyErrorQueuePayload> message) {
-    String messageId = message.getPayload().getMessage().getMessageId();
-    String entityId = message.getPayload().getTppDTO().getEntityId();
-    log.info("[NOTIFY-ERROR-PRODUCER][SCHEDULE-MESSAGE] Sending message ID: {} for entityId: {} to notifyErrorQueue.", messageId, entityId);
+    log.info("[NOTIFY-ERROR-PRODUCER][SCHEDULE-MESSAGE] Publishing notification to retry queue.");
     if (!streamBridge.send("notifySender-out-0", binder, message)) {
-      throw new IllegalStateException("Kafka retry message was not accepted for " + messageId);
+      throw new IllegalStateException("Kafka retry message was not accepted");
     }
   }
 
 }
-
-
-
-

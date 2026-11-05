@@ -92,6 +92,26 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
   private static final String MESSAGE_TOPIC = "test-courtesy-message";
   private static final String MESSAGE_GROUP = "test-courtesy-consumer-group";
 
+  @Test
+  void manualRetryClaim_isAtomicAndCanBeReleased() {
+    String messageId = "MSG-MANUAL-RETRY-001";
+    String entityId = "ENTITY-MANUAL-RETRY";
+    messageRepository.insert(Message.builder()
+        .messageId(messageId)
+        .entityId(entityId)
+        .messageState(MessageState.ERROR)
+        .build()).block();
+
+    Message claimed = messageRepository.claimErroredMessage(messageId, entityId).block();
+    assertThat(claimed).isNotNull();
+    assertThat(claimed.getMessageState()).isEqualTo(MessageState.IN_PROCESS);
+    assertThat(messageRepository.claimErroredMessage(messageId, entityId).block()).isNull();
+
+    assertThat(messageRepository.releaseManualRetryClaim(messageId, entityId).block()).isTrue();
+    assertThat(messageRepository.findByMessageIdAndEntityId(messageId, entityId).block().getMessageState())
+        .isEqualTo(MessageState.ERROR);
+  }
+
   @DynamicPropertySource
   static void registerMockServerProperties(DynamicPropertyRegistry registry) {
     String mockServerUrl = "http://" + mockServer.getHost() + ":" + mockServer.getServerPort();

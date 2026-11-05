@@ -20,4 +20,7 @@ public interface NotifyErrorProducerService {
       * @return {@code Mono<String>} signaling completion, or empty if max retries exceeded
       */
      Mono<String> enqueueNotify(Message message, TppDTO tppDTO, long retry);
+
+       /** Publishes a manual retry immediately, starting a fresh retry cycle at attempt zero. */
+       Mono<Void> publishManualRetry(Message message, TppDTO tppDTO);
 }
