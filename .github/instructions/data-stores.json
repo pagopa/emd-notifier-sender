@@ -1,0 +1,52 @@
+{
+    "data_stores": [
+        {
+            "repository": "pagopa/emd-message-core",
+            "mongodb_collections": [
+                "mil.message"
+            ],
+            "postgresql_tables": []
+        },
+        {
+            "repository": "pagopa/emd-notifier-sender",
+            "mongodb_collections": [],
+            "postgresql_tables": []
+        },
+        {
+            "repository": "pagopa/emd-citizen",
+            "mongodb_collections": [
+                "mil.citizen_consents"
+            ],
+            "postgresql_tables": []
+        },
+        {
+            "repository": "pagopa/emd-tpp",
+            "mongodb_collections": [
+                "mil.tpp"
+            ],
+            "postgresql_tables": []
+        },
+        {
+            "repository": "pagopa/emd-payment-core",
+            "mongodb_collections": [
+                "mil.payment_attempt"
+            ],
+            "postgresql_tables": []
+        },
+        {
+            "repository": "pagopa/emd-ar-backoffice-bff",
+            "mongodb_collections": [],
+            "postgresql_tables": []
+        },
+        {
+            "repository": "pagopa/emd-ar-backoffice-fe",
+            "mongodb_collections": [],
+            "postgresql_tables": []
+        },
+        {
+            "repository": "pagopa/emd-ar-backoffice-admin-fe",
+            "mongodb_collections": [],
+            "postgresql_tables": []
+        }
+    ]
+}
