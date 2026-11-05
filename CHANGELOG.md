@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.5.0](https://github.com/pagopa/emd-notifier-sender/compare/v1.4.0...v1.5.0) (2026-11-05)
+
+
+### Features
+
+* [MMC-1361] message send retry endpoint ([#124](https://github.com/pagopa/emd-notifier-sender/issues/124)) ([9253e60](https://github.com/pagopa/emd-notifier-sender/commit/9253e60179a55f8ab1c50fdcf9aff59655afac0d))
+
 # [1.4.0](https://github.com/pagopa/emd-notifier-sender/compare/v1.3.4...v1.4.0) (2026-11-03)
 
 
