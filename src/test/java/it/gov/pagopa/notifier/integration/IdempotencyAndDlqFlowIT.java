@@ -192,7 +192,7 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
     setupMessageUrlMock();
 
     MessageDTO dto = createTestMessageDTO(messageId, TEST_FISCAL_CODE);
-    messageRepository.insert(messageMapper.map(dto, "PSP_TEST", "ENTITY_" + TEST_TPP_ID,
+    messageRepository.insert(messageMapper.map(dto, "ENTITY_" + TEST_TPP_ID,
         MessageState.IN_PROCESS)).block();
     sendMessageToKafka(dto, 0L);
 
