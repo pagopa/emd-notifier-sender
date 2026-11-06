@@ -152,7 +152,7 @@ public class MessageServiceImpl implements MessageService {
      * the duplicate-key error (11000) is not throttling, so it is not retried and surfaces here.</p>
      */
     private Mono<Void> persistAndNotify(MessageDTO messageDTO, TppDTO tppDTO, long retry) {
-        Message message = mapperDTOToObject.map(messageDTO, tppDTO.getIdPsp(), tppDTO.getEntityId(), MessageState.IN_PROCESS);
+        Message message = mapperDTOToObject.map(messageDTO, tppDTO.getEntityId(), MessageState.IN_PROCESS);
         return messageRepository.insert(message)
             .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
             // Only the insert is idempotent: a later notification failure must not be

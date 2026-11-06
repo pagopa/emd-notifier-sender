@@ -28,7 +28,6 @@ Core service responsible for message processing and distribution to TPPs.
 2. **Consent retrieval**: Fetches active consents for the citizen using the `recipientId`
 3. **TPP filtering**: Filters the list of citizen's TPPs to include only those that are active by calling `getTppsEnabled` of [`TppConnector`](src/main/java/it/gov/pagopa/notifier/connector/tpp/TppConnector.java)
 4. **Message mapping**: For each TPP, the message is mapped by adding:
-    - The `idPsp` of the TPP
     - The `entityId` of the TPP
     - A fixed note from configuration parameters
 5. **Notification dispatch**: Sends the message to each active TPP via `sendNotifications` method:

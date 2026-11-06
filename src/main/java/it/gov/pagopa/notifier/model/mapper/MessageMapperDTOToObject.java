@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Service
 public class MessageMapperDTOToObject {
 
-    public Message map(MessageDTO messageDTO, String idPsp, String entityId, MessageState messageState){
+    public Message map(MessageDTO messageDTO, String entityId, MessageState messageState){
         // L'_id viene generato automaticamente da Mongo: l'idempotenza è garantita dall'indice
         // unique compound (messageId, entityId), che solleva DuplicateKeyException in caso di redelivery.
         return Message.builder()
@@ -19,7 +19,6 @@ public class MessageMapperDTOToObject {
                 .title(messageDTO.getTitle())
                 .content(messageDTO.getContent())
                 .entityId(entityId)
-                .idPsp(idPsp)
                 .messageId(messageDTO.getMessageId())
                 .messageUrl(messageDTO.getMessageUrl())
                 .originId(messageDTO.getOriginId())
