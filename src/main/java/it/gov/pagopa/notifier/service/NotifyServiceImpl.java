@@ -1,9 +1,11 @@
 package it.gov.pagopa.notifier.service;
 
 
+import it.gov.pagopa.common.configuration.MongoRetrySpecs;
 import it.gov.pagopa.common.configuration.WebClientRetrySpecs;
 import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
 import it.gov.pagopa.notifier.configuration.DeleteProperties;
+import it.gov.pagopa.notifier.connector.tpp.TppConnector;
 import it.gov.pagopa.notifier.dto.*;
 import it.gov.pagopa.notifier.enums.MessageState;
 import it.gov.pagopa.notifier.model.Message;
@@ -41,6 +43,7 @@ public class NotifyServiceImpl implements NotifyService {
     private final NotifyErrorProducerService notifyErrorProducerService;
     private final MessageRepository messageRepository;
     private final DeleteProperties deleteProperties;
+    private final TppConnector tppConnector;
 
     // Reads the same property used by Spring Boot Graceful Shutdown
     // (spring.lifecycle.timeout-per-shutdown-phase), ensuring the .block() timeout
@@ -55,12 +58,14 @@ public class NotifyServiceImpl implements NotifyService {
                              MessageRepository messageRepository,
                              DeleteProperties deleteProperties,
                              MessageTemplateService messageTemplateService,
-                             WebClient.Builder webClientBuilder) {
+                             WebClient.Builder webClientBuilder,
+                             TppConnector tppConnector) {
         this.webClient = webClientBuilder.build();
         this.notifyErrorProducerService = notifyErrorProducerService;
         this.messageRepository = messageRepository;
         this.deleteProperties = deleteProperties;
         this.messageTemplateService = messageTemplateService;
+        this.tppConnector = tppConnector;
     }
 
 
@@ -143,9 +148,11 @@ public class NotifyServiceImpl implements NotifyService {
       // a single query is executed and the empty case is handled correctly in the same chain.
       Flux<Message> messagesToDelete;
       if (deleteRequestDTO.getFilterDTO().getStartDate() != null || deleteRequestDTO.getFilterDTO().getEndDate() != null) {
-          messagesToDelete = messageRepository.findByMessageRegistrationDateBetween(startDate, endDate);
+          messagesToDelete = messageRepository.findByMessageRegistrationDateBetween(startDate, endDate)
+                  .retryWhen(MongoRetrySpecs.cosmosDbThrottling());
       } else {
-          messagesToDelete = messageRepository.findAll();
+          messagesToDelete = messageRepository.findAll()
+                  .retryWhen(MongoRetrySpecs.cosmosDbThrottling());
       }
 
       long startTime = System.nanoTime();
@@ -157,13 +164,14 @@ public class NotifyServiceImpl implements NotifyService {
           .concatMap(batch -> {
               log.debug("[NOTIFY-SERVICE][DELETE-MESSAGES] Processing batch of {} messages", batch.size());
               return Flux.fromIterable(batch)
-                  .flatMap(messageRepository::delete)
+                  .flatMap(msg -> messageRepository.delete(msg).retryWhen(MongoRetrySpecs.cosmosDbThrottling()))
                   .then(Mono.just(batch.size()))
                   .delayElement(Duration.ofMillis(intervalMS));
           })
           .reduce(Integer::sum)
           .flatMap(deletedCount ->
               messageRepository.count()
+                  .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
                   .map(remainingCount -> {
                       long endTime = System.nanoTime();
                       long elapsedTime = (endTime - startTime) / 1_000_000;
@@ -171,6 +179,48 @@ public class NotifyServiceImpl implements NotifyService {
                       return new DeleteResponseDTO(deletedCount, remainingCount.intValue(), elapsedTime);
                   })
           );
+  }
+
+  @Override
+  public Mono<Void> retryFailedMessage(RetryMessageRequestDTO request) {
+      String messageId = request.getMessageId();
+      String entityId = request.getEntityId();
+
+      return messageRepository.claimErroredMessage(messageId, entityId)
+          .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
+          .switchIfEmpty(Mono.defer(() -> messageRepository.existsByMessageIdAndEntityId(messageId, entityId)
+              .flatMap(exists -> Mono.error(new ClientExceptionWithBody(
+                  exists ? HttpStatus.CONFLICT : HttpStatus.NOT_FOUND,
+                  exists ? "MESSAGE_NOT_IN_ERROR" : "MESSAGE_NOT_FOUND",
+                  exists ? "Message is not in ERROR state" : "Message not found")))))
+          .flatMap(message -> tppConnector.getNotificationConfigByEntityId(entityId)
+              .switchIfEmpty(Mono.error(new ClientExceptionWithBody(
+                  HttpStatus.BAD_GATEWAY, "TPP_CONFIG_NOT_FOUND", "TPP configuration not found")))
+              .onErrorMap(error -> error instanceof ClientExceptionWithBody
+                  ? error
+                  : new ClientExceptionWithBody(HttpStatus.BAD_GATEWAY,
+                      "TPP_CONFIG_UNAVAILABLE", "TPP configuration could not be retrieved", error))
+              .flatMap(tppDTO -> {
+                  if (!entityId.equals(tppDTO.getEntityId())) {
+                      return Mono.error(new ClientExceptionWithBody(
+                          HttpStatus.BAD_GATEWAY, "TPP_CONFIG_MISMATCH", "TPP configuration does not match entityId"));
+                  }
+                  return notifyErrorProducerService.publishManualRetry(message, tppDTO)
+                      .onErrorMap(error -> new ClientExceptionWithBody(
+                          HttpStatus.SERVICE_UNAVAILABLE, "RETRY_PUBLISH_FAILED", "Retry message could not be published", error));
+              })
+              .onErrorResume(error -> messageRepository.releaseManualRetryClaim(messageId, entityId)
+                  .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
+                  .doOnNext(released -> {
+                      if (!released) {
+                          log.warn("[NOTIFY-SERVICE][MANUAL-RETRY] Could not restore ERROR state after failed retry request");
+                      }
+                  })
+                  .onErrorResume(releaseError -> {
+                      log.error("[NOTIFY-SERVICE][MANUAL-RETRY] Failed to release retry claim ({})", releaseError.getClass().getSimpleName());
+                      return Mono.empty();
+                  })
+                  .then(Mono.error(error))));
   }
 
 
@@ -190,6 +240,7 @@ public class NotifyServiceImpl implements NotifyService {
                 message.getMessageId(), tppDTO.getTppId(), tppDTO.getEntityId(), retry);
 
         return getToken(tppDTO, message.getMessageId(), retry)
+                .switchIfEmpty(Mono.error(new IllegalStateException("Empty token response for message " + message.getMessageId())))
                 .flatMap(token -> toUrl(message, tppDTO, token, retry))
                 .onErrorResume(e -> notifyErrorProducerService.enqueueNotify(message,tppDTO,retry + 1))
                 .then();
@@ -275,6 +326,7 @@ public class NotifyServiceImpl implements NotifyService {
                 message.getMessageId(), tppDTO);
         }
         return messageTemplateService.renderTemplate(tppDTO.getMessageTemplate(), dataModel)
+            .switchIfEmpty(Mono.error(new IllegalStateException("Empty template for message " + message.getMessageId())))
             .flatMap(jsonBody -> {
                 if (log.isDebugEnabled()) {
                     log.debug("[NOTIFY-SERVICE][TO-URL] Payload MsgId {}: {}", message.getMessageId(), LogUtils.maskSensitiveData(jsonBody));
@@ -307,9 +359,9 @@ public class NotifyServiceImpl implements NotifyService {
 
                 message.setMessageState(MessageState.SENT);
                 return messageRepository.save(message)
-                    .doOnSuccess(saved -> log.info("[NOTIFY-SERVICE][TO-URL] DB Saved SENT. MsgId: {} for tpp: {}", saved.getMessageId(), tppDTO.getEntityId()))
-                    .doOnError(e -> log.error("[NOTIFY-SERVICE][TO-URL] DB Save Failed. MsgId: {} for tpp: {}", message.getMessageId(), tppDTO.getEntityId(), e))
-                    .onErrorResume(e -> Mono.just(message))
+                    .retryWhen(MongoRetrySpecs.cosmosDbThrottling())
+                        .doOnSuccess(saved -> log.info("[NOTIFY-SERVICE][TO-URL] DB Saved SENT. MsgId: {} for tpp: {}", saved.getMessageId(), tppDTO.getEntityId()))
+                        .doOnError(e -> log.error("[NOTIFY-SERVICE][TO-URL] DB Save Failed. MsgId: {} for tpp: {}", message.getMessageId(), tppDTO.getEntityId(), e))
                     .thenReturn(response);
             })
             .doOnError(error -> {

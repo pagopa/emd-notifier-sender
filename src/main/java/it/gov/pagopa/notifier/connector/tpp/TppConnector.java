@@ -19,4 +19,7 @@ public interface TppConnector {
      * @return {@code Mono<List<TppDTO>>} list of enabled TPPs matching the provided IDs
      */
     Mono<List<TppDTO>> filterEnabledList(TppIdList tppIdList);
+
+    /** Retrieves the complete TPP configuration needed to retry a notification. */
+    Mono<TppDTO> getNotificationConfigByEntityId(String entityId);
 }

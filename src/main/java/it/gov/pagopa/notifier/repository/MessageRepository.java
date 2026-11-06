@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
  * <p>Collection name: {@code messages}</p>
  *
  */
-public interface MessageRepository extends ReactiveMongoRepository<Message,String> {
+public interface MessageRepository extends ReactiveMongoRepository<Message,String>, MessageRepositoryCustom {
 
     /**
      * <p>Finds all messages for a specific recipient and entity combination.</p>
@@ -39,6 +39,8 @@ public interface MessageRepository extends ReactiveMongoRepository<Message,Strin
      * @return {@code Mono<Message>} emitting the message if found, empty otherwise
      */
     Mono<Message> findByMessageIdAndEntityId(String messageId, String entityId);
+
+    Mono<Boolean> existsByMessageIdAndEntityId(String messageId, String entityId);
 
     /**
      * <p>Finds messages with registration dates within the specified range .</p>

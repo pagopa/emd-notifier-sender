@@ -4,6 +4,7 @@ package it.gov.pagopa.notifier.service;
 
 import it.gov.pagopa.notifier.dto.DeleteRequestDTO;
 import it.gov.pagopa.notifier.dto.DeleteResponseDTO;
+import it.gov.pagopa.notifier.dto.RetryMessageRequestDTO;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import it.gov.pagopa.notifier.model.Message;
 import reactor.core.publisher.Mono;
@@ -36,4 +37,6 @@ public interface NotifyService {
      * @throws it.gov.pagopa.common.web.exception.ClientExceptionWithBody if no messages are found matching the criteria
      */
     Mono<DeleteResponseDTO> deleteMessages(DeleteRequestDTO deleteRequestDTO);
+
+    Mono<Void> retryFailedMessage(RetryMessageRequestDTO request);
 }

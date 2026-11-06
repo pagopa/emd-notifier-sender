@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,21 @@ class TppConnectorImplTest {
          List<TppDTO> consentList = resultMono.block();
          assertThat(consentList).hasSize(1);
          assertThat(consentList.get(0)).isEqualTo(TPP_DTO);
+    }
+
+    @Test
+    void getNotificationConfigByEntityId_returnsFullDtoAndUsesVersionedRoute() throws Exception {
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setBody(objectMapper.writeValueAsString(TPP_DTO))
+                .addHeader("Content-Type", "application/json"));
+
+        TppDTO result = tppConnector.getNotificationConfigByEntityId(TPP_DTO.getEntityId()).block();
+        RecordedRequest request = mockWebServer.takeRequest();
+
+        assertThat(result).isEqualTo(TPP_DTO);
+        assertThat(request.getPath()).isEqualTo("/emd/tpp/entityId/" + TPP_DTO.getEntityId() + "/full");
+        assertThat(request.getHeader("X-API-Version")).isEqualTo("1");
     }
 
     // ── retry tests ───────────────────────────────────────────────────────────

@@ -2,7 +2,6 @@ package it.gov.pagopa.notifier.service;
 
 
 import org.springframework.messaging.Message;
-import reactor.core.publisher.Flux;
 
 /**
  * <p>Service contract for consuming notification error messages from Kafka.</p>
@@ -10,13 +9,13 @@ import reactor.core.publisher.Flux;
 public interface NotifyErrorConsumerService {
 
     /**
-     * <p>Consumes and processes a flux of error queue messages.</p>
+     * <p>Consumes and processes one error queue message before the listener proceeds.</p>
      *
      * <p>Each message should contain a {@code NotifyErrorQueuePayload} with
      * the failed notification and TPP details, along with retry metadata in headers.</p>
      *
-     * @param messageFlux the reactive stream of Kafka messages to process
+     * @param message the Kafka message to process
      */
-    void execute(Flux<Message<String>> messageFlux);
+    void execute(Message<String> message);
 
 }
