@@ -341,7 +341,6 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
     return TppDTO.builder()
         .tppId(tppId)
         .entityId("ENTITY_" + tppId)
-        .idPsp("PSP_" + tppId)
         .businessName("Business " + tppId)
         .authenticationType(AuthenticationType.OAUTH2)
         .authenticationUrl("http://" + mockServer.getHost() + ":" + mockServer.getServerPort() + "/auth/token")
@@ -357,7 +356,6 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
               "recipientId": "${recipientId?json_string}",
               "triggerDateTime": "${triggerDateTime?json_string}",
               "messageUrl": "${messageUrl?json_string}",
-              "idPsp": "${idPsp?json_string}",
               "senderDescription": "${(senderDescription! == '')?then('', senderDescription?json_string)}",
               "originId": ${originId???then('"' + originId?json_string + '"', 'null')},
               "title": ${title???then('"' + title?json_string + '"', 'null')},
@@ -382,7 +380,6 @@ class IdempotencyAndDlqFlowIT extends BaseIT {
         .content("Test content for " + messageId)
         .title("Test notes")
         .associatedPayment(false)
-        .idPsp("PSP_TEST")
         .analogSchedulingDate(Instant.now().plus(Period.ofDays(5)).toString())
         .workflowType(WorkflowType.ANALOG)
         .build();

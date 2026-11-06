@@ -76,7 +76,6 @@ class MessageServiceTest {
     @Test
     void sendMessage_PartialInsertFailure_DoesNotCommitWholeMessage() {
         var secondTpp = Mockito.mock(it.gov.pagopa.notifier.dto.TppDTO.class);
-        Mockito.when(secondTpp.getIdPsp()).thenReturn("otherPsp");
         Mockito.when(secondTpp.getEntityId()).thenReturn("otherEntity");
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));

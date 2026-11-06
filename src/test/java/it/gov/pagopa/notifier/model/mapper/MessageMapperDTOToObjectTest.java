@@ -14,7 +14,7 @@ class MessageMapperDTOToObjectTest {
 
     @Test
     void map_buildsMessage() {
-        Message message = mapper.map(MESSAGE_DTO, TPP_DTO.getIdPsp(), TPP_DTO.getEntityId(), MessageState.IN_PROCESS);
+        Message message = mapper.map(MESSAGE_DTO, TPP_DTO.getEntityId(), MessageState.IN_PROCESS);
 
         // L'_id non viene valorizzato: è generato da Mongo; l'idempotenza è data dall'indice
         // unique compound (messageId, entityId).
