@@ -13,13 +13,10 @@ import java.time.LocalDateTime;
 public class TppDTO {
     private String tppId;
     private String entityId;
-    private String idPsp;
     private String businessName;
-    private String legalAddress;
     private String messageUrl;
     private String authenticationUrl;
     private AuthenticationType authenticationType;
-    private Contact contact;
     private Boolean state;
     private LocalDateTime creationDate;
     private LocalDateTime lastUpdateDate;

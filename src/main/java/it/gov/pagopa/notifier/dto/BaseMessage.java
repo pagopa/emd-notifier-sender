@@ -30,7 +30,6 @@ public class BaseMessage {
     private Boolean associatedPayment;
     private String analogSchedulingDate;
     private WorkflowType workflowType;
-    private String idPsp;
 
     public static BaseMessage extractBaseFields(Message messageDTO) {
         return BaseMessage.builder()
@@ -44,7 +43,6 @@ public class BaseMessage {
                 .title(messageDTO.getTitle())
                 .content(messageDTO.getContent())
                 .associatedPayment(messageDTO.getAssociatedPayment())
-                .idPsp(messageDTO.getIdPsp())
                 .analogSchedulingDate(messageDTO.getAnalogSchedulingDate())
                 .workflowType(messageDTO.getWorkflowType())
                 .build();

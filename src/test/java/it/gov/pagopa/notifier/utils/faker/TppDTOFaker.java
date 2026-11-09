@@ -23,7 +23,6 @@ public class TppDTOFaker {
                     "triggerDateTimeUTC": "${triggerDateTimeUTC?json_string}",
                     "triggerDateTime": "${triggerDateTime?json_string}",
                     "messageUrl": "${messageUrl?json_string}",
-                    "idPsp": "${idPsp?json_string}",
                     "senderDescription": "${(senderDescription! == '')?then('', senderDescription?json_string)}",
                     "originId": ${originId???then('"' + originId?json_string + '"', 'null')},
                     "title": ${title???then('"' + title?json_string + '"', 'null')},

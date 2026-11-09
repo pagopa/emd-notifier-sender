@@ -61,7 +61,7 @@ class MessageServiceTest {
         Mockito.when(tppService.filterEnabledList(any()))
                 .thenReturn(Mono.just(TPP_DTO_LIST));
 
-        Mockito.when(messageMapperDTOToObject.map(any(), any(), any(), any()))
+        Mockito.when(messageMapperDTOToObject.map(any(), any(), any()))
                 .thenReturn(MESSAGE);
 
         Mockito.when(messageRepository.insert(Mockito.<Message>any()))
@@ -76,13 +76,12 @@ class MessageServiceTest {
     @Test
     void sendMessage_PartialInsertFailure_DoesNotCommitWholeMessage() {
         var secondTpp = Mockito.mock(it.gov.pagopa.notifier.dto.TppDTO.class);
-        Mockito.when(secondTpp.getIdPsp()).thenReturn("otherPsp");
         Mockito.when(secondTpp.getEntityId()).thenReturn("otherEntity");
         Mockito.when(citizenService.getCitizenConsentsEnabled(any()))
                 .thenReturn(Mono.just(TPP_ID_STRING_LIST));
         Mockito.when(tppService.filterEnabledList(any()))
                 .thenReturn(Mono.just(List.of(TPP_DTO, secondTpp)));
-        Mockito.when(messageMapperDTOToObject.map(any(), any(), any(), any()))
+        Mockito.when(messageMapperDTOToObject.map(any(), any(), any()))
                 .thenReturn(MESSAGE);
         Mockito.when(sendNotificationService.sendNotify(any(), any(), anyLong()))
                 .thenReturn(Mono.empty());
@@ -108,7 +107,7 @@ class MessageServiceTest {
         Mockito.when(sendNotificationService.sendNotify(MESSAGE,TPP_DTO,0))
                 .thenReturn(Mono.empty());
 
-        Mockito.when(messageMapperDTOToObject.map(any(), any(), any(), any()))
+        Mockito.when(messageMapperDTOToObject.map(any(), any(), any()))
                 .thenReturn(MESSAGE);
 
         Mockito.when(messageRepository.insert(Mockito.<Message>any()))
@@ -128,7 +127,7 @@ class MessageServiceTest {
         Mockito.when(tppService.filterEnabledList(any()))
                 .thenReturn(Mono.just(TPP_DTO_LIST));
 
-        Mockito.when(messageMapperDTOToObject.map(any(), any(), any(), any()))
+        Mockito.when(messageMapperDTOToObject.map(any(), any(), any()))
                 .thenReturn(MESSAGE);
 
         Mockito.when(messageRepository.insert(Mockito.<Message>any()))
@@ -148,7 +147,7 @@ class MessageServiceTest {
     void sendMessage_DuplicateInProcess_ResumesNotification() {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any())).thenReturn(Mono.just(TPP_ID_STRING_LIST));
         Mockito.when(tppService.filterEnabledList(any())).thenReturn(Mono.just(TPP_DTO_LIST));
-        Mockito.when(messageMapperDTOToObject.map(any(), any(), any(), any())).thenReturn(MESSAGE);
+        Mockito.when(messageMapperDTOToObject.map(any(), any(), any())).thenReturn(MESSAGE);
         Mockito.when(messageRepository.insert(Mockito.<Message>any()))
                 .thenReturn(Mono.error(new DuplicateKeyException("duplicate natural key")));
         Message existing = Mockito.mock(Message.class);
@@ -166,7 +165,7 @@ class MessageServiceTest {
     void sendMessage_UnrelatedDuplicateWithoutMatchingRecord_DoesNotAcknowledge() {
         Mockito.when(citizenService.getCitizenConsentsEnabled(any())).thenReturn(Mono.just(TPP_ID_STRING_LIST));
         Mockito.when(tppService.filterEnabledList(any())).thenReturn(Mono.just(TPP_DTO_LIST));
-        Mockito.when(messageMapperDTOToObject.map(any(), any(), any(), any())).thenReturn(MESSAGE);
+        Mockito.when(messageMapperDTOToObject.map(any(), any(), any())).thenReturn(MESSAGE);
         Mockito.when(messageRepository.insert(Mockito.<Message>any()))
                 .thenReturn(Mono.error(new DuplicateKeyException("other index")));
         Mockito.when(messageRepository.findByMessageIdAndEntityId(any(), any()))

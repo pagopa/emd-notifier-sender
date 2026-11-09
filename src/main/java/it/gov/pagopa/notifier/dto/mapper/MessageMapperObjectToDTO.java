@@ -18,7 +18,6 @@ public class MessageMapperObjectToDTO {
                 .title(message.getTitle())
                 .content(message.getContent())
                 .associatedPayment(message.getAssociatedPayment())
-                .idPsp(message.getIdPsp())
                 .channel(message.getChannel())
                 .analogSchedulingDate(message.getAnalogSchedulingDate())
                 .workflowType(message.getWorkflowType())
