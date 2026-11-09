@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/pagopa/emd-notifier-sender/compare/v1.5.0...v1.5.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* [MMC-1316] Tpp refactor ([#120](https://github.com/pagopa/emd-notifier-sender/issues/120)) ([026cf1e](https://github.com/pagopa/emd-notifier-sender/commit/026cf1e2d2cdc342cfcb42f7d4b7c086096f7f43))
+
 # [1.5.0](https://github.com/pagopa/emd-notifier-sender/compare/v1.4.0...v1.5.0) (2026-11-05)
 
 
