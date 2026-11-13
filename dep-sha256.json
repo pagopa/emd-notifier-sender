@@ -239,11 +239,11 @@
       "sha256": "H9_TaKLYg644iRWL5LXswfpGhZ3QcFEY9akN-MHPPvw="
     },
     {
-      "id": "org.springframework:spring-webflux:jar:7.0.8",
+      "id": "org.springframework:spring-webflux:jar:7.0.9",
       "artifactId": "spring-webflux",
       "groupId": "org.springframework",
-      "version": "7.0.8",
-      "sha256": "PkjbnDDTdorBSJjPrUutIfTPxqiXmhIHG3XnJRQ-Xrk="
+      "version": "7.0.9",
+      "sha256": "cM41s7UHwrVxHa94r8zbXXgUL90_wa0HkCV2Vb1nlNo="
     },
     {
       "id": "org.springframework.boot:spring-boot-web-server:jar:4.1.0",
