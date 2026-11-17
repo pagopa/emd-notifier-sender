@@ -2,6 +2,7 @@ package it.gov.pagopa.common.reactive.kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.kafka.utils.KafkaConstants;
+import it.gov.pagopa.common.reactive.kafka.exception.NonRetryableMessageException;
 import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
 import it.gov.pagopa.common.reactive.utils.PerformanceLogger;
 import it.gov.pagopa.common.utils.CommonUtilities;
@@ -104,6 +105,16 @@ public abstract class BaseKafkaConsumer<T, R> {
                             .switchIfEmpty(Mono.error(new UncommittableError("Empty Kafka processing result; offset must not be committed")))
                             .doOnNext(r -> doFinally(message, r.result, ctx));
                 })
+                .onErrorResume(error -> error instanceof NonRetryableMessageException
+                                || error instanceof ClassCastException || error instanceof NullPointerException,
+                        error -> {
+                            log.error("[KAFKA_DISCARD][{}] Non-processable message DISCARDED; offset will be acknowledged; no automatic recovery. topic={} group={} partition={} offset={} cause={}",
+                                    getFlowName(),
+                                    message.getHeaders().getOrDefault(KafkaHeaders.RECEIVED_TOPIC, "unknown"),
+                                    message.getHeaders().getOrDefault(KafkaHeaders.GROUP_ID, "unknown"),
+                                    defaultAck.partition(), defaultAck.offset(), error.getClass().getSimpleName(), error);
+                            return Mono.just(defaultAck);
+                        })
                 .onErrorMap(e -> e instanceof UncommittableError ? e
                         : new UncommittableError("Kafka message processing failed", e instanceof Exception ex ? ex : new RuntimeException(e)))
                 .retryWhen(Retry.backoff(Long.MAX_VALUE, Duration.ofSeconds(1))
@@ -130,6 +141,36 @@ public abstract class BaseKafkaConsumer<T, R> {
         return getClass().getSimpleName();
     }
 
+    /** Accept mapped integral headers and legacy UTF-8 decimal headers without unsafe casts. */
+    protected long readRetryHeader(Message<?> message) {
+        Object value = message.getHeaders().get(KafkaConstants.ERROR_MSG_HEADER_RETRY);
+        if (value == null) {
+            throw new NonRetryableMessageException("Missing retry header");
+        }
+        long retry;
+        if (value instanceof Long || value instanceof Integer || value instanceof Short || value instanceof Byte) {
+            retry = ((Number) value).longValue();
+        } else {
+            String text;
+            if (value instanceof byte[] bytes) {
+                text = new String(bytes, StandardCharsets.UTF_8);
+            } else if (value instanceof String string) {
+                text = string;
+            } else {
+                throw new NonRetryableMessageException("Unsupported retry header type: " + value.getClass().getName());
+            }
+            try {
+                retry = Long.parseLong(text.strip());
+            } catch (NumberFormatException exception) {
+                throw new NonRetryableMessageException("Retry header is not a valid integer");
+            }
+        }
+        if (retry < 0 || retry == Long.MAX_VALUE) {
+            throw new NonRetryableMessageException("Retry header is outside the supported range");
+        }
+        return retry;
+    }
+
     /** It will deserialize the message and then call the {@link #execute(Object, Message, Map)} method */
     protected Mono<R> execute(Message<String> message, Map<String, Object> ctx){
         return Mono.just(message)
@@ -149,7 +190,7 @@ public abstract class BaseKafkaConsumer<T, R> {
     protected T deserializeMessage(Message<String> message) {
         T result = CommonUtilities.deserializeMessage(message, getObjectReader(), onDeserializationError(message));
         if (result == null) {
-            throw new UncommittableError("Cannot deserialize Kafka message; offset must not be committed");
+            throw new NonRetryableMessageException("Cannot deserialize Kafka message or payload is JSON null");
         }
         return result;
     }
