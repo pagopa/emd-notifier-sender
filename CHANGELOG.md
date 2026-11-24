@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2](https://github.com/pagopa/emd-notifier-sender/compare/v1.5.1...v1.5.2) (2026-11-24)
+
+
+### Bug Fixes
+
+* [MMC-1430] message in error retry loop ([#126](https://github.com/pagopa/emd-notifier-sender/issues/126)) ([7ff2c32](https://github.com/pagopa/emd-notifier-sender/commit/7ff2c32d61790c6b8ad69bc49f602138e756e7d0))
+
 ## [1.5.1](https://github.com/pagopa/emd-notifier-sender/compare/v1.5.0...v1.5.1) (2026-11-09)
 
 
