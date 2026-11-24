@@ -3,20 +3,18 @@ package it.gov.pagopa.notifier.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
-import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
+import it.gov.pagopa.common.reactive.kafka.exception.NonRetryableMessageException;
 import it.gov.pagopa.notifier.model.Message;
 import it.gov.pagopa.notifier.dto.NotifyErrorQueuePayload;
 import it.gov.pagopa.notifier.dto.TppDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.function.Consumer;
-
-import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
 
 /**
  * <p>Implementation of {@link NotifyErrorConsumerService} extending {@link BaseKafkaConsumer}.</p>
@@ -54,7 +52,7 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
      *   <li>Returns processing status message</li>
      * </ol>
      *
-     * <p>Messages without retry header are logged and marked as not processed.</p>
+     * <p>Invalid payloads and retry headers are logged and discarded by the base consumer.</p>
      *
      * @param payload the deserialized notification payload
      * @param message the original Spring message with headers
@@ -63,19 +61,20 @@ public class NotifyErrorConsumerServiceImpl extends BaseKafkaConsumer<NotifyErro
      */
     @Override
     protected Mono<String> execute(NotifyErrorQueuePayload payload, org.springframework.messaging.Message<String> message, Map<String, Object> ctx) {
+        if (payload == null || payload.getMessage() == null || payload.getTppDTO() == null) {
+            return Mono.error(new NonRetryableMessageException("Missing message or tppDTO in notification payload"));
+        }
         TppDTO tppDTO = payload.getTppDTO();
         Message notification = payload.getMessage();
+        if (!StringUtils.hasText(notification.getMessageId()) || !StringUtils.hasText(tppDTO.getEntityId())
+                || tppDTO.getTokenSection() == null) {
+            return Mono.error(new NonRetryableMessageException("Missing messageId, entityId or tokenSection in notification payload"));
+        }
         String notificationId = notification.getMessageId();
         String entityId = tppDTO.getEntityId();
+        long retry = readRetryHeader(message);
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Queue message received with ID: {} and payload: {}", notificationId, notification);
-      
-        MessageHeaders headers = message.getHeaders();
-        Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
 
-        if (retry == null){
-            log.warn("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE]Missing header: ERROR_MSG_HEADER_RETRY for message ID: {}", notificationId);
-            return Mono.error(new UncommittableError("Missing retry header for notification " + notificationId));
-        }
 
         log.info("[NOTIFY-ERROR-CONSUMER-SERVICE][EXECUTE] Attempting to send message ID: {} to TPP: {} at retry attempt: {}", notificationId, entityId, retry);
         // FIX Graceful Shutdown: rimosso .subscribe() fire-and-forget.

@@ -3,20 +3,18 @@ package it.gov.pagopa.notifier.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import it.gov.pagopa.common.reactive.kafka.consumer.BaseKafkaConsumer;
-import it.gov.pagopa.common.reactive.kafka.exception.UncommittableError;
+import it.gov.pagopa.common.reactive.kafka.exception.NonRetryableMessageException;
 import it.gov.pagopa.notifier.dto.MessageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.function.Consumer;
-
-import static it.gov.pagopa.notifier.constants.NotifierSenderConstants.MessageHeader.*;
 
 /**
  * <p>Implementation of {@link MessageCoreConsumerService}.</p>
@@ -54,7 +52,7 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
      * <p>Flow:</p>
      * <ol>
      *   <li>Extract message ID and retry count from headers.</li>
-     *   <li>Validate presence of retry header; skip processing if missing.</li>
+     *   <li>Validate payload and retry header; invalid records are discarded by the base consumer.</li>
      *   <li>Delegate to {@link MessageServiceImpl#processMessage(MessageDTO, long)} for domain logic.</li>
      *   <li>Return processing status message.</li>
      * </ol>
@@ -66,16 +64,15 @@ public class MessageCoreConsumerServiceImpl extends BaseKafkaConsumer<MessageDTO
      */
     @Override
     protected Mono<String> execute(MessageDTO messageDTO, Message<String> message, Map<String, Object> ctx) {
+        if (messageDTO == null || !StringUtils.hasText(messageDTO.getMessageId())
+                || !StringUtils.hasText(messageDTO.getRecipientId())) {
+            return Mono.error(new NonRetryableMessageException("Missing messageId or recipientId in message payload"));
+        }
         String messageId = messageDTO.getMessageId();
-        MessageHeaders headers = message.getHeaders();
-        Long retry = (Long) headers.get(ERROR_MSG_HEADER_RETRY);
+        long retry = readRetryHeader(message);
 
         log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Received message with ID: {} and payload: {}", messageId, messageDTO);
 
-        if (retry == null) {
-            log.warn("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] No retry header found. Message {} will not be processed.", messageId);
-            return Mono.error(new UncommittableError("Missing retry header for message " + messageId));
-        }
 
         log.info("[MESSAGE-CORE-CONSUMER-SERVICE][EXECUTE] Processing attempt {} for message ID: {}", retry, messageId);
         // FIX Graceful Shutdown: rimosso .subscribe() fire-and-forget.
